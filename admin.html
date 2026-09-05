@@ -173,8 +173,19 @@
           </div>
           
           <div class="form-group">
-            <label>URL Immagine Copertina</label>
-            <input type="text" id="edit-event-image" placeholder="es. https://mio-sito.com/immagine.jpg (lascia vuoto per default)" />
+            <label>Copertina Evento</label>
+            <div id="image-drop-zone" class="image-drop-zone">
+              <div class="drop-zone-inner" id="drop-zone-inner">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <p>Trascina qui la foto dell'evento</p>
+                <span>oppure</span>
+                <label for="image-file-input" class="btn btn-ghost btn-sm" style="cursor:pointer; margin-top: 0.5rem;">Sfoglia file</label>
+                <input type="file" id="image-file-input" accept="image/*" style="display:none;" />
+              </div>
+              <img id="drop-zone-preview" src="" alt="Preview" style="display:none; width:100%; height:100%; object-fit:cover; border-radius:8px;" />
+            </div>
+            <input type="hidden" id="edit-event-image" />
+            <button type="button" id="remove-cover-btn" onclick="removeCoverImage()" style="display:none; margin-top:0.5rem; font-size:0.75rem; color:#ff4444; background:none; border:none; cursor:pointer;">✕ Rimuovi immagine</button>
           </div>
 
           <h4 class="sub-section-title">Gestione Rounds (Prezzi e Attivazione)</h4>

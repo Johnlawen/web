@@ -64,6 +64,59 @@ navBtns.forEach(btn => {
   });
 });
 
+// ===== IMAGE DROP ZONE =====
+function compressAndSetImage(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const maxW = 1200;
+      const scale = Math.min(1, maxW / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      document.getElementById('edit-event-image').value = dataUrl;
+      const preview = document.getElementById('drop-zone-preview');
+      preview.src = dataUrl;
+      preview.style.display = 'block';
+      document.getElementById('drop-zone-inner').style.display = 'none';
+      document.getElementById('remove-cover-btn').style.display = 'inline-block';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeCoverImage() {
+  document.getElementById('edit-event-image').value = '';
+  document.getElementById('drop-zone-preview').style.display = 'none';
+  document.getElementById('drop-zone-preview').src = '';
+  document.getElementById('drop-zone-inner').style.display = 'flex';
+  document.getElementById('remove-cover-btn').style.display = 'none';
+}
+
+function initDropZone() {
+  const zone = document.getElementById('image-drop-zone');
+  const fileInput = document.getElementById('image-file-input');
+  if (!zone || !fileInput) return;
+  zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    compressAndSetImage(e.dataTransfer.files[0]);
+  });
+  zone.addEventListener('click', (e) => {
+    if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'LABEL') fileInput.click();
+  });
+  fileInput.addEventListener('change', () => { compressAndSetImage(fileInput.files[0]); fileInput.value = ''; });
+}
+
+document.addEventListener('DOMContentLoaded', initDropZone);
+
 // ===== EDITOR TOGGLE =====
 function openEventEditor(eventName = '') {
   document.getElementById('event-editor').style.display = 'block';
@@ -74,7 +127,18 @@ function openEventEditor(eventName = '') {
     const ev = appData.events.find(e => e.name === eventName);
     if(ev) {
       document.getElementById('edit-event-date').value = ev.date;
-      document.getElementById('edit-event-image').value = ev.image || '';
+      const img = ev.image || '';
+      document.getElementById('edit-event-image').value = img;
+      // Show preview if there's a saved image
+      const preview = document.getElementById('drop-zone-preview');
+      const inner = document.getElementById('drop-zone-inner');
+      if(img) {
+        preview.src = img; preview.style.display = 'block'; inner.style.display = 'none';
+        document.getElementById('remove-cover-btn').style.display = 'inline-block';
+      } else {
+        preview.src = ''; preview.style.display = 'none'; inner.style.display = 'flex';
+        document.getElementById('remove-cover-btn').style.display = 'none';
+      }
     }
     document.getElementById('edit-event-original-name').value = eventName;
   } else {
@@ -82,6 +146,9 @@ function openEventEditor(eventName = '') {
     document.getElementById('edit-event-name').value = '';
     document.getElementById('edit-event-date').value = '';
     document.getElementById('edit-event-image').value = '';
+    document.getElementById('drop-zone-preview').style.display = 'none';
+    document.getElementById('drop-zone-inner').style.display = 'flex';
+    document.getElementById('remove-cover-btn').style.display = 'none';
     document.getElementById('edit-event-original-name').value = '';
   }
 
