@@ -1,29 +1,49 @@
 // ===== STATE MANAGEMENT =====
-let appData = JSON.parse(localStorage.getItem('luccaAdminData')) || {
-  revenue: 2150,
-  ticketsSold: 135,
+let appData = {
+  revenue: 0,
+  ticketsSold: 0,
   rounds: {
-    r1: { name: 'Early Tickets', price: 10, limit: 100, sold: 100, active: true },
-    r2: { name: 'Round 2', price: 15, limit: 200, sold: 30, active: true },
+    r1: { name: 'Early Tickets', price: 10, limit: 100, sold: 0, active: true },
+    r2: { name: 'Round 2', price: 15, limit: 200, sold: 0, active: true },
     r3: { name: 'Last Round', price: 20, limit: 300, sold: 0, active: true }
   },
-  orders: [
-    { date: '03/09/2026', name: 'Marco Rossi', email: 'marco@gmail.com', round: 'Round 2', qty: 2, total: 30 },
-    { date: '02/09/2026', name: 'Giulia Bianchi', email: 'giulia.b@gmail.com', round: 'Early Tickets', qty: 4, total: 40 },
-    { date: '02/09/2026', name: 'Luca Verdi', email: 'l.verdi@gmail.com', round: 'Early Tickets', qty: 1, total: 10 },
-  ]
+  orders: []
 };
 
-// Ensure all orders have id, payment type and used count
-appData.orders = appData.orders.map(o => ({
-  ...o,
-  id: o.id || 'ORD-' + Math.floor(Math.random() * 90000 + 10000),
-  payment: o.payment || 'Online',
-  used: o.used || 0
-}));
+async function loadData() {
+  try {
+    const res = await fetch('/api/get-data');
+    if (res.ok) {
+      appData = await res.json();
+      
+      // Ensure all orders have id, payment type and used count
+      appData.orders = appData.orders.map(o => ({
+        ...o,
+        id: o.id || 'ORD-' + Math.floor(Math.random() * 90000 + 10000),
+        payment: o.payment || 'Online',
+        used: o.used || 0
+      }));
+      
+      renderDashboard();
+    }
+  } catch (error) {
+    console.error('Failed to load data', error);
+  }
+}
+
+async function saveSettingsToBackend() {
+  try {
+    await fetch('/api/save-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'settings', rounds: appData.rounds })
+    });
+  } catch(e) { console.error(e); }
+}
 
 function saveState() {
-  localStorage.setItem('luccaAdminData', JSON.stringify(appData));
+  // localStorage.setItem('luccaAdminData', JSON.stringify(appData));
+  saveSettingsToBackend();
   renderDashboard();
 }
 
@@ -142,7 +162,8 @@ function renderDashboard() {
 }
 
 // Initial Render
-renderDashboard();
+loadData();
+setInterval(loadData, 10000); // Auto refresh every 10s
 
 // ===== MANUAL TICKET (CASSA) =====
 function generateManualTicket() {
@@ -176,7 +197,17 @@ function generateManualTicket() {
   appData.ticketsSold += qty;
   appData.rounds[roundKey].sold += qty;
 
-  saveState();
+  // Send to backend
+  fetch('/api/save-order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'manual', order: newOrder })
+  }).then(res => res.json()).then(data => {
+     if(data.success) {
+       appData = data.data;
+       renderDashboard();
+     }
+  }).catch(e => console.error(e));
 
   // Show QR
   document.getElementById('manual-qr-container').style.display = 'flex';

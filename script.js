@@ -100,7 +100,7 @@ function changeQty(delta) {
 }
 
 // Form submit
-document.getElementById('checkout-form').addEventListener('submit', function(e) {
+document.getElementById('checkout-form').addEventListener('submit', async function(e) {
   e.preventDefault();
   const nome = document.getElementById('input-nome').value.trim();
   const cognome = document.getElementById('input-cognome').value.trim();
@@ -115,18 +115,11 @@ document.getElementById('checkout-form').addEventListener('submit', function(e) 
     alert('Per favore compila tutti i campi obbligatori.'); return;
   }
   
-  // Save to Admin panel localStorage
-  let adminData = JSON.parse(localStorage.getItem('luccaAdminData')) || {
-    revenue: 2150, ticketsSold: 135, rounds: {}, orders: []
-  };
+  const submitBtn = this.querySelector('button[type="submit"]');
+  const originalText = submitBtn.textContent;
+  submitBtn.textContent = 'ATTENDERE...';
+  submitBtn.disabled = true;
 
-  // Check if person already has a ticket
-  const existingOrder = adminData.orders.find(o => o.email.toLowerCase() === email.toLowerCase());
-  if (existingOrder) {
-    alert('Hai già prenotato un biglietto con questa email. Ogni persona può ottenere solo un biglietto.');
-    return;
-  }
-  
   const roundName = document.getElementById('modal-event-name').textContent.split(' - ')[1] || document.getElementById('modal-event-name').textContent || 'Ingresso';
   
   const newOrder = {
@@ -141,24 +134,29 @@ document.getElementById('checkout-form').addEventListener('submit', function(e) 
     payment: 'Da Pagare',
     used: 0
   };
-  
-  adminData.orders.unshift(newOrder);
-  // Add to tickets sold, but not to revenue (since they pay at door)
-  adminData.ticketsSold += qty;
-  
-  if (adminData.rounds) {
-    for (const key in adminData.rounds) {
-       if (adminData.rounds[key].name === roundName) {
-           adminData.rounds[key].sold += qty;
-           break;
-       }
+
+  try {
+    const res = await fetch('/api/save-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'book', email: email, order: newOrder })
+    });
+    
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.error || 'Errore durante la prenotazione.');
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
+      return;
     }
+    
+    this.style.display = 'none';
+    document.getElementById('modal-success').style.display = 'block';
+  } catch(err) {
+    alert('Errore di connessione. Riprova.');
+    submitBtn.textContent = originalText;
+    submitBtn.disabled = false;
   }
-
-  localStorage.setItem('luccaAdminData', JSON.stringify(adminData));
-
-  this.style.display = 'none';
-  document.getElementById('modal-success').style.display = 'block';
 });
 
 // Close on overlay click / ESC
