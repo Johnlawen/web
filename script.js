@@ -191,9 +191,12 @@ async function loadEvents() {
     track.innerHTML = '';
     
     if (!data.events || data.events.length === 0) {
-      track.innerHTML = '<p style="text-align:center; width:100%; color:var(--text-muted); font-size:1.2rem; padding: 3rem;">Nessun evento in programma al momento.</p>';
+      track.style.justifyContent = 'center';
+      track.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:1.2rem; padding: 3rem 0; margin: 0 auto; width: 100%;">Nessun evento in programma al momento.</p>';
       return;
     }
+    
+    track.style.justifyContent = 'flex-start'; // Reset for when events exist
     
     const images = ['crowd.png', 'hero-tower.png', 'event3.png'];
     
