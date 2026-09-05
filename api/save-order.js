@@ -100,34 +100,52 @@ module.exports = async function handler(req, res) {
       if (process.env.RESEND_API_KEY) {
         try {
           const { Resend } = require('resend');
+          const QRCode = require('qrcode');
           const resend = new Resend(process.env.RESEND_API_KEY);
           const refundUrl = `https://luccagroove.com/refund-ticket?orderId=${order.id}`;
+
+          // Generate QR code as base64 data URL
+          const qrData = `LUCCA GROOVE\nID: ${order.id}\nNome: ${order.name}\nRound: ${order.round}\nTotale: €${order.total}`;
+          const qrDataUrl = await QRCode.toDataURL(qrData, {
+            width: 250,
+            margin: 2,
+            color: { dark: '#000000', light: '#ffffff' }
+          });
           
           await resend.emails.send({
             from: 'Lucca Groove <onboarding@resend.dev>',
             to: email,
-            subject: `Il tuo biglietto per Lucca Groove - ${order.round}`,
+            subject: `Il tuo biglietto per Lucca Groove – ${order.round}`,
             html: `
-              <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #000; color: #fff; padding: 20px; border-radius: 8px;">
-                <h1 style="color: #FF6B00; text-align: center; letter-spacing: 0.1em;">LUCCA GROOVE</h1>
-                <div style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; margin-top: 20px;">
-                  <h2 style="margin-top: 0; color: #fff;">✅ Conferma Prenotazione</h2>
-                  <p style="color: #eee;">Ciao <strong>${order.name}</strong>,</p>
-                  <p style="color: #eee;">Il tuo biglietto per Lucca Groove è confermato!</p>
+              <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#000;color:#fff;padding:20px;border-radius:8px;">
+                <h1 style="color:#FF6B00;text-align:center;letter-spacing:0.1em;font-size:2rem;margin-bottom:4px;">LUCCA GROOVE</h1>
+                <p style="text-align:center;color:#888;font-size:0.8rem;letter-spacing:0.2em;margin-bottom:24px;">LUCCA, ITALIA</p>
+                
+                <div style="background:#111;padding:24px;border-radius:12px;border:1px solid #333;">
+                  <h2 style="margin-top:0;color:#fff;font-size:1.2rem;">✅ Prenotazione Confermata</h2>
+                  <p style="color:#eee;">Ciao <strong>${order.name}</strong>, il tuo biglietto è pronto!</p>
                   
-                  <div style="margin: 20px 0; padding: 15px; border-left: 4px solid #FF6B00; background: #222;">
-                    <p style="margin: 5px 0; color: #eee;"><strong>Tipologia:</strong> ${order.round}</p>
-                    <p style="margin: 5px 0; color: #eee;"><strong>ID Ordine:</strong> ${order.id}</p>
-                    <p style="margin: 5px 0; color: #eee;"><strong>Totale da pagare:</strong> €${order.total}</p>
+                  <div style="margin:20px 0;padding:16px;border-left:4px solid #FF6B00;background:#1a1a1a;border-radius:0 8px 8px 0;">
+                    <p style="margin:4px 0;color:#eee;font-size:0.95rem;"><strong>Evento:</strong> ${order.round}</p>
+                    <p style="margin:4px 0;color:#eee;font-size:0.95rem;"><strong>ID Ordine:</strong> <span style="color:#FF6B00;font-family:monospace;">${order.id}</span></p>
+                    <p style="margin:4px 0;color:#eee;font-size:0.95rem;"><strong>Intestatario:</strong> ${order.name}</p>
+                    <p style="margin:4px 0;color:#eee;font-size:0.95rem;"><strong>Da pagare all'ingresso:</strong> <strong style="color:#FF6B00;">€${order.total}</strong></p>
                   </div>
-                  
-                  <p style="color: #aaa;">Mostra questa email o l'ID ordine all'ingresso per pagare ed entrare.</p>
-                  <p style="color: #eee;">Ci vediamo a Lucca Groove! 🎵</p>
 
-                  <hr style="border-color: #333; margin: 20px 0;" />
-                  <p style="color: #777; font-size: 0.85rem;">Non puoi venire? Puoi richiedere un rimborso entro 48 ore dall'evento:</p>
-                  <a href="${refundUrl}" style="display:inline-block;margin-top:8px;padding:10px 20px;background:#333;color:#fff;border-radius:4px;text-decoration:none;font-size:0.85rem;">Richiedi Rimborso</a>
+                  <!-- QR CODE -->
+                  <div style="text-align:center;margin:24px 0;">
+                    <p style="color:#aaa;font-size:0.8rem;letter-spacing:0.15em;margin-bottom:12px;">MOSTRA QUESTO QR CODE ALL'INGRESSO</p>
+                    <img src="${qrDataUrl}" alt="QR Code Biglietto" width="200" height="200" style="background:#fff;padding:10px;border-radius:12px;display:block;margin:0 auto;" />
+                    <p style="color:#666;font-size:0.75rem;margin-top:10px;font-family:monospace;">${order.id}</p>
+                  </div>
+
+                  <hr style="border-color:#333;margin:20px 0;" />
+                  <p style="color:#aaa;font-size:0.8rem;line-height:1.6;">Hai ricevuto questo biglietto perché hai effettuato una prenotazione su luccagroove.com</p>
+                  <p style="color:#777;font-size:0.8rem;margin-top:12px;">Non puoi venire? Richiedilo entro 48 ore:</p>
+                  <a href="${refundUrl}" style="display:inline-block;margin-top:8px;padding:10px 20px;background:#222;color:#fff;border-radius:6px;text-decoration:none;font-size:0.85rem;border:1px solid #444;">🔄 Richiedi Rimborso</a>
                 </div>
+                
+                <p style="text-align:center;color:#555;font-size:0.75rem;margin-top:20px;">© 2025 Lucca Groove · <a href="https://www.instagram.com/lucca_groove/" style="color:#FF6B00;">@lucca_groove</a></p>
               </div>
             `
           });

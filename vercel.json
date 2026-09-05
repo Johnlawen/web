@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/refund-ticket", "destination": "/refund-ticket.html" },
+    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/scanner", "destination": "/scanner.html" }
+  ]
+}
