@@ -177,3 +177,66 @@ window.changeQty = changeQty;
 window.openRoundsModal = openRoundsModal;
 window.closeRoundsModal = closeRoundsModal;
 window.selectRoundAndCheckout = selectRoundAndCheckout;
+
+// Fetch and render events dynamically on page load
+async function loadEvents() {
+  const track = document.getElementById('events-track');
+  if (!track) return;
+  
+  try {
+    const res = await fetch('/api/get-data');
+    if (!res.ok) throw new Error('Failed to fetch data');
+    const data = await res.json();
+    
+    track.innerHTML = '';
+    
+    if (!data.events || data.events.length === 0) {
+      track.innerHTML = '<p style="text-align:center; width:100%; color:var(--text-muted); font-size:1.2rem; padding: 3rem;">Nessun evento in programma al momento.</p>';
+      return;
+    }
+    
+    const images = ['crowd.png', 'hero-tower.png', 'event3.png'];
+    
+    data.events.forEach((ev, idx) => {
+      if (!ev.active) return;
+      
+      const dateParts = ev.date.split(' ');
+      const day = dateParts[0] || '00';
+      const month = (dateParts[1] || 'MESE').substring(0,3).toUpperCase();
+      const year = dateParts[2] || new Date().getFullYear();
+      
+      const imgSrc = images[idx % images.length];
+      
+      const eventHtml = `
+        <div class="event-card">
+          <div class="event-img-wrap">
+            <img src="${imgSrc}" alt="${ev.name}" class="event-img" onerror="this.src='crowd.png'"/>
+            <div class="event-date-badge">
+              <span class="date-day">${day}</span>
+              <span class="date-month">${month}</span>
+              <span class="date-year">${year}</span>
+            </div>
+          </div>
+          <div class="event-content">
+            <h3 class="event-title">LUCCA GROOVE<br /><span class="orange">${ev.name}</span></h3>
+            <p class="event-location">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              LUCCA, ITALIA
+            </p>
+            <button class="btn btn-outline btn-full event-btn" onclick="openRoundsModal('${ev.name}')">
+              ACQUISTA BIGLIETTO
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+            </button>
+          </div>
+        </div>
+      `;
+      track.insertAdjacentHTML('beforeend', eventHtml);
+    });
+    
+  } catch (err) {
+    console.error(err);
+    track.innerHTML = '<p style="text-align:center; width:100%; color:var(--red); font-size:1.2rem; padding: 3rem;">Errore durante il caricamento degli eventi.</p>';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', loadEvents);
