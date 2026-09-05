@@ -72,12 +72,16 @@ function openEventEditor(eventName = '') {
     document.getElementById('editor-event-title').textContent = 'Modifica Evento: ' + eventName;
     document.getElementById('edit-event-name').value = eventName;
     const ev = appData.events.find(e => e.name === eventName);
-    if(ev) document.getElementById('edit-event-date').value = ev.date;
+    if(ev) {
+      document.getElementById('edit-event-date').value = ev.date;
+      document.getElementById('edit-event-image').value = ev.image || '';
+    }
     document.getElementById('edit-event-original-name').value = eventName;
   } else {
     document.getElementById('editor-event-title').textContent = 'Nuovo Evento';
     document.getElementById('edit-event-name').value = '';
     document.getElementById('edit-event-date').value = '';
+    document.getElementById('edit-event-image').value = '';
     document.getElementById('edit-event-original-name').value = '';
   }
 
@@ -119,6 +123,7 @@ function saveRounds() {
 function saveEventDetails() {
   const newName = document.getElementById('edit-event-name').value.trim();
   const newDate = document.getElementById('edit-event-date').value.trim();
+  const newImage = document.getElementById('edit-event-image').value.trim();
   const originalName = document.getElementById('edit-event-original-name').value;
   
   if (!newName || !newDate) {
@@ -131,11 +136,13 @@ function saveEventDetails() {
     if(evIndex !== -1) {
       appData.events[evIndex].name = newName;
       appData.events[evIndex].date = newDate;
+      appData.events[evIndex].image = newImage;
     }
   } else {
     appData.events.push({
       name: newName,
       date: newDate,
+      image: newImage,
       active: true
     });
   }

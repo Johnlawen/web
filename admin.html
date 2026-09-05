@@ -157,19 +157,24 @@
       <!-- EVENT EDITOR FORM -->
       <div class="panel editor-panel" id="event-editor" style="display:none; margin-top:2rem;">
         <div class="panel-header">
-          <h3 id="editor-event-title">Modifica Evento: SUMMER OPENING</h3>
+          <h3 id="editor-event-title">Modifica Evento</h3>
           <button class="btn btn-ghost btn-sm" onclick="closeEventEditor()">Chiudi</button>
         </div>
         <div class="panel-body">
           <div class="form-row">
             <div class="form-group">
-              <label>Nome Evento</label>
-              <input type="text" id="edit-event-name" value="SUMMER OPENING" />
+              <label>Nome Evento *</label>
+              <input type="text" id="edit-event-name" placeholder="es. SUMMER OPENING" />
             </div>
             <div class="form-group">
-              <label>Data</label>
-              <input type="text" id="edit-event-date" value="21 Giugno 2025" />
+              <label>Data *</label>
+              <input type="text" id="edit-event-date" placeholder="es. 21 Giugno 2025" />
             </div>
+          </div>
+          
+          <div class="form-group">
+            <label>URL Immagine Copertina</label>
+            <input type="text" id="edit-event-image" placeholder="es. https://mio-sito.com/immagine.jpg (lascia vuoto per default)" />
           </div>
 
           <h4 class="sub-section-title">Gestione Rounds (Prezzi e Attivazione)</h4>

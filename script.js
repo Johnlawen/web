@@ -256,7 +256,7 @@ async function loadEvents() {
       const month = (dateParts[1] || 'MESE').substring(0,3).toUpperCase();
       const year = dateParts[2] || new Date().getFullYear();
       
-      const imgSrc = images[idx % images.length];
+      const imgSrc = ev.image || images[idx % images.length];
       
       const eventHtml = `
         <div class="event-card">
