@@ -64,7 +64,8 @@ module.exports = async function handler(req, res) {
     
     // Save settings from admin panel
     if (action === 'settings') {
-      data.rounds = req.body.rounds;
+      if (req.body.rounds) data.rounds = req.body.rounds;
+      if (req.body.events) data.events = req.body.events;
       await redis.set('luccaAdminData', JSON.stringify(data));
       return res.status(200).json({ success: true, data });
     }

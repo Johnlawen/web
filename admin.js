@@ -36,7 +36,7 @@ async function saveSettingsToBackend() {
     await fetch('/api/save-order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'settings', rounds: appData.rounds })
+      body: JSON.stringify({ action: 'settings', rounds: appData.rounds, events: appData.events })
     });
   } catch(e) { console.error(e); }
 }
@@ -65,12 +65,20 @@ navBtns.forEach(btn => {
 });
 
 // ===== EDITOR TOGGLE =====
-function openEventEditor(eventName) {
+function openEventEditor(eventName = '') {
   document.getElementById('event-editor').style.display = 'block';
   
   if(eventName) {
     document.getElementById('editor-event-title').textContent = 'Modifica Evento: ' + eventName;
     document.getElementById('edit-event-name').value = eventName;
+    const ev = appData.events.find(e => e.name === eventName);
+    if(ev) document.getElementById('edit-event-date').value = ev.date;
+    document.getElementById('edit-event-original-name').value = eventName;
+  } else {
+    document.getElementById('editor-event-title').textContent = 'Nuovo Evento';
+    document.getElementById('edit-event-name').value = '';
+    document.getElementById('edit-event-date').value = '';
+    document.getElementById('edit-event-original-name').value = '';
   }
 
   // Load current values
@@ -104,7 +112,50 @@ function saveRounds() {
   appData.rounds.r3.limit = parseInt(document.getElementById('limit-r3').value);
   appData.rounds.r3.active = document.getElementById('toggle-r3').checked;
 
+  // Note: saveState() calls saveSettingsToBackend()
   saveState();
+}
+
+function saveEventDetails() {
+  const newName = document.getElementById('edit-event-name').value.trim();
+  const newDate = document.getElementById('edit-event-date').value.trim();
+  const originalName = document.getElementById('edit-event-original-name').value;
+  
+  if (!newName || !newDate) {
+    alert("Nome evento e data sono obbligatori.");
+    return;
+  }
+  
+  if (originalName) {
+    const evIndex = appData.events.findIndex(e => e.name === originalName);
+    if(evIndex !== -1) {
+      appData.events[evIndex].name = newName;
+      appData.events[evIndex].date = newDate;
+    }
+  } else {
+    appData.events.push({
+      name: newName,
+      date: newDate,
+      active: true
+    });
+  }
+  
+  // Save rounds data as well
+  appData.rounds.r1.price = parseInt(document.getElementById('price-r1').value);
+  appData.rounds.r1.limit = parseInt(document.getElementById('limit-r1').value);
+  appData.rounds.r1.active = document.getElementById('toggle-r1').checked;
+  appData.rounds.r2.price = parseInt(document.getElementById('price-r2').value);
+  appData.rounds.r2.limit = parseInt(document.getElementById('limit-r2').value);
+  appData.rounds.r2.active = document.getElementById('toggle-r2').checked;
+  appData.rounds.r3.price = parseInt(document.getElementById('price-r3').value);
+  appData.rounds.r3.limit = parseInt(document.getElementById('limit-r3').value);
+  appData.rounds.r3.active = document.getElementById('toggle-r3').checked;
+
+  saveState();
+  
+  alert('Salvataggio effettuato con successo!');
+  closeEventEditor();
+  renderEvents();
 }
 
 function deleteEvent(index) {

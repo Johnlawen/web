@@ -135,7 +135,7 @@
       <div class="panel">
         <div class="panel-header">
           <h3>Gestione Eventi</h3>
-          <button class="btn btn-primary btn-sm">+ Nuovo Evento</button>
+          <button class="btn btn-primary btn-sm" onclick="openEventEditor()">+ Nuovo Evento</button>
         </div>
         <div class="panel-body">
           <table class="data-table">
@@ -240,7 +240,8 @@
           </div>
 
           <div style="margin-top: 1.5rem;">
-            <button class="btn btn-primary" onclick="alert('Salvataggio effettuato con successo!')">SALVA EVENTO</button>
+            <input type="hidden" id="edit-event-original-name" value="" />
+            <button class="btn btn-primary" onclick="saveEventDetails()">SALVA EVENTO</button>
           </div>
         </div>
       </div>
