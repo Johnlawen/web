@@ -10,7 +10,12 @@ const defaultData = {
     r2: { name: 'Round 2', price: 15, limit: 200, sold: 0, active: true },
     r3: { name: 'Last Round', price: 20, limit: 300, sold: 0, active: true }
   },
-  orders: []
+  orders: [],
+  events: [
+    { name: 'SUMMER OPENING', date: '21 Giugno 2025', active: true },
+    { name: 'MID SUMMER', date: '19 Luglio 2025', active: true },
+    { name: 'CLOSING PARTY', date: '30 Agosto 2025', active: true }
+  ]
 };
 
 module.exports = async function handler(req, res) {
@@ -26,7 +31,18 @@ module.exports = async function handler(req, res) {
       data = JSON.parse(data);
     }
 
-    const { email, order, action } = req.body;
+    const { email, order, action, index } = req.body;
+
+    if (!data.events) {
+      data.events = defaultData.events;
+    }
+
+    // Delete Event
+    if (action === 'delete-event') {
+      data.events.splice(index, 1);
+      await redis.set('luccaAdminData', JSON.stringify(data));
+      return res.status(200).json({ success: true, data });
+    }
 
     // Manual ticket from admin panel
     if (action === 'manual') {

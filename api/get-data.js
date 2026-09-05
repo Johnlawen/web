@@ -10,7 +10,12 @@ const defaultData = {
     r2: { name: 'Round 2', price: 15, limit: 200, sold: 0, active: true },
     r3: { name: 'Last Round', price: 20, limit: 300, sold: 0, active: true }
   },
-  orders: []
+  orders: [],
+  events: [
+    { name: 'SUMMER OPENING', date: '21 Giugno 2025', active: true },
+    { name: 'MID SUMMER', date: '19 Luglio 2025', active: true },
+    { name: 'CLOSING PARTY', date: '30 Agosto 2025', active: true }
+  ]
 };
 
 module.exports = async function handler(req, res) {

@@ -107,6 +107,46 @@ function saveRounds() {
   saveState();
 }
 
+function deleteEvent(index) {
+  if (!confirm('Sei sicuro di voler eliminare questo evento?')) return;
+  
+  appData.events.splice(index, 1);
+  renderEvents();
+  
+  fetch('/api/save-order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'delete-event', index })
+  }).catch(e => console.error(e));
+}
+
+function renderEvents() {
+  const tbodyEvents = document.getElementById('events-tbody');
+  if (!tbodyEvents) return;
+  tbodyEvents.innerHTML = '';
+  
+  if (!appData.events || appData.events.length === 0) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="4" style="text-align: center; color: #aaa; padding: 20px;">Nessun evento presente</td>`;
+    tbodyEvents.appendChild(tr);
+    return;
+  }
+  
+  appData.events.forEach((ev, index) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${ev.name}</strong></td>
+      <td>${ev.date}</td>
+      <td><span class="badge ${ev.active ? 'badge-active' : ''}">${ev.active ? 'Attivo' : 'Inattivo'}</span></td>
+      <td style="display: flex; gap: 5px;">
+        <button class="btn btn-ghost btn-sm" onclick="openEventEditor('${ev.name}')">Modifica</button>
+        <button class="btn btn-ghost btn-sm" style="color: #ff4444; border-color: #ff4444;" onclick="deleteEvent(${index})">Elimina</button>
+      </td>
+    `;
+    tbodyEvents.appendChild(tr);
+  });
+}
+
 // ===== RENDER DASHBOARD =====
 function renderDashboard() {
   // Stats
@@ -159,6 +199,8 @@ function renderDashboard() {
     `;
     tbodyAll.appendChild(tr);
   });
+
+  renderEvents();
 }
 
 // Initial Render
