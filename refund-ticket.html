@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Richiedi Rimborso – Lucca Groove</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --orange: #FF6B00; --bg: #050505; --card: #111; --border: rgba(255,107,0,0.2); --muted: rgba(255,255,255,0.5); }
+    body { font-family: 'Barlow', sans-serif; background: var(--bg); color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; }
+    
+    .logo-wrap { text-align: center; margin-bottom: 2rem; }
+    .logo-wrap img { width: 70px; height: 70px; border-radius: 50%; object-fit: contain; }
+    .brand { font-family: 'Barlow Condensed', sans-serif; font-size: 1.4rem; font-weight: 900; letter-spacing: 0.15em; color: var(--orange); margin-top: 0.5rem; }
+
+    .card {
+      width: 100%; max-width: 480px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+    }
+    h1 { font-family: 'Barlow Condensed', sans-serif; font-size: 1.8rem; font-weight: 900; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+    .subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.5; }
+
+    .form-group { margin-bottom: 1.2rem; }
+    label { display: block; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+    input, textarea {
+      width: 100%; padding: 0.8rem 1rem;
+      background: #0a0a0a; border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px; color: #fff; font-family: 'Barlow', sans-serif; font-size: 0.95rem;
+      transition: border-color 0.2s;
+    }
+    input:focus, textarea:focus { outline: none; border-color: var(--orange); }
+    textarea { resize: vertical; min-height: 120px; }
+
+    .btn {
+      width: 100%; padding: 1rem;
+      background: var(--orange); color: #000;
+      font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 900;
+      letter-spacing: 0.1em; border: none; border-radius: 6px; cursor: pointer;
+      transition: all 0.3s; margin-top: 0.5rem;
+    }
+    .btn:hover { background: #FF8C33; transform: translateY(-2px); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .alert { padding: 1rem; border-radius: 8px; font-size: 0.9rem; margin-bottom: 1.5rem; display: none; }
+    .alert-error { background: rgba(244,67,54,0.15); border: 1px solid rgba(244,67,54,0.3); color: #f44336; }
+    .alert-success { background: rgba(76,175,80,0.15); border: 1px solid rgba(76,175,80,0.3); color: #4CAF50; }
+
+    .success-screen { text-align: center; display: none; }
+    .success-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .success-screen h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 1.6rem; font-weight: 900; margin-bottom: 0.5rem; }
+    .success-screen p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+
+    .back-link { text-align: center; margin-top: 1.5rem; }
+    .back-link a { color: var(--muted); font-size: 0.85rem; text-decoration: none; transition: color 0.2s; }
+    .back-link a:hover { color: var(--orange); }
+  </style>
+</head>
+<body>
+
+  <div class="logo-wrap">
+    <img src="logo-ready.png" alt="Lucca Groove" />
+    <div class="brand">LUCCA GROOVE</div>
+  </div>
+
+  <div class="card">
+    <div id="form-section">
+      <h1>Richiedi Rimborso</h1>
+      <p class="subtitle">Compila il modulo qui sotto. Il tuo ID ordine si trova nell'email di conferma che hai ricevuto.</p>
+
+      <div class="alert alert-error" id="error-msg"></div>
+
+      <div class="form-group">
+        <label>ID Ordine *</label>
+        <input type="text" id="input-order-id" placeholder="es. RES-12345" />
+      </div>
+      <div class="form-group">
+        <label>Motivo del rimborso *</label>
+        <textarea id="input-reason" placeholder="Spiega brevemente perché non puoi partecipare..."></textarea>
+      </div>
+
+      <button class="btn" id="submit-btn" onclick="submitRefund()">INVIA RICHIESTA</button>
+    </div>
+
+    <div class="success-screen" id="success-section">
+      <div class="success-icon">✅</div>
+      <h2>Richiesta Inviata!</h2>
+      <p>La tua richiesta di rimborso è stata ricevuta. Ti risponderemo via email il prima possibile.</p>
+    </div>
+  </div>
+
+  <div class="back-link">
+    <a href="https://luccagroove.com">← Torna al sito</a>
+  </div>
+
+  <script>
+    // Pre-fill orderId from URL param
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get('orderId');
+    if (orderId) document.getElementById('input-order-id').value = orderId;
+
+    async function submitRefund() {
+      const orderId = document.getElementById('input-order-id').value.trim();
+      const reason = document.getElementById('input-reason').value.trim();
+      const errorEl = document.getElementById('error-msg');
+      const btn = document.getElementById('submit-btn');
+
+      errorEl.style.display = 'none';
+
+      if (!orderId || !reason) {
+        errorEl.textContent = 'Per favore compila tutti i campi.';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      btn.textContent = 'INVIO IN CORSO...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/refund-request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'submit', orderId, reason })
+        });
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          errorEl.textContent = data.error || 'Si è verificato un errore. Riprova.';
+          errorEl.style.display = 'block';
+          btn.textContent = 'INVIA RICHIESTA';
+          btn.disabled = false;
+          return;
+        }
+
+        document.getElementById('form-section').style.display = 'none';
+        document.getElementById('success-section').style.display = 'block';
+      } catch(e) {
+        errorEl.textContent = 'Errore di connessione. Riprova.';
+        errorEl.style.display = 'block';
+        btn.textContent = 'INVIA RICHIESTA';
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

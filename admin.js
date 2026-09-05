@@ -330,6 +330,8 @@ function renderDashboard() {
   });
 
   renderEvents();
+  renderSubscribers();
+  renderRefunds();
 }
 
 // Initial Render
@@ -415,4 +417,133 @@ function downloadTicketPDF() {
   };
   
   html2pdf().set(opt).from(element).save();
+}
+
+// ===== LISTA ISCRITTI =====
+function renderSubscribers() {
+  const tbody = document.getElementById('subscribers-tbody');
+  const countEl = document.getElementById('sub-count');
+  if (!tbody) return;
+  
+  const subs = appData.subscribers || [];
+  if (countEl) countEl.textContent = subs.length;
+  
+  tbody.innerHTML = '';
+  if (subs.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px;">Nessun iscritto ancora</td></tr>';
+    return;
+  }
+  subs.forEach(s => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${s.name}</strong></td>
+      <td>${s.email}</td>
+      <td>${s.phone || '-'}</td>
+      <td>${s.date || '-'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function openNotifyModal() {
+  const overlay = document.getElementById('notify-modal-overlay');
+  overlay.style.display = 'flex';
+  document.getElementById('notify-subject').value = '';
+  document.getElementById('notify-message').value = '';
+  document.getElementById('notify-status').style.display = 'none';
+}
+
+function closeNotifyModal() {
+  document.getElementById('notify-modal-overlay').style.display = 'none';
+}
+
+async function sendNotifyAll() {
+  const subject = document.getElementById('notify-subject').value.trim();
+  const message = document.getElementById('notify-message').value.trim();
+  const statusEl = document.getElementById('notify-status');
+  
+  if (!subject || !message) {
+    statusEl.textContent = '⚠️ Oggetto e messaggio sono obbligatori.';
+    statusEl.style.display = 'block';
+    return;
+  }
+  
+  statusEl.textContent = '⏳ Invio in corso...';
+  statusEl.style.display = 'block';
+  
+  try {
+    const res = await fetch('/api/notify-all', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subject, message })
+    });
+    const data = await res.json();
+    if (data.success) {
+      statusEl.textContent = `✅ Email inviata a ${data.sent} iscritti!`;
+    } else {
+      statusEl.textContent = `❌ Errore: ${data.error}`;
+    }
+  } catch(e) {
+    statusEl.textContent = '❌ Errore di connessione.';
+  }
+}
+
+// ===== RIMBORSI =====
+function renderRefunds() {
+  const tbody = document.getElementById('refunds-tbody');
+  if (!tbody) return;
+  
+  const refunds = appData.refundRequests || [];
+  tbody.innerHTML = '';
+  
+  if (refunds.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#aaa;padding:20px;">Nessuna richiesta di rimborso</td></tr>';
+    return;
+  }
+  
+  const statusColors = { pending: '#FF6B00', approved: '#4CAF50', rejected: '#f44336' };
+  const statusLabels = { pending: 'In Attesa', approved: 'Approvato', rejected: 'Rifiutato' };
+  
+  refunds.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-size:0.75rem;color:#888;">${r.id}</td>
+      <td><strong>${r.orderId}</strong></td>
+      <td>${r.name}</td>
+      <td style="font-size:0.8rem;">${r.email}</td>
+      <td style="font-size:0.85rem;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.reason}">${r.reason}</td>
+      <td>${r.date}</td>
+      <td><span style="color:${statusColors[r.status] || '#888'};font-weight:700;">${statusLabels[r.status] || r.status}</span></td>
+      <td style="display:flex;gap:5px;">
+        ${r.status === 'pending' ? `
+          <button class="btn btn-ghost btn-sm" style="color:#4CAF50;border-color:#4CAF50;" onclick="handleRefund('${r.id}', 'approved')">✅ Approva</button>
+          <button class="btn btn-ghost btn-sm" style="color:#f44336;border-color:#f44336;" onclick="handleRefund('${r.id}', 'rejected')">❌ Rifiuta</button>
+        ` : '-'}
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function handleRefund(requestId, status) {
+  const label = status === 'approved' ? 'approvare' : 'rifiutare';
+  if (!confirm(`Sei sicuro di voler ${label} questa richiesta?`)) return;
+  
+  try {
+    const res = await fetch('/api/refund-request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'update', requestId, status })
+    });
+    const data = await res.json();
+    if (data.success) {
+      // Update locally
+      const idx = appData.refundRequests.findIndex(r => r.id === requestId);
+      if (idx !== -1) appData.refundRequests[idx].status = status;
+      renderRefunds();
+      alert(status === 'approved' ? '✅ Rimborso approvato! Email inviata al cliente.' : '❌ Rimborso rifiutato. Email inviata al cliente.');
+    }
+  } catch(e) {
+    alert('Errore di connessione. Riprova.');
+  }
 }
