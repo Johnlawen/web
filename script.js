@@ -133,6 +133,7 @@ function closeModal() {
   document.getElementById('modal-overlay').classList.remove('open');
   document.body.style.overflow = '';
   document.getElementById('checkout-form').reset();
+  hideBookingError();
 }
 
 function changeQty(delta) {
@@ -160,7 +161,8 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
   const gender = genderRadio ? genderRadio.value : '';
 
   if (!nome || !cognome || !email || !phone || !gender) {
-    alert('Per favore compila tutti i campi obbligatori.'); return;
+    showBookingError('Compila tutti i campi obbligatori prima di procedere.');
+    return;
   }
   
   const submitBtn = this.querySelector('button[type="submit"]');
@@ -192,7 +194,7 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
     
     const data = await res.json();
     if (!res.ok) {
-      alert(data.error || 'Errore durante la prenotazione.');
+      showBookingError(data.error || 'Errore durante la prenotazione.');
       submitBtn.textContent = originalText;
       submitBtn.disabled = false;
       return;
@@ -201,11 +203,25 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
     this.style.display = 'none';
     document.getElementById('modal-success').style.display = 'block';
   } catch(err) {
-    alert('Errore di connessione. Riprova.');
+    showBookingError('Errore di connessione. Riprova tra qualche secondo.');
     submitBtn.textContent = originalText;
     submitBtn.disabled = false;
   }
 });
+
+function showBookingError(message) {
+  const banner = document.getElementById('booking-error-banner');
+  const text = document.getElementById('booking-error-text');
+  if (!banner || !text) { alert(message); return; }
+  text.textContent = message;
+  banner.style.display = 'flex';
+  banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function hideBookingError() {
+  const banner = document.getElementById('booking-error-banner');
+  if (banner) banner.style.display = 'none';
+}
 
 // Close on overlay click / ESC
 document.getElementById('modal-overlay').addEventListener('click', e => { if (e.target === document.getElementById('modal-overlay')) closeModal(); });

@@ -191,6 +191,14 @@
         <p id="modal-event-name" class="modal-tier"></p>
       </div>
       <form id="checkout-form" novalidate>
+        <!-- Error banner -->
+        <div id="booking-error-banner" style="display:none; background:rgba(255,60,60,0.1); border:1px solid rgba(255,60,60,0.35); border-radius:10px; padding:1rem 1.2rem; margin-bottom:1.2rem; display:none; align-items:flex-start; gap:0.8rem;">
+          <span style="font-size:1.3rem; flex-shrink:0;">⚠️</span>
+          <div>
+            <p id="booking-error-title" style="font-family:'Barlow Condensed',sans-serif; font-size:1rem; font-weight:900; letter-spacing:0.05em; color:#ff5555; margin-bottom:0.2rem;">PRENOTAZIONE NON VALIDA</p>
+            <p id="booking-error-text" style="font-size:0.85rem; color:rgba(255,150,150,0.9); line-height:1.5;"></p>
+          </div>
+        </div>
         <div class="checkout-section-title">I Tuoi Dati</div>
         <div class="form-row">
           <div class="form-group">
