@@ -1,0 +1,216 @@
+// ===== STATE MANAGEMENT =====
+let appData = JSON.parse(localStorage.getItem('luccaAdminData')) || {
+  revenue: 2150,
+  ticketsSold: 135,
+  rounds: {
+    r1: { name: 'Early Tickets', price: 10, limit: 100, sold: 100, active: true },
+    r2: { name: 'Round 2', price: 15, limit: 200, sold: 30, active: true },
+    r3: { name: 'Last Round', price: 20, limit: 300, sold: 0, active: true }
+  },
+  orders: [
+    { date: '03/09/2026', name: 'Marco Rossi', email: 'marco@gmail.com', round: 'Round 2', qty: 2, total: 30 },
+    { date: '02/09/2026', name: 'Giulia Bianchi', email: 'giulia.b@gmail.com', round: 'Early Tickets', qty: 4, total: 40 },
+    { date: '02/09/2026', name: 'Luca Verdi', email: 'l.verdi@gmail.com', round: 'Early Tickets', qty: 1, total: 10 },
+  ]
+};
+
+// Ensure all orders have id, payment type and used count
+appData.orders = appData.orders.map(o => ({
+  ...o,
+  id: o.id || 'ORD-' + Math.floor(Math.random() * 90000 + 10000),
+  payment: o.payment || 'Online',
+  used: o.used || 0
+}));
+
+function saveState() {
+  localStorage.setItem('luccaAdminData', JSON.stringify(appData));
+  renderDashboard();
+}
+
+// ===== NAVIGATION =====
+const navBtns = document.querySelectorAll('.nav-btn');
+const views = document.querySelectorAll('.view-section');
+
+navBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    navBtns.forEach(b => b.classList.remove('active'));
+    views.forEach(v => v.classList.remove('active'));
+    
+    btn.classList.add('active');
+    const target = btn.getAttribute('data-target');
+    document.getElementById(target).classList.add('active');
+    
+    document.getElementById('page-title').textContent = btn.textContent.trim();
+  });
+});
+
+// ===== EDITOR TOGGLE =====
+function openEventEditor(eventName) {
+  document.getElementById('event-editor').style.display = 'block';
+  
+  if(eventName) {
+    document.getElementById('editor-event-title').textContent = 'Modifica Evento: ' + eventName;
+    document.getElementById('edit-event-name').value = eventName;
+  }
+
+  // Load current values
+  document.getElementById('price-r1').value = appData.rounds.r1.price;
+  document.getElementById('limit-r1').value = appData.rounds.r1.limit;
+  document.getElementById('toggle-r1').checked = appData.rounds.r1.active;
+  
+  document.getElementById('price-r2').value = appData.rounds.r2.price;
+  document.getElementById('limit-r2').value = appData.rounds.r2.limit;
+  document.getElementById('toggle-r2').checked = appData.rounds.r2.active;
+  
+  document.getElementById('price-r3').value = appData.rounds.r3.price;
+  document.getElementById('limit-r3').value = appData.rounds.r3.limit;
+  document.getElementById('toggle-r3').checked = appData.rounds.r3.active;
+}
+
+function closeEventEditor() {
+  document.getElementById('event-editor').style.display = 'none';
+}
+
+function saveRounds() {
+  appData.rounds.r1.price = parseInt(document.getElementById('price-r1').value);
+  appData.rounds.r1.limit = parseInt(document.getElementById('limit-r1').value);
+  appData.rounds.r1.active = document.getElementById('toggle-r1').checked;
+
+  appData.rounds.r2.price = parseInt(document.getElementById('price-r2').value);
+  appData.rounds.r2.limit = parseInt(document.getElementById('limit-r2').value);
+  appData.rounds.r2.active = document.getElementById('toggle-r2').checked;
+
+  appData.rounds.r3.price = parseInt(document.getElementById('price-r3').value);
+  appData.rounds.r3.limit = parseInt(document.getElementById('limit-r3').value);
+  appData.rounds.r3.active = document.getElementById('toggle-r3').checked;
+
+  saveState();
+}
+
+// ===== RENDER DASHBOARD =====
+function renderDashboard() {
+  // Stats
+  document.getElementById('dash-revenue').textContent = '€' + appData.revenue;
+  document.getElementById('dash-tickets').textContent = appData.ticketsSold;
+
+  // Progress Bars
+  const r1 = appData.rounds.r1;
+  const p1 = (r1.sold / r1.limit) * 100;
+  document.getElementById('prog-early').textContent = `${r1.sold} / ${r1.limit}`;
+  document.getElementById('fill-early').style.width = `${Math.min(p1, 100)}%`;
+
+  const r2 = appData.rounds.r2;
+  const p2 = (r2.sold / r2.limit) * 100;
+  document.getElementById('prog-round2').textContent = `${r2.sold} / ${r2.limit}`;
+  document.getElementById('fill-round2').style.width = `${Math.min(p2, 100)}%`;
+
+  const r3 = appData.rounds.r3;
+  const p3 = (r3.sold / r3.limit) * 100;
+  document.getElementById('prog-last').textContent = `${r3.sold} / ${r3.limit}`;
+  document.getElementById('fill-last').style.width = `${Math.min(p3, 100)}%`;
+
+  // Recent Orders Table
+  const tbodyRecent = document.querySelector('#recent-orders-table tbody');
+  tbodyRecent.innerHTML = '';
+  appData.orders.slice(0, 3).forEach(o => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${o.name}</strong><br/><span style="font-size:0.6rem;color:var(--text-muted)">${o.round}</span></td>
+      <td>${o.qty}</td>
+      <td style="color:var(--orange);font-weight:600">€${o.total}</td>
+    `;
+    tbodyRecent.appendChild(tr);
+  });
+
+  // All Orders Table
+  const tbodyAll = document.querySelector('#all-orders-table tbody');
+  tbodyAll.innerHTML = '';
+  appData.orders.forEach(o => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-size:0.8rem;color:var(--text-muted)">${o.id}</td>
+      <td>${o.date}</td>
+      <td><strong>${o.name}</strong><br/><span style="font-size:0.7rem;color:var(--text-muted)">${o.email || '-'}</span></td>
+      <td><span class="badge ${o.payment === 'Contanti' ? 'badge-active' : ''}">${o.payment}</span></td>
+      <td>${o.round}</td>
+      <td>${o.qty}</td>
+      <td>${o.used} / ${o.qty}</td>
+      <td style="color:var(--orange);font-weight:600">€${o.total}</td>
+    `;
+    tbodyAll.appendChild(tr);
+  });
+}
+
+// Initial Render
+renderDashboard();
+
+// ===== MANUAL TICKET (CASSA) =====
+function generateManualTicket() {
+  const name = document.getElementById('manual-name').value.trim();
+  const email = document.getElementById('manual-email').value.trim();
+  const roundKey = document.getElementById('manual-round').value;
+  const qty = parseInt(document.getElementById('manual-qty').value);
+
+  if (!name || qty < 1) {
+    alert("Inserisci un nome e una quantità valida.");
+    return;
+  }
+
+  const round = appData.rounds[roundKey];
+  const total = round.price * qty;
+
+  const newOrder = {
+    id: 'ORD-' + Math.floor(Math.random() * 90000 + 10000),
+    date: new Date().toLocaleDateString('it-IT'),
+    name: name,
+    email: email,
+    round: round.name,
+    qty: qty,
+    total: total,
+    payment: 'Contanti',
+    used: 0
+  };
+
+  appData.orders.unshift(newOrder);
+  appData.revenue += total;
+  appData.ticketsSold += qty;
+  appData.rounds[roundKey].sold += qty;
+
+  saveState();
+
+  // Show QR
+  document.getElementById('manual-qr-container').style.display = 'flex';
+  document.getElementById('ticket-name-label').textContent = name;
+  document.getElementById('ticket-round-label').textContent = round.name;
+  document.getElementById('ticket-info-label').textContent = `${qty} INGRESS${qty > 1 ? 'I' : 'O'} - ORDINE: ${newOrder.id}`;
+
+  document.getElementById('manual-qrcode').innerHTML = '';
+  new QRCode(document.getElementById('manual-qrcode'), {
+    text: newOrder.id,
+    width: 130,
+    height: 130,
+    colorDark : "#000000",
+    colorLight : "#ffffff",
+    correctLevel : QRCode.CorrectLevel.H
+  });
+
+  // Reset form
+  document.getElementById('manual-name').value = '';
+  document.getElementById('manual-email').value = '';
+  document.getElementById('manual-qty').value = '1';
+}
+
+function downloadTicketPDF() {
+  const element = document.getElementById('printable-ticket');
+  const nameLabel = document.getElementById('ticket-name-label').textContent;
+  
+  const opt = {
+    margin:       1,
+    filename:     `LuccaGroove_Ticket_${nameLabel.replace(/\s+/g, '_')}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 4, useCORS: true, backgroundColor: '#000000' },
+    jsPDF:        { unit: 'in', format: 'a5', orientation: 'portrait' }
+  };
+  
+  html2pdf().set(opt).from(element).save();
+}

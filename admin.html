@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lucca Groove – Admin Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="admin.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <img src="logo.png" alt="Logo" class="sidebar-logo" />
+      <div class="sidebar-brand">LUCCA GROOVE<br/><span>ADMIN</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-btn active" data-target="view-dashboard">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        Dashboard
+      </button>
+      <button class="nav-btn" data-target="view-events">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        Gestione Eventi
+      </button>
+      <button class="nav-btn" data-target="view-orders">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        Ordini & Clienti
+      </button>
+      <button class="nav-btn" data-target="view-manual-tickets">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        Cassa (Cash)
+      </button>
+    </nav>
+    <a href="index.html" class="back-link">← Torna al sito</a>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <header class="topbar">
+      <h1 id="page-title">Dashboard</h1>
+      <div class="user-profile">
+        <span>Admin</span>
+        <div class="avatar">A</div>
+      </div>
+    </header>
+
+    <!-- VIEW: DASHBOARD -->
+    <div id="view-dashboard" class="view-section active">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">€</div>
+          <div class="stat-info">
+            <span class="stat-label">Ricavi Totali</span>
+            <h3 class="stat-value" id="dash-revenue">€0</h3>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Biglietti Venduti</span>
+            <h3 class="stat-value" id="dash-tickets">0</h3>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">♪</div>
+          <div class="stat-info">
+            <span class="stat-label">Eventi Attivi</span>
+            <h3 class="stat-value">1</h3>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-panels">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Andamento Vendite (Rounds)</h3>
+          </div>
+          <div class="panel-body">
+            <div class="progress-bar-group">
+              <div class="progress-info">
+                <span>Early Tickets (€10)</span>
+                <span id="prog-early">0 / 100</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill" id="fill-early" style="width:0%"></div></div>
+            </div>
+            <div class="progress-bar-group">
+              <div class="progress-info">
+                <span>Round 2 (€15)</span>
+                <span id="prog-round2">0 / 200</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill" id="fill-round2" style="width:0%"></div></div>
+            </div>
+            <div class="progress-bar-group">
+              <div class="progress-info">
+                <span>Last Round (€20)</span>
+                <span id="prog-last">0 / 300</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill" id="fill-last" style="width:0%"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Ultimi Ordini</h3>
+          </div>
+          <div class="panel-body">
+            <table class="data-table" id="recent-orders-table">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Biglietti</th>
+                  <th>Totale</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: EVENTS -->
+    <div id="view-events" class="view-section">
+      <div class="panel">
+        <div class="panel-header">
+          <h3>Gestione Eventi</h3>
+          <button class="btn btn-primary btn-sm">+ Nuovo Evento</button>
+        </div>
+        <div class="panel-body">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Nome Evento</th>
+                <th>Data</th>
+                <th>Stato</th>
+                <th>Azioni</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>SUMMER OPENING</strong></td>
+                <td>21 Giugno 2025</td>
+                <td><span class="badge badge-active">Attivo</span></td>
+                <td><button class="btn btn-ghost btn-sm" onclick="openEventEditor('SUMMER OPENING')">Modifica</button></td>
+              </tr>
+              <tr>
+                <td><strong>MID SUMMER</strong></td>
+                <td>19 Luglio 2025</td>
+                <td><span class="badge badge-active">Attivo</span></td>
+                <td><button class="btn btn-ghost btn-sm" onclick="openEventEditor('MID SUMMER')">Modifica</button></td>
+              </tr>
+              <tr>
+                <td><strong>CLOSING PARTY</strong></td>
+                <td>30 Agosto 2025</td>
+                <td><span class="badge badge-active">Attivo</span></td>
+                <td><button class="btn btn-ghost btn-sm" onclick="openEventEditor('CLOSING PARTY')">Modifica</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- EVENT EDITOR FORM -->
+      <div class="panel editor-panel" id="event-editor" style="display:none; margin-top:2rem;">
+        <div class="panel-header">
+          <h3 id="editor-event-title">Modifica Evento: SUMMER OPENING</h3>
+          <button class="btn btn-ghost btn-sm" onclick="closeEventEditor()">Chiudi</button>
+        </div>
+        <div class="panel-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nome Evento</label>
+              <input type="text" id="edit-event-name" value="SUMMER OPENING" />
+            </div>
+            <div class="form-group">
+              <label>Data</label>
+              <input type="text" id="edit-event-date" value="21 Giugno 2025" />
+            </div>
+          </div>
+
+          <h4 class="sub-section-title">Gestione Rounds (Prezzi e Attivazione)</h4>
+          <div class="rounds-editor">
+            
+            <!-- Round 1 -->
+            <div class="round-edit-box">
+              <div class="round-header">
+                <strong>Round 1: Early Tickets</strong>
+                <label class="switch">
+                  <input type="checkbox" id="toggle-r1" checked onchange="saveRounds()">
+                  <span class="slider"></span>
+                </label>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Prezzo (€)</label>
+                  <input type="number" id="price-r1" value="10" onchange="saveRounds()" />
+                </div>
+                <div class="form-group">
+                  <label>Limite Biglietti</label>
+                  <input type="number" id="limit-r1" value="100" onchange="saveRounds()" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Round 2 -->
+            <div class="round-edit-box">
+              <div class="round-header">
+                <strong>Round 2</strong>
+                <label class="switch">
+                  <input type="checkbox" id="toggle-r2" checked onchange="saveRounds()">
+                  <span class="slider"></span>
+                </label>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Prezzo (€)</label>
+                  <input type="number" id="price-r2" value="15" onchange="saveRounds()" />
+                </div>
+                <div class="form-group">
+                  <label>Limite Biglietti</label>
+                  <input type="number" id="limit-r2" value="200" onchange="saveRounds()" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Last Round -->
+            <div class="round-edit-box">
+              <div class="round-header">
+                <strong>Last Round</strong>
+                <label class="switch">
+                  <input type="checkbox" id="toggle-r3" checked onchange="saveRounds()">
+                  <span class="slider"></span>
+                </label>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Prezzo (€)</label>
+                  <input type="number" id="price-r3" value="20" onchange="saveRounds()" />
+                </div>
+                <div class="form-group">
+                  <label>Limite Biglietti</label>
+                  <input type="number" id="limit-r3" value="300" onchange="saveRounds()" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: 1.5rem;">
+            <button class="btn btn-primary" onclick="alert('Salvataggio effettuato con successo!')">SALVA EVENTO</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: ORDERS -->
+    <div id="view-orders" class="view-section">
+      <div class="panel">
+        <div class="panel-header">
+          <h3>Tutti gli Ordini</h3>
+        </div>
+        <div class="panel-body">
+          <table class="data-table" id="all-orders-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Data</th>
+                <th>Nome</th>
+                <th>Pagamento</th>
+                <th>Round</th>
+                <th>Q.tà</th>
+                <th>Ingressi</th>
+                <th>Totale</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: MANUAL TICKETS -->
+    <div id="view-manual-tickets" class="view-section">
+      <div class="panel">
+        <div class="panel-header">
+          <h3>Emetti Biglietto (Contanti)</h3>
+        </div>
+        <div class="panel-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nome e Cognome</label>
+              <input type="text" id="manual-name" placeholder="Es. Mario Rossi" />
+            </div>
+            <div class="form-group">
+              <label>Email (Opzionale)</label>
+              <input type="email" id="manual-email" placeholder="Es. mario@email.com" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Round / Prezzo</label>
+              <select id="manual-round">
+                <option value="r1">Early Tickets (€10)</option>
+                <option value="r2">Round 2 (€15)</option>
+                <option value="r3">Last Round (€20)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Quantità</label>
+              <input type="number" id="manual-qty" value="1" min="1" max="10" />
+            </div>
+          </div>
+          <div style="margin-top: 1.5rem;">
+            <button class="btn btn-primary" onclick="generateManualTicket()">GENERA BIGLIETTO E QR CODE</button>
+          </div>
+          
+          <div id="manual-qr-container" style="display: none; margin-top: 2rem; flex-direction: column; align-items: center; gap: 1rem; background: var(--bg-card); padding: 2rem; border-radius: 8px; border: 1px solid var(--border-orange);">
+            <h3 style="margin-bottom: 1rem; color: var(--text-primary);">Biglietto Generato!</h3>
+            
+            <!-- THE TICKET DESIGN -->
+            <div id="printable-ticket" style="display: flex; justify-content: center; width: 100%; padding: 10px;">
+              <div class="ticket-mockup" style="transform: none; margin: 0 auto;">
+                <div class="ticket-inner">
+                  <img src="logo.png" alt="Lucca Groove" class="ticket-logo" />
+                  <div class="ticket-divider"><span>◆</span></div>
+                  <div class="ticket-label" id="ticket-name-label">NOME COGNOME</div>
+                  <div class="ticket-type" id="ticket-round-label">EARLY ACCESS</div>
+                  <div class="ticket-label" style="font-size: 0.7rem; color: var(--text-muted);" id="ticket-info-label">1 INGRESSO</div>
+                  <div class="ticket-barcode">
+                    <div style="background: white; padding: 8px; border-radius: 4px;" id="manual-qrcode"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+              <button class="btn btn-ghost" onclick="downloadTicketPDF()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: text-bottom; margin-right: 5px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Scarica PDF
+              </button>
+            </div>
+            
+            <p style="font-size: 0.9rem; color: var(--orange); margin-top: 0.5rem;">Fai una foto o scarica questo QR Code per l'ingresso.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>

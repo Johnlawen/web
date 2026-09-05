@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lucca Groove – La Tua Città. Il Tuo Groove.</title>
+  <meta name="description" content="Lucca Groove: eventi esclusivi nel cuore di Lucca. Musica, energia e connessioni autentiche ti aspettano sotto le stelle." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ======================== NAV ======================== -->
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo">
+        <img src="logo.png" alt="Lucca Groove" />
+      </a>
+      <ul class="nav-links">
+        <li><a href="#hero" class="active">HOME</a></li>
+        <li><a href="#events">BIGLIETTI</a></li>
+        <li><a href="#about">CHI SIAMO</a></li>
+      </ul>
+      <a href="#events" class="btn btn-outline" id="nav-cta">ACQUISTA BIGLIETTI</a>
+      <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+    </div>
+    <div class="mobile-menu" id="mobile-menu">
+      <a href="#hero">HOME</a>
+      <a href="#events">BIGLIETTI</a>
+      <a href="#about">CHI SIAMO</a>
+      <a href="#events" class="mob-cta">ACQUISTA BIGLIETTI</a>
+    </div>
+  </nav>
+
+  <!-- ======================== HERO ======================== -->
+  <section id="hero">
+    <div class="hero-left">
+      <h1 class="hero-title">LUCCA<br /><span>GROOVE</span></h1>
+      <h2 class="hero-sub">LA TUA CITTÀ.<br />IL TUO GROOVE.</h2>
+      <p class="hero-desc">Eventi esclusivi nel cuore di Lucca.<br />Musica, energia e connessioni<br />autentiche ti aspettano sotto le stelle.</p>
+      <a href="#events" class="btn btn-primary hero-btn" id="hero-cta">
+        ACQUISTA BIGLIETTI
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+      </a>
+    </div>
+    <div class="hero-right">
+      <img src="hero-tower.png" alt="Lucca Groove Event" class="hero-img" />
+      <div class="hero-img-overlay"></div>
+    </div>
+  </section>
+
+  <!-- ======================== EVENTS (BIGLIETTI) ======================== -->
+  <section id="events" class="section-events">
+    
+    <!-- Background floating tickets -->
+    <div class="bg-tickets-container">
+      <div class="ticket-mockup bg-ticket bg-ticket-1">
+        <div class="ticket-inner">
+          <img src="logo.png" alt="Lucca Groove" class="ticket-logo" />
+          <div class="ticket-divider"><span>◆</span></div>
+          <div class="ticket-label">TICKET</div>
+          <div class="ticket-type">VIP ACCESS</div>
+          <div class="ticket-barcode"><div class="barcode-bars"></div></div>
+        </div>
+      </div>
+      <div class="ticket-mockup bg-ticket bg-ticket-2">
+        <div class="ticket-inner">
+          <img src="logo.png" alt="Lucca Groove" class="ticket-logo" />
+          <div class="ticket-divider"><span>◆</span></div>
+          <div class="ticket-label">TICKET</div>
+          <div class="ticket-type">EARLY ACCESS</div>
+          <div class="ticket-barcode"><div class="barcode-bars"></div></div>
+        </div>
+      </div>
+      <div class="ticket-mockup bg-ticket bg-ticket-3">
+        <div class="ticket-inner">
+          <img src="logo.png" alt="Lucca Groove" class="ticket-logo" />
+          <div class="ticket-divider"><span>◆</span></div>
+          <div class="ticket-label">TICKET</div>
+          <div class="ticket-type">LATE ACCESS</div>
+          <div class="ticket-barcode"><div class="barcode-bars"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="events-inner">
+      <h2 class="section-title center-title">VIVI IL PROSSIMO <span class="orange">GROOVE</span></h2>
+
+      <div class="events-carousel-wrap" style="margin-top: 3rem;">
+        <button class="carousel-arrow left-arrow">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+
+        <div class="events-grid">
+          
+          <!-- Event 1 -->
+          <div class="event-card">
+            <div class="event-img-wrap">
+              <img src="crowd.png" alt="Summer Opening" class="event-img" />
+              <div class="event-date-badge">
+                <span class="date-day">21</span>
+                <span class="date-month">GIU</span>
+                <span class="date-year">2025</span>
+              </div>
+            </div>
+            <div class="event-content">
+              <h3 class="event-title">LUCCA GROOVE<br /><span class="orange">SUMMER OPENING</span></h3>
+              <p class="event-location">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                LUCCA, ITALIA
+              </p>
+              <button class="btn btn-outline btn-full event-btn" onclick="openRoundsModal('SUMMER OPENING')">
+                ACQUISTA BIGLIETTO
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Event 2 -->
+          <div class="event-card">
+            <div class="event-img-wrap">
+              <img src="hero-tower.png" alt="Mid Summer" class="event-img" />
+              <div class="event-date-badge">
+                <span class="date-day">19</span>
+                <span class="date-month">LUG</span>
+                <span class="date-year">2025</span>
+              </div>
+            </div>
+            <div class="event-content">
+              <h3 class="event-title">LUCCA GROOVE<br /><span class="orange">MID SUMMER</span></h3>
+              <p class="event-location">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                LUCCA, ITALIA
+              </p>
+              <button class="btn btn-outline btn-full event-btn" onclick="openRoundsModal('MID SUMMER')">
+                ACQUISTA BIGLIETTO
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Event 3 -->
+          <div class="event-card">
+            <div class="event-img-wrap">
+              <img src="event3.png" alt="Closing Party" class="event-img" />
+              <div class="event-date-badge">
+                <span class="date-day">30</span>
+                <span class="date-month">AGO</span>
+                <span class="date-year">2025</span>
+              </div>
+            </div>
+            <div class="event-content">
+              <h3 class="event-title">LUCCA GROOVE<br /><span class="orange">CLOSING PARTY</span></h3>
+              <p class="event-location">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                LUCCA, ITALIA
+              </p>
+              <button class="btn btn-outline btn-full event-btn" onclick="openRoundsModal('CLOSING PARTY')">
+                PRENOTA BIGLIETTO
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <button class="carousel-arrow right-arrow">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+      
+      <div class="view-all-wrap" style="text-align: center; margin-top: 3rem;">
+        <a href="#events" class="btn btn-outline btn-arrow">
+          VEDI TUTTI GLI EVENTI
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================== CHI SIAMO ======================== -->
+  <section id="about" class="section-about">
+    <div class="about-inner">
+      <div class="about-left">
+        <div class="section-tag">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"></circle><path d="M3 21v-2a4 4 0 0 1 4-4h4"></path><circle cx="17" cy="7" r="4"></circle><path d="M21 21v-2a4 4 0 0 0-4-4h-4"></path></svg>
+          CHI SIAMO
+        </div>
+        <h2 class="section-title about-title">MUSICA.<br /><span class="orange">COMUNITÀ.</span><br />PASSIONE.</h2>
+        <p class="section-desc">Siamo un collettivo di appassionati con una missione: portare a Lucca eventi di qualità che uniscono le persone attraverso la musica.<br /><br />Ogni dettaglio è pensato per creare esperienze autentiche e indimenticabili.</p>
+      </div>
+      <div class="about-right">
+        <img src="crowd.png" alt="Lucca Groove Community" class="about-img" />
+        <div class="about-img-overlay"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================== FOOTER ======================== -->
+  <footer id="footer">
+    <div class="footer-inner">
+      <div class="footer-col logo-col">
+        <img src="logo.png" alt="Lucca Groove" class="footer-logo" />
+      </div>
+      <div class="footer-col">
+        <p class="footer-heading">NAVIGAZIONE</p>
+        <a href="#hero">Home</a>
+        <a href="#events">Biglietti</a>
+        <a href="#about">Chi siamo</a>
+      </div>
+      <div class="footer-col">
+        <p class="footer-heading">INFO</p>
+        <a href="mailto:Luccagroove0@gmail.com">Luccagroove0@gmail.com</a>
+        <span>Lucca, Italia</span>
+        <a href="https://www.instagram.com/lucca_groove/" target="_blank" rel="noopener">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2025 Lucca Groove. Tutti i diritti riservati.</div>
+  </footer>
+
+  <!-- ======================== ROUNDS MODAL ======================== -->
+  <div class="modal-overlay" id="rounds-modal-overlay">
+    <div class="modal" id="rounds-modal">
+      <button class="modal-close" onclick="closeRoundsModal()">×</button>
+      <div class="modal-header" style="margin-bottom: 1.5rem;">
+        <img src="logo.png" alt="Lucca Groove" class="modal-logo" />
+        <h2 class="modal-title">Scegli il Biglietto</h2>
+        <p id="rounds-event-name" class="modal-tier" style="margin-top:0.5rem;"></p>
+      </div>
+      
+      <div class="rounds-list">
+        
+        <div class="round-list-item">
+          <div class="round-list-info">
+            <span class="round-list-name">EARLY TICKETS</span>
+            <span class="round-list-price">€10</span>
+          </div>
+          <button class="btn btn-primary" onclick="selectRoundAndCheckout('EARLY TICKETS', 10)">PRENOTA</button>
+        </div>
+        
+        <div class="round-list-item">
+          <div class="round-list-info">
+            <span class="round-list-name">ROUND 2</span>
+            <span class="round-list-price">€15</span>
+          </div>
+          <button class="btn btn-primary" onclick="selectRoundAndCheckout('ROUND 2', 15)">PRENOTA</button>
+        </div>
+        
+        <div class="round-list-item">
+          <div class="round-list-info">
+            <span class="round-list-name">LAST ROUND</span>
+            <span class="round-list-price">€20</span>
+          </div>
+          <button class="btn btn-primary" onclick="selectRoundAndCheckout('LAST ROUND', 20)">PRENOTA</button>
+        </div>
+
+        <div class="round-list-item vip-list-item">
+          <div class="round-list-info">
+            <span class="round-list-name" style="color: #fff;">VIP & TAVOLI</span>
+            <span class="round-list-price" style="font-size: 0.8rem; font-family: 'Barlow', sans-serif;">Info e Prenotazioni</span>
+          </div>
+          <a href="https://wa.me/393336527455" target="_blank" rel="noopener" class="btn btn-outline" style="padding: 0.6rem 1rem;">
+            WHATSAPP
+          </a>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================== CHECKOUT MODAL ======================== -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal" id="checkout-modal">
+      <button class="modal-close" onclick="closeModal()">×</button>
+      <div class="modal-header">
+        <img src="logo.png" alt="Lucca Groove" class="modal-logo" />
+        <h2 class="modal-title">Prenotazione</h2>
+        <p id="modal-event-name" class="modal-tier"></p>
+      </div>
+      <form id="checkout-form" novalidate>
+        <div class="checkout-section-title">I Tuoi Dati</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="input-nome">Nome *</label>
+            <input type="text" id="input-nome" placeholder="Nome" required />
+          </div>
+          <div class="form-group">
+            <label for="input-cognome">Cognome *</label>
+            <input type="text" id="input-cognome" placeholder="Cognome" required />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="input-email">Email *</label>
+            <input type="email" id="input-email" placeholder="esempio@gmail.com" required />
+          </div>
+          <div class="form-group">
+            <label for="input-phone">Telefono *</label>
+            <input type="tel" id="input-phone" placeholder="+39 333 000 0000" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Numero Biglietti *</label>
+          <div class="qty-control">
+            <button type="button" class="qty-btn" onclick="changeQty(-1)">−</button>
+            <input type="number" id="input-qty" value="1" min="1" max="10" readonly />
+            <button type="button" class="qty-btn" onclick="changeQty(1)">+</button>
+          </div>
+        </div>
+        <div class="form-total">
+          <span>DA PAGARE ALLA PORTA</span>
+          <span id="modal-total" class="form-total-amount">€10</span>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">PRENOTA ORA</button>
+        <div class="secure-badge">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Pagamento (Contanti o Carte) all'ingresso
+        </div>
+      </form>
+      <div class="modal-success" id="modal-success" style="display:none;">
+        <div class="success-icon">✓</div>
+        <h3>Prenotazione Confermata!</h3>
+        <p>Il tuo codice di prenotazione è stato inviato alla tua email. Mostralo alla porta per pagare ed entrare.<br />Ci vediamo a Lucca Groove!</p>
+        <p class="success-sub">MUSICA • ATMOSFERA • PERSONE</p>
+        <button type="button" class="btn btn-outline" onclick="closeModal()">CHIUDI</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

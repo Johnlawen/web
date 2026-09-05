@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lucca Groove – Scanner Ingressi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body {
+      background: var(--black);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 2rem;
+      font-family: 'Barlow', sans-serif;
+    }
+    .scanner-container {
+      width: 100%;
+      max-width: 500px;
+      background: var(--black-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(255,107,0,0.1);
+    }
+    .scanner-header {
+      margin-bottom: 2rem;
+    }
+    .scanner-logo {
+      width: 60px;
+      margin: 0 auto 1rem;
+    }
+    h1 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 2rem;
+      color: var(--orange);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    #qr-reader {
+      width: 100%;
+      border: 2px solid var(--orange);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #000;
+    }
+    #scan-result {
+      margin-top: 1.5rem;
+      display: none;
+      padding: 1.5rem;
+      border-radius: 8px;
+      animation: fadeIn 0.3s ease;
+    }
+    #scan-status {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    #scan-details {
+      font-size: 1.1rem;
+      line-height: 1.5;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="scanner-container">
+    <div class="scanner-header">
+      <img src="logo.png" alt="Lucca Groove" class="scanner-logo" />
+      <h1>Scanner Ingressi</h1>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Scansiona il QR Code del biglietto alla porta.</p>
+    </div>
+
+    <div id="qr-reader"></div>
+    
+    <div id="scan-result">
+      <h3 id="scan-status"></h3>
+      <p id="scan-details"></p>
+      <button class="btn btn-primary" style="margin-top: 1.5rem; width: 100%;" onclick="resetScanner()">Scansiona un altro biglietto</button>
+    </div>
+    
+    <div style="margin-top: 2rem;">
+      <a href="index.html" style="color: var(--text-muted); font-size: 0.8rem; text-decoration: underline;">← Torna al sito principale</a>
+    </div>
+  </div>
+
+  <script>
+    let appData = JSON.parse(localStorage.getItem('luccaAdminData')) || { orders: [] };
+    let html5QrcodeScanner;
+
+    function saveState() {
+      localStorage.setItem('luccaAdminData', JSON.stringify(appData));
+    }
+
+    function initScanner() {
+      if (html5QrcodeScanner) {
+        try { html5QrcodeScanner.clear(); } catch(e) {}
+      }
+      
+      html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
+      html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+    }
+
+    function onScanSuccess(decodedText, decodedResult) {
+      // Stop scanning
+      try { html5QrcodeScanner.clear(); } catch(e) {}
+      
+      // Refresh appData in case admin added tickets on another device/tab
+      appData = JSON.parse(localStorage.getItem('luccaAdminData')) || { orders: [] };
+      
+      const orderId = decodedText;
+      const orderIndex = appData.orders.findIndex(o => o.id === orderId);
+      
+      const scanResult = document.getElementById('scan-result');
+      const scanStatus = document.getElementById('scan-status');
+      const scanDetails = document.getElementById('scan-details');
+      
+      scanResult.style.display = 'block';
+      document.getElementById('qr-reader').style.display = 'none';
+
+      if (orderIndex === -1) {
+        scanResult.style.backgroundColor = 'rgba(255, 0, 0, 0.15)';
+        scanResult.style.border = '1px solid #ff4444';
+        scanStatus.textContent = "❌ BIGLIETTO NON VALIDO";
+        scanStatus.style.color = "#ff4444";
+        scanDetails.textContent = `Nessun ordine trovato per l'ID: ${orderId}`;
+      } else {
+        const order = appData.orders[orderIndex];
+        if (order.used >= order.qty) {
+          scanResult.style.backgroundColor = 'rgba(255, 170, 0, 0.15)';
+          scanResult.style.border = '1px solid #ffaa00';
+          scanStatus.textContent = "⚠️ GIÀ USATO";
+          scanStatus.style.color = "#ffaa00";
+          scanDetails.innerHTML = `
+            <strong>Ordine:</strong> ${order.id}<br/>
+            <strong>Nome:</strong> ${order.name}<br/>
+            <strong>Ingressi:</strong> ${order.used} su ${order.qty}
+          `;
+        } else {
+          // Valid entry
+          appData.orders[orderIndex].used += 1;
+          saveState();
+          
+          scanResult.style.backgroundColor = 'rgba(0, 255, 0, 0.15)';
+          scanResult.style.border = '1px solid #44ff44';
+          scanStatus.textContent = "✅ CONSENTITO";
+          scanStatus.style.color = "#44ff44";
+          scanDetails.innerHTML = `
+            <strong>Ordine:</strong> ${order.id}<br/>
+            <strong>Nome:</strong> ${order.name}<br/>
+            <strong>Tipo:</strong> ${order.round}<br/>
+            <strong>Rimanenti:</strong> ${order.qty - appData.orders[orderIndex].used} di ${order.qty}
+          `;
+        }
+      }
+    }
+
+    function onScanFailure(error) {
+      // Ignore background errors
+    }
+
+    function resetScanner() {
+      document.getElementById('scan-result').style.display = 'none';
+      document.getElementById('qr-reader').style.display = 'block';
+      initScanner();
+    }
+
+    // Start on load
+    window.onload = () => {
+      initScanner();
+    };
+  </script>
+</body>
+</html>
