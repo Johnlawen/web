@@ -304,11 +304,16 @@
           </div>
         </div>
         <div class="form-group">
+          <label>Sesso *</label>
+          <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;"><input type="radio" name="gender" value="Male" required> Uomo (Male)</label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;"><input type="radio" name="gender" value="Female" required> Donna (Female)</label>
+          </div>
+        </div>
+        <div class="form-group" style="display: none;">
           <label>Numero Biglietti *</label>
           <div class="qty-control">
-            <button type="button" class="qty-btn" onclick="changeQty(-1)">−</button>
-            <input type="number" id="input-qty" value="1" min="1" max="10" readonly />
-            <button type="button" class="qty-btn" onclick="changeQty(1)">+</button>
+            <input type="number" id="input-qty" value="1" min="1" max="1" readonly />
           </div>
         </div>
         <div class="form-total">

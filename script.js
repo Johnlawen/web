@@ -104,9 +104,12 @@ document.getElementById('checkout-form').addEventListener('submit', function(e) 
   const cognome = document.getElementById('input-cognome').value.trim();
   const email = document.getElementById('input-email').value.trim();
   const phone = document.getElementById('input-phone').value.trim();
-  const qty = parseInt(document.getElementById('input-qty').value);
+  const qty = 1; // Enforce single ticket
   
-  if (!nome || !cognome || !email || !phone) {
+  const genderRadio = document.querySelector('input[name="gender"]:checked');
+  const gender = genderRadio ? genderRadio.value : '';
+
+  if (!nome || !cognome || !email || !phone || !gender) {
     alert('Per favore compila tutti i campi obbligatori.'); return;
   }
   
@@ -114,6 +117,13 @@ document.getElementById('checkout-form').addEventListener('submit', function(e) 
   let adminData = JSON.parse(localStorage.getItem('luccaAdminData')) || {
     revenue: 2150, ticketsSold: 135, rounds: {}, orders: []
   };
+
+  // Check if person already has a ticket
+  const existingOrder = adminData.orders.find(o => o.email.toLowerCase() === email.toLowerCase());
+  if (existingOrder) {
+    alert('Hai già prenotato un biglietto con questa email. Ogni persona può ottenere solo un biglietto.');
+    return;
+  }
   
   const roundName = document.getElementById('modal-event-name').textContent.split(' - ')[1] || document.getElementById('modal-event-name').textContent || 'Ingresso';
   
@@ -122,6 +132,7 @@ document.getElementById('checkout-form').addEventListener('submit', function(e) 
     date: new Date().toLocaleDateString('it-IT'),
     name: nome + ' ' + cognome,
     email: email,
+    gender: gender,
     round: roundName,
     qty: qty,
     total: qty * currentPrice,
