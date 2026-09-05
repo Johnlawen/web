@@ -203,6 +203,10 @@ function renderDashboard() {
   // Stats
   document.getElementById('dash-revenue').textContent = '€' + appData.revenue;
   document.getElementById('dash-tickets').textContent = appData.ticketsSold;
+  
+  const activeEventsCount = appData.events ? appData.events.filter(e => e.active).length : 0;
+  const dashEventsEl = document.getElementById('dash-events');
+  if (dashEventsEl) dashEventsEl.textContent = activeEventsCount;
 
   // Progress Bars
   const r1 = appData.rounds.r1;
