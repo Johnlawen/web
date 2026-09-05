@@ -48,9 +48,57 @@ if (bars) { setInterval(() => { bars.style.opacity = bars.style.opacity === '0.6
 // ===== ROUNDS MODAL =====
 let currentEventName = '';
 
-function openRoundsModal(eventName) {
+async function openRoundsModal(eventName) {
   currentEventName = eventName;
   document.getElementById('rounds-event-name').textContent = eventName;
+  
+  const container = document.getElementById('rounds-list-container');
+  if (container) {
+    container.innerHTML = '<p style="text-align:center;color:#fff;font-size:0.9rem;margin:1rem 0;">Caricamento...</p>';
+    
+    try {
+      const res = await fetch('/api/get-data');
+      if(res.ok) {
+        const data = await res.json();
+        const rounds = data.rounds;
+        
+        container.innerHTML = '';
+        
+        const renderRound = (roundData, name) => {
+          if (!roundData) return;
+          
+          if (!roundData.active) {
+            container.innerHTML += `
+              <div class="round-list-item" style="opacity:0.6; filter:grayscale(1);">
+                <div class="round-list-info">
+                  <span class="round-list-name">${name.toUpperCase()}</span>
+                  <span class="round-list-price" style="color:var(--red);">CHIUSO</span>
+                </div>
+                <button class="btn btn-outline" disabled style="border-color:#555;color:#555;">CHIUSO</button>
+              </div>
+            `;
+          } else {
+            container.innerHTML += `
+              <div class="round-list-item">
+                <div class="round-list-info">
+                  <span class="round-list-name">${name.toUpperCase()}</span>
+                  <span class="round-list-price">€${roundData.price}</span>
+                </div>
+                <button class="btn btn-primary" onclick="selectRoundAndCheckout('${name.toUpperCase()}', ${roundData.price})">PRENOTA</button>
+              </div>
+            `;
+          }
+        };
+
+        renderRound(rounds.r1, 'EARLY TICKETS');
+        renderRound(rounds.r2, 'ROUND 2');
+        renderRound(rounds.r3, 'LAST ROUND');
+      }
+    } catch(e) {
+      container.innerHTML = '<p style="text-align:center;color:var(--red);font-size:0.9rem;">Errore nel caricamento.</p>';
+    }
+  }
+
   document.getElementById('rounds-modal-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
