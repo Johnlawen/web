@@ -72,6 +72,42 @@ module.exports = async function handler(req, res) {
       }
 
       await redis.set('luccaAdminData', JSON.stringify(data));
+
+      // Send Email with Resend
+      if (process.env.RESEND_API_KEY) {
+        try {
+          const { Resend } = require('resend');
+          const resend = new Resend(process.env.RESEND_API_KEY);
+          
+          await resend.emails.send({
+            from: 'Lucca Groove <onboarding@resend.dev>',
+            to: email,
+            subject: `Il tuo biglietto per Lucca Groove - ${order.round}`,
+            html: `
+              <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #000; color: #fff; padding: 20px; border-radius: 8px;">
+                <h1 style="color: #fff; text-align: center;">LUCCA GROOVE</h1>
+                <div style="background: #111; padding: 20px; border-radius: 8px; border: 1px solid #333; margin-top: 20px;">
+                  <h2 style="margin-top: 0; color: #fff;">Conferma Prenotazione</h2>
+                  <p style="color: #eee;">Ciao <strong>${order.name}</strong>,</p>
+                  <p style="color: #eee;">Il tuo biglietto per Lucca Groove è confermato!</p>
+                  
+                  <div style="margin: 20px 0; padding: 15px; border-left: 4px solid #fff; background: #222;">
+                    <p style="margin: 5px 0; color: #eee;"><strong>Tipologia:</strong> ${order.round}</p>
+                    <p style="margin: 5px 0; color: #eee;"><strong>ID Ordine:</strong> ${order.id}</p>
+                    <p style="margin: 5px 0; color: #eee;"><strong>Totale da pagare:</strong> €${order.total}</p>
+                  </div>
+                  
+                  <p style="color: #aaa;">Mostra questa email o l'ID ordine all'ingresso per pagare ed entrare.</p>
+                  <p style="color: #eee;">Ci vediamo a Lucca Groove!</p>
+                </div>
+              </div>
+            `
+          });
+        } catch (e) {
+          console.error('Failed to send email:', e);
+        }
+      }
+
       return res.status(200).json({ success: true, data });
     }
 
