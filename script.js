@@ -72,7 +72,8 @@ function openCheckoutModal(tier, price) {
   currentPrice = price;
   document.getElementById('modal-event-name').textContent = tier.toUpperCase();
   document.getElementById('modal-total').textContent = '€' + price;
-  document.getElementById('btn-total-text').textContent = '€' + price;
+  const btnTotalText = document.getElementById('btn-total-text');
+  if (btnTotalText) btnTotalText.textContent = '€' + price;
   document.getElementById('input-qty').value = 1;
   document.getElementById('modal-success').style.display = 'none';
   document.getElementById('checkout-form').style.display = 'block';
@@ -94,7 +95,8 @@ function changeQty(delta) {
   input.value = val;
   const total = val * currentPrice;
   document.getElementById('modal-total').textContent = '€' + total;
-  document.getElementById('btn-total-text').textContent = '€' + total;
+  const btnTotalText = document.getElementById('btn-total-text');
+  if (btnTotalText) btnTotalText.textContent = '€' + total;
 }
 
 // Form submit
