@@ -118,9 +118,9 @@ module.exports = async function handler(req, res) {
       
       const evDate = data.events[evIndex].date;
 
-      // Extract orders for this event
-      const eventOrders = data.orders.filter(o => o.event === eventName);
-      const otherOrders = data.orders.filter(o => o.event !== eventName);
+      // Extract orders for this event (case-insensitive)
+      const eventOrders = data.orders.filter(o => (o.event || '').toLowerCase() === eventName.toLowerCase());
+      const otherOrders = data.orders.filter(o => (o.event || '').toLowerCase() !== eventName.toLowerCase());
 
       // Calculate stats
       let evRevenue = 0;

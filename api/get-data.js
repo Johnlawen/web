@@ -32,11 +32,11 @@ module.exports = async function handler(req, res) {
     // If an order belongs to an event that was archived, move it to pastOrders.
     let changed = false;
     if (data.archivedEvents && data.orders && data.orders.length > 0) {
-      const activeEventNames = (data.events || []).map(e => e.name);
+      const activeEventNames = (data.events || []).map(e => e.name.toLowerCase());
       
       const orphanedOrders = data.orders.filter(o => 
-        !activeEventNames.includes(o.event) && 
-        data.archivedEvents.some(ae => ae.name === o.event)
+        !activeEventNames.includes((o.event || '').toLowerCase()) && 
+        data.archivedEvents.some(ae => ae.name.toLowerCase() === (o.event || '').toLowerCase())
       );
       
       if (orphanedOrders.length > 0) {
@@ -50,7 +50,7 @@ module.exports = async function handler(req, res) {
           data.ticketsSold = Math.max(0, data.ticketsSold - (o.qty || 0));
           
           // Add to the archived event's stats
-          const archEv = data.archivedEvents.find(ae => ae.name === o.event);
+          const archEv = data.archivedEvents.find(ae => ae.name.toLowerCase() === (o.event || '').toLowerCase());
           if (archEv) {
             archEv.ticketsSold = (archEv.ticketsSold || 0) + (o.qty || 0);
             archEv.revenue = (archEv.revenue || 0) + (o.total || 0);
