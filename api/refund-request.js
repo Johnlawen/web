@@ -56,18 +56,27 @@ module.exports = async function handler(req, res) {
       if (orderIdx !== -1) {
         if (status === 'approved') {
           data.orders[orderIdx].status = 'Rimborsato';
+          
           // Deduct from stats
-          data.revenue -= data.orders[orderIdx].total;
-          data.ticketsSold -= data.orders[orderIdx].qty;
+          // Only deduct from revenue if it was actually paid
+          const isPaid = data.orders[orderIdx].payment === 'Pagato' || data.orders[orderIdx].status === 'Pagato';
+          if (isPaid) {
+            data.revenue = Math.max(0, data.revenue - data.orders[orderIdx].total);
+          }
+          
+          data.ticketsSold = Math.max(0, data.ticketsSold - data.orders[orderIdx].qty);
+          
           const roundName = data.orders[orderIdx].round;
           for (const key in data.rounds) {
-            if (data.rounds[key].name === roundName) {
+            if (data.rounds[key].name.toLowerCase() === (roundName || '').toLowerCase()) {
               data.rounds[key].sold = Math.max(0, data.rounds[key].sold - data.orders[orderIdx].qty);
               break;
             }
           }
         } else if (status === 'rejected') {
-          data.orders[orderIdx].status = 'Attivo';
+          // Keep whatever payment status they had before requesting the refund. Usually 'Attivo' or 'Pagato' or 'Da Pagare'.
+          // We don't want to blindly set to 'Attivo' if it was 'Da Pagare'.
+          data.orders[orderIdx].status = data.orders[orderIdx].payment || 'Attivo';
         }
       }
 

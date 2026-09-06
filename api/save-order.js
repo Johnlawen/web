@@ -44,6 +44,9 @@ module.exports = async function handler(req, res) {
       }
       
       (data.orders || []).forEach(o => {
+        // Skip refunded tickets entirely from counts
+        if (o.status === 'Rimborsato') return;
+
         ticketsSold += (o.qty || 0);
         // Only count paid orders toward revenue
         const isPaid = o.payment === 'Pagato' || o.status === 'Pagato';
