@@ -79,6 +79,13 @@ function saveState() {
 const navBtns = document.querySelectorAll('.nav-btn');
 const views = document.querySelectorAll('.view-section');
 
+const viewRenderMap = {
+  'view-events':    () => renderEvents(),
+  'view-refunds':   () => renderRefunds(),
+  'view-archive':   () => renderArchive(),
+  'view-orders':    () => renderAllOrders(),
+};
+
 navBtns.forEach(btn => {
   btn.addEventListener('click', () => {
     navBtns.forEach(b => b.classList.remove('active'));
@@ -89,6 +96,9 @@ navBtns.forEach(btn => {
     document.getElementById(target).classList.add('active');
     
     document.getElementById('page-title').textContent = btn.textContent.trim();
+    
+    // Call the specific render function for this view
+    if (viewRenderMap[target]) viewRenderMap[target]();
   });
 });
 
@@ -378,6 +388,9 @@ function renderDashboard() {
   }
 
   renderAllOrders();
+  renderEvents();
+  renderRefunds();
+  if (typeof renderArchive === 'function') renderArchive();
 }
 
 function changePage(delta) {
