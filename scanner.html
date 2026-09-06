@@ -227,16 +227,30 @@
           }
         } else if (res.status === 400 && data.order) {
           const order = data.order;
-          scanResult.style.backgroundColor = 'rgba(255, 170, 0, 0.15)';
-          scanResult.style.border = '1px solid #ffaa00';
-          scanStatus.textContent = "⚠️ ATTENZIONE";
-          scanStatus.style.color = "#ffaa00";
-          scanDetails.innerHTML = `
-            <strong>Errore:</strong> ${data.error}<br/><br/>
-            <strong>Ordine:</strong> ${order.id}<br/>
-            <strong>Nome:</strong> ${order.name}<br/>
-            <strong>Ingressi Usati:</strong> ${order.used} su ${order.qty}
-          `;
+          if (data.rejected) {
+            // Hard rejection: refunded, wrong event — clearly denied
+            scanResult.style.backgroundColor = 'rgba(255, 0, 0, 0.2)';
+            scanResult.style.border = '2px solid #ff4444';
+            scanStatus.textContent = "🚫 RIFIUTATO";
+            scanStatus.style.color = "#ff4444";
+            scanDetails.innerHTML = `
+              <strong style="color:#ff4444">${data.error}</strong><br/><br/>
+              <strong>Nome:</strong> ${order.name}<br/>
+              <strong>Ordine:</strong> ${order.id}
+            `;
+          } else {
+            // Soft warning: already used
+            scanResult.style.backgroundColor = 'rgba(255, 170, 0, 0.15)';
+            scanResult.style.border = '1px solid #ffaa00';
+            scanStatus.textContent = "⚠️ GIÀ UTILIZZATO";
+            scanStatus.style.color = "#ffaa00";
+            scanDetails.innerHTML = `
+              <strong>Errore:</strong> ${data.error}<br/><br/>
+              <strong>Ordine:</strong> ${order.id}<br/>
+              <strong>Nome:</strong> ${order.name}<br/>
+              <strong>Ingressi Usati:</strong> ${order.used} su ${order.qty}
+            `;
+          }
         } else {
           scanResult.style.backgroundColor = 'rgba(255, 0, 0, 0.15)';
           scanResult.style.border = '1px solid #ff4444';

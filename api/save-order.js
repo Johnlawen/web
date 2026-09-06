@@ -127,11 +127,11 @@ module.exports = async function handler(req, res) {
       const order = data.orders[orderIndex];
 
       if (order.status === 'Rimborsato' || order.status === 'Rimborso in attesa') {
-        return res.status(400).json({ error: 'Biglietto annullato o rimborsato.', order });
+        return res.status(400).json({ error: 'Biglietto annullato o rimborsato. Ingresso non consentito.', order, rejected: true });
       }
 
-      if (eventName && (order.event || '-') !== eventName) {
-        return res.status(400).json({ error: `Biglietto non valido per questo evento (Valido per: ${order.event || 'Nessun Evento'}).`, order });
+      if (eventName && (order.event || '').toLowerCase() !== eventName.toLowerCase()) {
+        return res.status(400).json({ error: `Biglietto non valido per questo evento. Valido per: ${order.event || 'Nessun Evento'}`, order, rejected: true });
       }
 
       if (order.used >= order.qty) {
