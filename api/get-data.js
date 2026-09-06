@@ -27,6 +27,46 @@ module.exports = async function handler(req, res) {
     } else if (typeof data === 'string') {
       data = JSON.parse(data);
     }
+
+    // --- AUTO-CLEANUP ORPHANED ORDERS ---
+    // If an order belongs to an event that was archived, move it to pastOrders.
+    let changed = false;
+    if (data.archivedEvents && data.orders && data.orders.length > 0) {
+      const activeEventNames = (data.events || []).map(e => e.name);
+      
+      const orphanedOrders = data.orders.filter(o => 
+        !activeEventNames.includes(o.event) && 
+        data.archivedEvents.some(ae => ae.name === o.event)
+      );
+      
+      if (orphanedOrders.length > 0) {
+        if (!data.pastOrders) data.pastOrders = [];
+        data.pastOrders.push(...orphanedOrders);
+        data.orders = data.orders.filter(o => !orphanedOrders.includes(o));
+        
+        orphanedOrders.forEach(o => {
+          // Deduct from live dashboard stats
+          data.revenue = Math.max(0, data.revenue - (o.total || 0));
+          data.ticketsSold = Math.max(0, data.ticketsSold - (o.qty || 0));
+          
+          // Add to the archived event's stats
+          const archEv = data.archivedEvents.find(ae => ae.name === o.event);
+          if (archEv) {
+            archEv.ticketsSold = (archEv.ticketsSold || 0) + (o.qty || 0);
+            archEv.revenue = (archEv.revenue || 0) + (o.total || 0);
+            archEv.orderCount = (archEv.orderCount || 0) + 1;
+          }
+        });
+        
+        changed = true;
+      }
+    }
+    
+    if (changed) {
+      await redis.set('luccaAdminData', JSON.stringify(data));
+    }
+    // -------------------------------------
+
     res.status(200).json(data);
   } catch (error) {
     console.error(error);
