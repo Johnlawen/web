@@ -139,8 +139,32 @@ module.exports = async function handler(req, res) {
       }
 
       data.orders[orderIndex].used = (data.orders[orderIndex].used || 0) + 1;
+
+      // If ticket was "pay at door", mark as paid now and add revenue
+      const wasDaPagare = 
+        data.orders[orderIndex].payment === 'Da Pagare' ||
+        data.orders[orderIndex].payment === 'To Pay' ||
+        data.orders[orderIndex].payment === 'To Be Paid' ||
+        data.orders[orderIndex].status === 'Da Pagare' ||
+        data.orders[orderIndex].status === 'To Pay' ||
+        data.orders[orderIndex].status === 'To Be Paid';
+
+      if (wasDaPagare) {
+        data.orders[orderIndex].payment = 'Pagato';
+        data.orders[orderIndex].status = 'Pagato';
+        data.revenue = (data.revenue || 0) + (data.orders[orderIndex].total || 0);
+        
+        // Update round sold count (case-insensitive match)
+        const roundName = data.orders[orderIndex].round;
+        for (const key in data.rounds) {
+          if (data.rounds[key].name.toLowerCase() === (roundName || '').toLowerCase()) {
+            data.rounds[key].sold = (data.rounds[key].sold || 0) + (data.orders[orderIndex].qty || 1);
+            break;
+          }
+        }
+      }
+
       await redis.set('luccaAdminData', JSON.stringify(data));
-      
       return res.status(200).json({ success: true, order: data.orders[orderIndex] });
     }
 
@@ -150,9 +174,9 @@ module.exports = async function handler(req, res) {
       data.revenue += order.total;
       data.ticketsSold += order.qty;
       
-      // Update round sold count
+      // Update round sold count (case-insensitive)
       for (const key in data.rounds) {
-        if (data.rounds[key].name === order.round) {
+        if (data.rounds[key].name.toLowerCase() === (order.round || '').toLowerCase()) {
           data.rounds[key].sold += order.qty;
           break;
         }
@@ -184,9 +208,9 @@ module.exports = async function handler(req, res) {
       data.orders.unshift(order);
       data.ticketsSold += order.qty;
       
-      // Update round sold count
+      // Update round sold count (case-insensitive)
       for (const key in data.rounds) {
-        if (data.rounds[key].name === order.round) {
+        if (data.rounds[key].name.toLowerCase() === (order.round || '').toLowerCase()) {
           data.rounds[key].sold += order.qty;
           break;
         }
