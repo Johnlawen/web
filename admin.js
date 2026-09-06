@@ -320,6 +320,7 @@ function renderDashboard() {
       <td style="font-size:0.8rem;color:var(--text-muted)">${o.id}</td>
       <td>${o.date}</td>
       <td><strong>${o.name}</strong><br/><span style="font-size:0.7rem;color:var(--text-muted)">${o.email || '-'}</span></td>
+      <td><strong>${o.event || '-'}</strong></td>
       <td><span class="badge ${o.payment === 'Contanti' ? 'badge-active' : ''}">${o.payment}</span></td>
       <td>${o.round}</td>
       <td>${o.qty}</td>
@@ -358,6 +359,7 @@ function generateManualTicket() {
     date: new Date().toLocaleDateString('it-IT'),
     name: name,
     email: email,
+    event: 'Manuale',
     round: round.name,
     qty: qty,
     total: total,

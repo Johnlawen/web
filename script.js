@@ -170,7 +170,9 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
   submitBtn.textContent = 'ATTENDERE...';
   submitBtn.disabled = true;
 
-  const roundName = document.getElementById('modal-event-name').textContent.split(' - ')[1] || document.getElementById('modal-event-name').textContent || 'Ingresso';
+  const modalEventName = document.getElementById('modal-event-name').textContent;
+  const eventName = modalEventName.includes(' - ') ? modalEventName.split(' - ')[0] : '-';
+  const roundName = modalEventName.includes(' - ') ? modalEventName.split(' - ')[1] : modalEventName || 'Ingresso';
   
   const newOrder = {
     id: 'RES-' + Math.floor(Math.random() * 90000 + 10000),
@@ -178,6 +180,7 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
     name: nome + ' ' + cognome,
     email: email,
     gender: gender,
+    event: eventName,
     round: roundName,
     qty: qty,
     total: qty * currentPrice,
