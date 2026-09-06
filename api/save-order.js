@@ -91,6 +91,26 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ success: true, data });
     }
 
+    // Scan Ticket
+    if (action === 'scan') {
+      const orderId = req.body.orderId;
+      const orderIndex = data.orders.findIndex(o => o.id === orderId);
+      
+      if (orderIndex === -1) {
+        return res.status(404).json({ error: 'Ticket non trovato' });
+      }
+
+      const order = data.orders[orderIndex];
+      if (order.used >= order.qty) {
+        return res.status(400).json({ error: 'Biglietto già utilizzato', order });
+      }
+
+      data.orders[orderIndex].used = (data.orders[orderIndex].used || 0) + 1;
+      await redis.set('luccaAdminData', JSON.stringify(data));
+      
+      return res.status(200).json({ success: true, order: data.orders[orderIndex] });
+    }
+
     // Manual ticket from admin panel
     if (action === 'manual') {
       data.orders.unshift(order);

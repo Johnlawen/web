@@ -112,32 +112,46 @@
       html5QrcodeScanner.render(onScanSuccess, onScanFailure);
     }
 
-    function onScanSuccess(decodedText, decodedResult) {
+    async function onScanSuccess(decodedText, decodedResult) {
       // Stop scanning
       try { html5QrcodeScanner.clear(); } catch(e) {}
       
-      // Refresh appData in case admin added tickets on another device/tab
-      appData = JSON.parse(localStorage.getItem('luccaAdminData')) || { orders: [] };
-      
       const orderId = decodedText;
-      const orderIndex = appData.orders.findIndex(o => o.id === orderId);
-      
       const scanResult = document.getElementById('scan-result');
       const scanStatus = document.getElementById('scan-status');
       const scanDetails = document.getElementById('scan-details');
       
       scanResult.style.display = 'block';
       document.getElementById('qr-reader').style.display = 'none';
+      scanStatus.textContent = "⏳ VERIFICA IN CORSO...";
+      scanStatus.style.color = "#888";
+      scanDetails.textContent = "Attendi...";
+      scanResult.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+      scanResult.style.border = '1px solid #333';
 
-      if (orderIndex === -1) {
-        scanResult.style.backgroundColor = 'rgba(255, 0, 0, 0.15)';
-        scanResult.style.border = '1px solid #ff4444';
-        scanStatus.textContent = "❌ BIGLIETTO NON VALIDO";
-        scanStatus.style.color = "#ff4444";
-        scanDetails.textContent = `Nessun ordine trovato per l'ID: ${orderId}`;
-      } else {
-        const order = appData.orders[orderIndex];
-        if (order.used >= order.qty) {
+      try {
+        const res = await fetch('/api/save-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'scan', orderId })
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok && data.success) {
+          const order = data.order;
+          scanResult.style.backgroundColor = 'rgba(0, 255, 0, 0.15)';
+          scanResult.style.border = '1px solid #44ff44';
+          scanStatus.textContent = "✅ CONSENTITO";
+          scanStatus.style.color = "#44ff44";
+          scanDetails.innerHTML = `
+            <strong>Ordine:</strong> ${order.id}<br/>
+            <strong>Nome:</strong> ${order.name}<br/>
+            <strong>Tipo:</strong> ${order.round}<br/>
+            <strong>Rimanenti:</strong> ${order.qty - order.used} di ${order.qty}
+          `;
+        } else if (res.status === 400 && data.order) {
+          const order = data.order;
           scanResult.style.backgroundColor = 'rgba(255, 170, 0, 0.15)';
           scanResult.style.border = '1px solid #ffaa00';
           scanStatus.textContent = "⚠️ GIÀ USATO";
@@ -148,21 +162,18 @@
             <strong>Ingressi:</strong> ${order.used} su ${order.qty}
           `;
         } else {
-          // Valid entry
-          appData.orders[orderIndex].used += 1;
-          saveState();
-          
-          scanResult.style.backgroundColor = 'rgba(0, 255, 0, 0.15)';
-          scanResult.style.border = '1px solid #44ff44';
-          scanStatus.textContent = "✅ CONSENTITO";
-          scanStatus.style.color = "#44ff44";
-          scanDetails.innerHTML = `
-            <strong>Ordine:</strong> ${order.id}<br/>
-            <strong>Nome:</strong> ${order.name}<br/>
-            <strong>Tipo:</strong> ${order.round}<br/>
-            <strong>Rimanenti:</strong> ${order.qty - appData.orders[orderIndex].used} di ${order.qty}
-          `;
+          scanResult.style.backgroundColor = 'rgba(255, 0, 0, 0.15)';
+          scanResult.style.border = '1px solid #ff4444';
+          scanStatus.textContent = "❌ BIGLIETTO NON VALIDO";
+          scanStatus.style.color = "#ff4444";
+          scanDetails.textContent = data.error || `Nessun ordine trovato per l'ID: ${orderId}`;
         }
+      } catch (err) {
+        scanResult.style.backgroundColor = 'rgba(255, 0, 0, 0.15)';
+        scanResult.style.border = '1px solid #ff4444';
+        scanStatus.textContent = "❌ ERRORE DI RETE";
+        scanStatus.style.color = "#ff4444";
+        scanDetails.textContent = "Impossibile contattare il server. Riprova.";
       }
     }
 
