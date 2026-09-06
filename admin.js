@@ -526,44 +526,46 @@ async function sendNotifyAll() {
 
 // ===== RIMBORSI =====
 function renderRefunds() {
-  const tbody = document.getElementById('refunds-tbody');
-  if (!tbody) return;
+  const grid = document.getElementById('refunds-grid');
+  if (!grid) return;
   
   const refunds = appData.refundRequests || [];
-  tbody.innerHTML = '';
+  grid.innerHTML = '';
   
   if (refunds.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#aaa;padding:20px;">Nessuna richiesta di rimborso</td></tr>';
+    grid.innerHTML = '<div style="text-align:center;color:#aaa;padding:40px;width:100%;grid-column:1/-1;">Nessuna richiesta di rimborso</div>';
     return;
   }
   
   refunds.forEach(r => {
-    let statusBadge = '';
-    if (r.status === 'pending') {
-      statusBadge = '<span class="badge" style="background:rgba(255,107,0,0.15);color:var(--orange);border:1px solid var(--orange);">In attesa di rimborso</span>';
-    } else if (r.status === 'approved') {
-      statusBadge = '<span class="badge" style="background:rgba(76,175,80,0.15);color:#4CAF50;border:1px solid #4CAF50;">Rimborsato</span>';
-    } else {
-      statusBadge = '<span class="badge" style="background:rgba(244,67,54,0.15);color:#f44336;border:1px solid #f44336;">Rifiutato</span>';
-    }
-
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td style="font-size:0.75rem;color:#888;">${r.id}</td>
-      <td><strong>${r.orderId}</strong></td>
-      <td><strong>${r.name}</strong></td>
-      <td style="font-size:0.85rem;">${r.email || '-'}</td>
-      <td style="font-size:0.85rem; max-width: 300px; white-space: pre-wrap; line-height: 1.4;">${r.reason}</td>
-      <td>${r.date}</td>
-      <td>${statusBadge}</td>
-      <td style="display:flex;gap:5px;">
+    let statusClass = r.status;
+    let statusText = r.status === 'pending' ? 'IN ATTESA' : (r.status === 'approved' ? 'APPROVATO' : 'RIFIUTATO');
+    
+    const card = document.createElement('div');
+    card.className = 'refund-card';
+    card.innerHTML = `
+      <div class="refund-card-header">
+        <div>
+          <h4 class="refund-card-title">${r.name}</h4>
+          <div class="refund-card-subtitle">${r.email || '-'} &bull; Ordine: ${r.orderId}</div>
+        </div>
+        <span class="refund-badge ${statusClass}">${statusText}</span>
+      </div>
+      <div class="refund-card-body">
+        <div class="refund-detail">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          Richiesto il: ${r.date}
+        </div>
+        <div class="refund-reason-box">"${r.reason}"</div>
         ${r.status === 'pending' ? `
-          <button class="btn btn-ghost btn-sm" style="color:#4CAF50;border-color:#4CAF50;" onclick="handleRefund('${r.id}', 'approved')">✅ Approva</button>
-          <button class="btn btn-ghost btn-sm" style="color:#f44336;border-color:#f44336;" onclick="handleRefund('${r.id}', 'rejected')">❌ Rifiuta</button>
-        ` : '-'}
-      </td>
+          <div class="refund-card-actions">
+            <button class="btn btn-ghost btn-sm" style="color:#4CAF50;border-color:#4CAF50;" onclick="handleRefund('${r.id}', 'approved')">✅ Approva</button>
+            <button class="btn btn-ghost btn-sm" style="color:#f44336;border-color:#f44336;" onclick="handleRefund('${r.id}', 'rejected')">❌ Rifiuta</button>
+          </div>
+        ` : ''}
+      </div>
     `;
-    tbody.appendChild(tr);
+    grid.appendChild(card);
   });
 }
 
@@ -581,9 +583,9 @@ async function handleRefund(requestId, status) {
     if (data.success) {
       // Refresh all data from server to reflect order status and stats changes instantly
       await loadData();
-      alert(status === 'approved' ? '✅ Rimborso approvato! Email inviata al cliente.' : '❌ Rimborso rifiutato. Email inviata al cliente.');
+      showToast(status === 'approved' ? '✅ Rimborso approvato! Email inviata al cliente.' : '❌ Rimborso rifiutato. Email inviata al cliente.');
     }
   } catch(e) {
-    alert('Errore di connessione. Riprova.');
+    showToast('❌ Errore di connessione. Riprova.');
   }
 }
