@@ -44,6 +44,53 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ success: true, data });
     }
 
+    // Archive Event
+    if (action === 'archive-event') {
+      const eventName = req.body.eventName;
+      if (!data.archivedEvents) data.archivedEvents = [];
+      if (!data.pastOrders) data.pastOrders = [];
+
+      const evIndex = data.events.findIndex(e => e.name === eventName);
+      if (evIndex === -1) return res.status(404).json({ error: 'Event not found' });
+      
+      const evDate = data.events[evIndex].date;
+
+      // Extract orders for this event
+      const eventOrders = data.orders.filter(o => o.event === eventName);
+      const otherOrders = data.orders.filter(o => o.event !== eventName);
+
+      // Calculate stats
+      let evRevenue = 0;
+      let evTickets = 0;
+      eventOrders.forEach(o => {
+        evRevenue += o.total || 0;
+        evTickets += o.qty || 0;
+      });
+
+      // Update global counters (remove archived stats so dashboard only shows active)
+      data.revenue = Math.max(0, data.revenue - evRevenue);
+      data.ticketsSold = Math.max(0, data.ticketsSold - evTickets);
+
+      // Save archive summary
+      data.archivedEvents.unshift({
+        name: eventName,
+        date: evDate,
+        ticketsSold: evTickets,
+        revenue: evRevenue,
+        orderCount: eventOrders.length
+      });
+
+      // Move orders to pastOrders and update active orders
+      data.pastOrders.push(...eventOrders);
+      data.orders = otherOrders;
+      
+      // Remove from active events
+      data.events.splice(evIndex, 1);
+
+      await redis.set('luccaAdminData', JSON.stringify(data));
+      return res.status(200).json({ success: true, data });
+    }
+
     // Manual ticket from admin panel
     if (action === 'manual') {
       data.orders.unshift(order);

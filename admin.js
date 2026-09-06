@@ -7,8 +7,36 @@ let appData = {
     r2: { name: 'Round 2', price: 15, limit: 200, sold: 0, active: true },
     r3: { name: 'Last Round', price: 20, limit: 300, sold: 0, active: true }
   },
-  orders: []
+  orders: [],
+  archivedEvents: [] // Storico eventi
 };
+
+// ===== PAGINATION & FILTER STATE =====
+let currentPage = 1;
+const itemsPerPage = 20;
+let searchQuery = '';
+let eventFilter = '';
+
+// Add event listeners for search and filter
+document.addEventListener('DOMContentLoaded', () => {
+  const searchInput = document.getElementById('order-search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value.toLowerCase();
+      currentPage = 1; // Reset to page 1 on search
+      renderAllOrders();
+    });
+  }
+  
+  const filterSelect = document.getElementById('order-event-filter');
+  if (filterSelect) {
+    filterSelect.addEventListener('change', (e) => {
+      eventFilter = e.target.value;
+      currentPage = 1; // Reset to page 1 on filter
+      renderAllOrders();
+    });
+  }
+});
 
 async function loadData() {
   try {
@@ -292,6 +320,7 @@ function renderEvents() {
       <td><span class="badge ${ev.active ? 'badge-active' : ''}">${ev.active ? 'Attivo' : 'Inattivo'}</span></td>
       <td style="display: flex; gap: 5px;">
         <button class="btn btn-ghost btn-sm" onclick="openEventEditor('${ev.name}')">Modifica</button>
+        <button class="btn btn-ghost btn-sm" style="color: #4CAF50; border-color: #4CAF50;" onclick="archiveEvent('${ev.name}')">Archivia</button>
         <button class="btn btn-ghost btn-sm" style="color: #ff4444; border-color: #ff4444;" onclick="deleteEvent(${index})">Elimina</button>
       </td>
     `;
@@ -338,10 +367,61 @@ function renderDashboard() {
     tbodyRecent.appendChild(tr);
   });
 
-  // All Orders Table
+  // Update Event Filter Dropdown Options
+  const filterSelect = document.getElementById('order-event-filter');
+  if (filterSelect) {
+    const uniqueEvents = [...new Set(appData.orders.map(o => o.event || '-'))];
+    filterSelect.innerHTML = '<option value="">Tutti gli Eventi</option>';
+    uniqueEvents.forEach(ev => {
+      filterSelect.innerHTML += `<option value="${ev}" ${eventFilter === ev ? 'selected' : ''}>${ev}</option>`;
+    });
+  }
+
+  renderAllOrders();
+}
+
+function changePage(delta) {
+  currentPage += delta;
+  renderAllOrders();
+}
+
+function renderAllOrders() {
   const tbodyAll = document.querySelector('#all-orders-table tbody');
+  if (!tbodyAll) return;
+  
+  // 1. Filter
+  let filteredOrders = appData.orders.filter(o => {
+    const matchesSearch = !searchQuery || 
+      (o.name && o.name.toLowerCase().includes(searchQuery)) ||
+      (o.email && o.email.toLowerCase().includes(searchQuery)) ||
+      (o.id && o.id.toLowerCase().includes(searchQuery));
+    
+    const matchesEvent = !eventFilter || o.event === eventFilter;
+    
+    return matchesSearch && matchesEvent;
+  });
+
+  // 2. Pagination
+  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / itemsPerPage));
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
+  
+  document.getElementById('page-indicator').textContent = `Pagina ${currentPage} di ${totalPages} (${filteredOrders.length} ordini)`;
+  document.getElementById('btn-prev-page').disabled = currentPage === 1;
+  document.getElementById('btn-next-page').disabled = currentPage === totalPages;
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const pageOrders = filteredOrders.slice(startIndex, startIndex + itemsPerPage);
+
+  // 3. Render
   tbodyAll.innerHTML = '';
-  appData.orders.forEach(o => {
+  
+  if (pageOrders.length === 0) {
+    tbodyAll.innerHTML = '<tr><td colspan="9" style="text-align:center; color:#aaa; padding:20px;">Nessun ordine trovato</td></tr>';
+    return;
+  }
+
+  pageOrders.forEach(o => {
     let statusBadge = '';
     if (o.status === 'Rimborso in attesa') {
       statusBadge = '<br/><span class="badge" style="background:rgba(255,107,0,0.15);color:var(--orange);border:1px solid var(--orange);margin-top:4px;">In attesa di rimborso</span>';
@@ -363,10 +443,79 @@ function renderDashboard() {
     `;
     tbodyAll.appendChild(tr);
   });
+}
+
+// ===== STORICO EVENTI (ARCHIVE) =====
+async function archiveEvent(eventName) {
+  if (!confirm(`Sei sicuro di voler archiviare l'evento "${eventName}"? Gli ordini verranno spostati nello storico e non saranno più visibili nella tabella attiva.`)) return;
+
+  try {
+    const res = await fetch('/api/save-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'archive-event', eventName })
+    });
+    
+    const data = await res.json();
+    if (data.success) {
+      appData = data.data; // Sync with backend updated state
+      showToast('✅ Evento archiviato con successo!');
+      renderDashboard();
+    } else {
+      showToast('❌ Errore durante l\'archiviazione: ' + data.error);
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('❌ Errore di connessione.');
+  }
+}
+
+function renderArchive() {
+  const grid = document.getElementById('archive-grid');
+  if (!grid) return;
+  
+  const archived = appData.archivedEvents || [];
+  grid.innerHTML = '';
+  
+  if (archived.length === 0) {
+    grid.innerHTML = '<div style="text-align:center;color:#aaa;padding:40px;width:100%;grid-column:1/-1;">Nessun evento in archivio</div>';
+    return;
+  }
+  
+  archived.forEach(ev => {
+    const card = document.createElement('div');
+    card.className = 'refund-card'; // Reuse the refund card styling
+    card.innerHTML = `
+      <div class="refund-card-header">
+        <div>
+          <h4 class="refund-card-title">${ev.name}</h4>
+          <div class="refund-card-subtitle">Data: ${ev.date}</div>
+        </div>
+        <span class="refund-badge approved">ARCHIVIATO</span>
+      </div>
+      <div class="refund-card-body" style="gap:1rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; background:#000; padding:1rem; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
+          <div>
+            <div style="font-size:0.75rem; color:#888; text-transform:uppercase; font-weight:700;">Biglietti Venduti</div>
+            <div style="font-size:1.5rem; color:#fff; font-weight:900; font-family:'Barlow Condensed',sans-serif;">${ev.ticketsSold}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:0.75rem; color:#888; text-transform:uppercase; font-weight:700;">Incasso Totale</div>
+            <div style="font-size:1.5rem; color:var(--orange); font-weight:900; font-family:'Barlow Condensed',sans-serif;">€${ev.revenue}</div>
+          </div>
+        </div>
+        <div style="font-size:0.85rem; color:#aaa; text-align:center;">
+          ${ev.orderCount} ordini spostati in archivio.
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
 
   renderEvents();
   renderSubscribers();
   renderRefunds();
+  renderArchive();
 }
 
 // Initial Render

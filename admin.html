@@ -45,6 +45,10 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-5"/></svg>
         Rimborsi
       </button>
+      <button class="nav-btn" data-target="view-archive">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/></svg>
+        Storico Eventi
+      </button>
     </nav>
     <a href="index.html" class="back-link">← Torna al sito</a>
   </aside>
@@ -274,8 +278,15 @@
     <!-- VIEW: ORDERS -->
     <div id="view-orders" class="view-section">
       <div class="panel">
-        <div class="panel-header">
+        <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
           <h3>Tutti gli Ordini</h3>
+          <div class="table-controls" style="display:flex; gap:1rem; flex:1; max-width:600px; justify-content:flex-end;">
+            <input type="text" id="order-search-input" placeholder="Cerca per nome, email o ID..." style="flex:1; padding:0.5rem 1rem; background:#0a0a0a; border:1px solid rgba(255,255,255,0.1); border-radius:4px; color:#fff; font-family:'Barlow',sans-serif;" />
+            <select id="order-event-filter" style="padding:0.5rem 1rem; background:#0a0a0a; border:1px solid rgba(255,255,255,0.1); border-radius:4px; color:#fff; font-family:'Barlow',sans-serif;">
+              <option value="">Tutti gli Eventi</option>
+              <!-- Filled by JS -->
+            </select>
+          </div>
         </div>
         <div class="panel-body">
           <table class="data-table" id="all-orders-table">
@@ -296,6 +307,11 @@
               <!-- Populated by JS -->
             </tbody>
           </table>
+          <div class="pagination-controls" style="display:flex; justify-content:space-between; align-items:center; margin-top:1.5rem; padding-top:1rem; border-top:1px solid rgba(255,255,255,0.05);">
+            <button id="btn-prev-page" class="btn btn-ghost btn-sm" onclick="changePage(-1)">← Precedente</button>
+            <span id="page-indicator" style="font-size:0.9rem; color:var(--text-muted);">Pagina 1 di 1</span>
+            <button id="btn-next-page" class="btn btn-ghost btn-sm" onclick="changePage(1)">Successiva →</button>
+          </div>
         </div>
       </div>
     </div>
@@ -416,6 +432,21 @@
         <div class="panel-body">
           <div id="refunds-grid" class="refund-grid">
             <div style="text-align:center;color:#aaa;padding:40px;width:100%;grid-column:1/-1;">Nessuna richiesta di rimborso</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: STORICO EVENTI -->
+    <div id="view-archive" class="view-section">
+      <div class="panel">
+        <div class="panel-header">
+          <h3>Archivio Eventi Passati</h3>
+        </div>
+        <div class="panel-body">
+          <div id="archive-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(340px, 1fr)); gap:1.5rem;">
+            <!-- Filled by JS -->
+            <div style="text-align:center;color:#aaa;padding:40px;width:100%;grid-column:1/-1;">Nessun evento in archivio</div>
           </div>
         </div>
       </div>
