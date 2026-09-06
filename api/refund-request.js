@@ -15,8 +15,10 @@ module.exports = async function handler(req, res) {
     // Customer submits a refund request
     if (action === 'submit') {
       // Check order exists
-      const order = data.orders.find(o => o.id === orderId);
-      if (!order) return res.status(404).json({ error: 'Ordine non trovato. Controlla il tuo ID.' });
+      const orderIdx = data.orders.findIndex(o => o.id === orderId);
+      if (orderIdx === -1) return res.status(404).json({ error: 'Ordine non trovato. Controlla il tuo ID.' });
+      
+      const order = data.orders[orderIdx];
       
       // Check not already refunded
       const existing = data.refundRequests.find(r => r.orderId === orderId && r.status !== 'rejected');
@@ -32,6 +34,10 @@ module.exports = async function handler(req, res) {
         status: 'pending'
       };
       data.refundRequests.unshift(request);
+      
+      // Update order status
+      data.orders[orderIdx].status = 'Rimborso in attesa';
+      
       await redis.set('luccaAdminData', JSON.stringify(data));
       return res.status(200).json({ success: true });
     }
@@ -42,6 +48,29 @@ module.exports = async function handler(req, res) {
       if (idx === -1) return res.status(404).json({ error: 'Request not found' });
       
       data.refundRequests[idx].status = status;
+      
+      // Sync with order
+      const orderId = data.refundRequests[idx].orderId;
+      const orderIdx = data.orders.findIndex(o => o.id === orderId);
+      
+      if (orderIdx !== -1) {
+        if (status === 'approved') {
+          data.orders[orderIdx].status = 'Rimborsato';
+          // Deduct from stats
+          data.revenue -= data.orders[orderIdx].total;
+          data.ticketsSold -= data.orders[orderIdx].qty;
+          const roundName = data.orders[orderIdx].round;
+          for (const key in data.rounds) {
+            if (data.rounds[key].name === roundName) {
+              data.rounds[key].sold = Math.max(0, data.rounds[key].sold - data.orders[orderIdx].qty);
+              break;
+            }
+          }
+        } else if (status === 'rejected') {
+          data.orders[orderIdx].status = 'Attivo';
+        }
+      }
+
       await redis.set('luccaAdminData', JSON.stringify(data));
 
       // Send email to customer

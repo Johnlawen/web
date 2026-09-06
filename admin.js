@@ -342,13 +342,20 @@ function renderDashboard() {
   const tbodyAll = document.querySelector('#all-orders-table tbody');
   tbodyAll.innerHTML = '';
   appData.orders.forEach(o => {
+    let statusBadge = '';
+    if (o.status === 'Rimborso in attesa') {
+      statusBadge = '<br/><span class="badge" style="background:rgba(255,107,0,0.15);color:var(--orange);border:1px solid var(--orange);margin-top:4px;">In attesa di rimborso</span>';
+    } else if (o.status === 'Rimborsato') {
+      statusBadge = '<br/><span class="badge" style="background:rgba(244,67,54,0.15);color:#f44336;border:1px solid #f44336;margin-top:4px;">Rimborsato</span>';
+    }
+    
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td style="font-size:0.8rem;color:var(--text-muted)">${o.id}</td>
       <td>${o.date}</td>
       <td><strong>${o.name}</strong><br/><span style="font-size:0.7rem;color:var(--text-muted)">${o.email || '-'}</span></td>
       <td><strong>${o.event || '-'}</strong></td>
-      <td><span class="badge ${o.payment === 'Contanti' ? 'badge-active' : ''}">${o.payment}</span></td>
+      <td><span class="badge ${o.payment === 'Contanti' ? 'badge-active' : ''}">${o.payment}</span>${statusBadge}</td>
       <td>${o.round}</td>
       <td>${o.qty}</td>
       <td>${o.used} / ${o.qty}</td>
@@ -566,10 +573,8 @@ async function handleRefund(requestId, status) {
     });
     const data = await res.json();
     if (data.success) {
-      // Update locally
-      const idx = appData.refundRequests.findIndex(r => r.id === requestId);
-      if (idx !== -1) appData.refundRequests[idx].status = status;
-      renderRefunds();
+      // Refresh all data from server to reflect order status and stats changes instantly
+      await loadData();
       alert(status === 'approved' ? '✅ Rimborso approvato! Email inviata al cliente.' : '❌ Rimborso rifiutato. Email inviata al cliente.');
     }
   } catch(e) {
