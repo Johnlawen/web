@@ -128,6 +128,14 @@ module.exports = async function handler(req, res) {
       eventOrders.forEach(o => {
         evRevenue += o.total || 0;
         evTickets += o.qty || 0;
+        
+        // Decrement round sold count
+        for (const key in data.rounds) {
+          if (data.rounds[key].name.toLowerCase() === (o.round || '').toLowerCase()) {
+            data.rounds[key].sold = Math.max(0, (data.rounds[key].sold || 0) - (o.qty || 0));
+            break;
+          }
+        }
       });
 
       // Update global counters (remove archived stats so dashboard only shows active)
