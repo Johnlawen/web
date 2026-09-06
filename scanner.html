@@ -79,10 +79,16 @@
     <div class="scanner-header">
       <img src="logo-ready.png" alt="Lucca Groove" class="scanner-logo" />
       <h1>Scanner Ingressi</h1>
-      <p style="color: var(--text-muted); font-size: 0.9rem;">Scansiona il QR Code del biglietto alla porta.</p>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Seleziona l'evento e scansiona il biglietto.</p>
+      
+      <div style="margin-top: 1.5rem;">
+        <select id="event-selector" style="width: 100%; padding: 0.8rem; background: #000; border: 1px solid var(--orange); color: #fff; border-radius: 8px; font-size: 1.1rem; font-family: 'Barlow Condensed', sans-serif;">
+          <option value="">-- Caricamento eventi... --</option>
+        </select>
+      </div>
     </div>
 
-    <div id="qr-reader"></div>
+    <div id="qr-reader" style="display:none;"></div>
     
     <div id="scan-result">
       <h3 id="scan-status"></h3>
@@ -97,10 +103,45 @@
 
   <script>
     let html5QrCode;
+    let selectedEvent = "";
+
+    async function fetchEvents() {
+      try {
+        const res = await fetch('/api/get-data');
+        const data = await res.json();
+        const select = document.getElementById('event-selector');
+        
+        select.innerHTML = '<option value="">-- Seleziona Evento --</option>';
+        if (data.events && data.events.length > 0) {
+          data.events.filter(e => e.active).forEach(ev => {
+            select.innerHTML += `<option value="${ev.name}">${ev.name}</option>`;
+          });
+        }
+        
+        select.addEventListener('change', (e) => {
+          selectedEvent = e.target.value;
+          if (selectedEvent) {
+            document.getElementById('qr-reader').style.display = 'block';
+            initScanner();
+          } else {
+            document.getElementById('qr-reader').style.display = 'none';
+            if (html5QrCode) {
+              try { html5QrCode.stop(); } catch(err) {}
+            }
+          }
+        });
+      } catch (e) {
+        console.error(e);
+        document.getElementById('event-selector').innerHTML = '<option value="">Errore di rete</option>';
+      }
+    }
 
     function initScanner() {
       if (!html5QrCode) {
         html5QrCode = new Html5Qrcode("qr-reader");
+      } else {
+        // If it's already running, don't start again
+        if (html5QrCode.isScanning) return;
       }
       
       html5QrCode.start(
@@ -111,6 +152,7 @@
       ).catch(err => {
         console.error("Camera error:", err);
         document.getElementById('qr-reader').innerHTML = '<p style="color:red;padding:20px;">Impossibile accedere alla fotocamera. Assicurati di aver concesso i permessi.</p>';
+        document.getElementById('qr-reader').style.display = 'block';
       });
     }
 
@@ -135,7 +177,7 @@
         const res = await fetch('/api/save-order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'scan', orderId })
+          body: JSON.stringify({ action: 'scan', orderId, eventName: selectedEvent })
         });
         
         const data = await res.json();
@@ -156,12 +198,13 @@
           const order = data.order;
           scanResult.style.backgroundColor = 'rgba(255, 170, 0, 0.15)';
           scanResult.style.border = '1px solid #ffaa00';
-          scanStatus.textContent = "⚠️ GIÀ USATO";
+          scanStatus.textContent = "⚠️ ATTENZIONE";
           scanStatus.style.color = "#ffaa00";
           scanDetails.innerHTML = `
+            <strong>Errore:</strong> ${data.error}<br/><br/>
             <strong>Ordine:</strong> ${order.id}<br/>
             <strong>Nome:</strong> ${order.name}<br/>
-            <strong>Ingressi:</strong> ${order.used} su ${order.qty}
+            <strong>Ingressi Usati:</strong> ${order.used} su ${order.qty}
           `;
         } else {
           scanResult.style.backgroundColor = 'rgba(255, 0, 0, 0.15)';
@@ -191,7 +234,7 @@
 
     // Start on load
     window.onload = () => {
-      initScanner();
+      fetchEvents();
     };
   </script>
 </body>

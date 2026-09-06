@@ -93,7 +93,7 @@ module.exports = async function handler(req, res) {
 
     // Scan Ticket
     if (action === 'scan') {
-      const orderId = req.body.orderId;
+      const { orderId, eventName } = req.body;
       const orderIndex = data.orders.findIndex(o => o.id === orderId);
       
       if (orderIndex === -1) {
@@ -101,8 +101,17 @@ module.exports = async function handler(req, res) {
       }
 
       const order = data.orders[orderIndex];
+
+      if (order.status === 'Rimborsato' || order.status === 'Rimborso in attesa') {
+        return res.status(400).json({ error: 'Biglietto annullato o rimborsato.', order });
+      }
+
+      if (eventName && (order.event || '-') !== eventName) {
+        return res.status(400).json({ error: `Biglietto non valido per questo evento (Valido per: ${order.event || 'Nessun Evento'}).`, order });
+      }
+
       if (order.used >= order.qty) {
-        return res.status(400).json({ error: 'Biglietto già utilizzato', order });
+        return res.status(400).json({ error: 'Biglietto già utilizzato.', order });
       }
 
       data.orders[orderIndex].used = (data.orders[orderIndex].used || 0) + 1;
