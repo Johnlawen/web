@@ -44,6 +44,14 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ success: true, data });
     }
 
+    // Save Settings
+    if (action === 'settings') {
+      if (req.body.events) data.events = req.body.events;
+      if (req.body.rounds) data.rounds = req.body.rounds;
+      await redis.set('luccaAdminData', JSON.stringify(data));
+      return res.status(200).json({ success: true, data });
+    }
+
     // Archive Event
     if (action === 'archive-event') {
       const eventName = req.body.eventName;
