@@ -96,25 +96,27 @@
   </div>
 
   <script>
-    let appData = JSON.parse(localStorage.getItem('luccaAdminData')) || { orders: [] };
-    let html5QrcodeScanner;
-
-    function saveState() {
-      localStorage.setItem('luccaAdminData', JSON.stringify(appData));
-    }
+    let html5QrCode;
 
     function initScanner() {
-      if (html5QrcodeScanner) {
-        try { html5QrcodeScanner.clear(); } catch(e) {}
+      if (!html5QrCode) {
+        html5QrCode = new Html5Qrcode("qr-reader");
       }
       
-      html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
-      html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+      html5QrCode.start(
+        { facingMode: "environment" }, 
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        onScanSuccess,
+        onScanFailure
+      ).catch(err => {
+        console.error("Camera error:", err);
+        document.getElementById('qr-reader').innerHTML = '<p style="color:red;padding:20px;">Impossibile accedere alla fotocamera. Assicurati di aver concesso i permessi.</p>';
+      });
     }
 
     async function onScanSuccess(decodedText, decodedResult) {
       // Stop scanning
-      try { html5QrcodeScanner.clear(); } catch(e) {}
+      try { await html5QrCode.stop(); } catch(e) {}
       
       const orderId = decodedText;
       const scanResult = document.getElementById('scan-result');
