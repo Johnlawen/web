@@ -266,6 +266,42 @@
     </div>
   </div>
 
+  <!-- ======================== COOKIE BANNER ======================== -->
+  <div id="cookie-banner" style="display:none; position:fixed; bottom:0; left:0; width:100%; background:rgba(10,10,10,0.95); border-top:1px solid #333; padding:20px; z-index:9999; backdrop-filter:blur(10px); flex-direction:column; align-items:center; text-align:center;">
+    <p style="margin:0 0 15px 0; font-size:0.9rem; color:#ccc; max-width:800px;">
+      Utilizziamo cookie tecnici per garantirti la migliore esperienza sul nostro sito. Continuando a navigare, accetti la nostra <a href="privacy.html" style="color:var(--orange);">Privacy Policy</a>.
+    </p>
+    <button onclick="acceptCookies()" style="background:var(--orange); color:#000; border:none; padding:10px 30px; font-weight:bold; border-radius:5px; cursor:pointer; font-family:'Barlow Condensed', sans-serif; font-size:1.1rem; letter-spacing:0.05em; transition:transform 0.2s;">
+      ACCETTA
+    </button>
+  </div>
+
+  <script>
+    // Cookie Banner Logic
+    document.addEventListener("DOMContentLoaded", () => {
+      if (!localStorage.getItem("cookiesAccepted")) {
+        const banner = document.getElementById("cookie-banner");
+        banner.style.display = "flex";
+        
+        // Slight animation
+        banner.style.transform = "translateY(100%)";
+        setTimeout(() => {
+          banner.style.transition = "transform 0.4s ease-out";
+          banner.style.transform = "translateY(0)";
+        }, 100);
+      }
+    });
+
+    function acceptCookies() {
+      localStorage.setItem("cookiesAccepted", "true");
+      const banner = document.getElementById("cookie-banner");
+      banner.style.transition = "transform 0.4s ease-in, opacity 0.4s ease-in";
+      banner.style.transform = "translateY(100%)";
+      banner.style.opacity = "0";
+      setTimeout(() => banner.style.display = "none", 400);
+    }
+  </script>
+
   <script src="script.js"></script>
 </body>
 </html>
