@@ -488,6 +488,7 @@ function renderArchive() {
   if (!grid) return;
   
   const archived = appData.archivedEvents || [];
+  const pastOrders = appData.pastOrders || [];
   grid.innerHTML = '';
   
   if (archived.length === 0) {
@@ -495,40 +496,85 @@ function renderArchive() {
     return;
   }
   
-  archived.forEach(ev => {
+  archived.forEach((ev, evIdx) => {
+    // Get orders for this specific event
+    const evOrders = pastOrders.filter(o => o.event === ev.name);
+    
     const card = document.createElement('div');
-    card.className = 'refund-card'; // Reuse the refund card styling
+    card.style.cssText = 'background:#111; border:1px solid rgba(255,255,255,0.08); border-radius:12px; overflow:hidden; grid-column: 1 / -1;';
+    
+    // Build orders rows HTML
+    let ordersHtml = '';
+    if (evOrders.length === 0) {
+      ordersHtml = '<tr><td colspan="6" style="text-align:center;color:#666;padding:16px;">Nessun ordine trovato per questo evento.</td></tr>';
+    } else {
+      evOrders.forEach(o => {
+        const statusColors = {
+          'Pagato': '#4CAF50', 'Da Pagare': '#ffaa00', 'To Be Paid': '#ffaa00',
+          'Rimborsato': '#ff4444', 'Rimborso in attesa': '#ff8800'
+        };
+        const statusCol = statusColors[o.status] || statusColors[o.payment] || '#888';
+        const displayStatus = o.status || o.payment || '-';
+        ordersHtml += `
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+            <td style="padding:10px 12px; font-size:0.8rem; color:#888; font-family:monospace;">${o.id || '-'}</td>
+            <td style="padding:10px 12px; font-weight:600; color:#fff;">${o.name || '-'}</td>
+            <td style="padding:10px 12px; color:#aaa; font-size:0.85rem;">${o.email || '-'}</td>
+            <td style="padding:10px 12px; color:#aaa; font-size:0.85rem;">${o.round || '-'}</td>
+            <td style="padding:10px 12px; color:var(--orange); font-weight:700;">€${o.total || 0}</td>
+            <td style="padding:10px 12px;"><span style="background:${statusCol}22; color:${statusCol}; border:1px solid ${statusCol}55; padding:2px 10px; border-radius:20px; font-size:0.75rem; font-weight:700; font-family:'Barlow Condensed',sans-serif; letter-spacing:0.05em;">${displayStatus}</span></td>
+          </tr>`;
+      });
+    }
+    
     card.innerHTML = `
-      <div class="refund-card-header">
+      <div style="padding:1.25rem 1.5rem; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.08);">
         <div>
-          <h4 class="refund-card-title">${ev.name}</h4>
-          <div class="refund-card-subtitle">Data: ${ev.date}</div>
+          <div style="font-family:'Barlow Condensed',sans-serif; font-size:1.4rem; font-weight:900; color:#fff; letter-spacing:0.05em;">${ev.name}</div>
+          <div style="font-size:0.8rem; color:#888; margin-top:2px;">📅 ${ev.date}</div>
         </div>
-        <span class="refund-badge approved">ARCHIVIATO</span>
+        <span style="background:rgba(76,175,80,0.15); color:#4CAF50; border:1px solid rgba(76,175,80,0.4); padding:4px 14px; border-radius:20px; font-size:0.75rem; font-weight:700; font-family:'Barlow Condensed',sans-serif; letter-spacing:0.08em;">ARCHIVIATO</span>
       </div>
-      <div class="refund-card-body" style="gap:1rem;">
-        <div style="display:flex; justify-content:space-between; align-items:center; background:#000; padding:1rem; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
-          <div>
-            <div style="font-size:0.75rem; color:#888; text-transform:uppercase; font-weight:700;">Biglietti Venduti</div>
-            <div style="font-size:1.5rem; color:#fff; font-weight:900; font-family:'Barlow Condensed',sans-serif;">${ev.ticketsSold}</div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:0.75rem; color:#888; text-transform:uppercase; font-weight:700;">Incasso Totale</div>
-            <div style="font-size:1.5rem; color:var(--orange); font-weight:900; font-family:'Barlow Condensed',sans-serif;">€${ev.revenue}</div>
-          </div>
+
+      <div style="display:flex; gap:0; border-bottom:1px solid rgba(255,255,255,0.08);">
+        <div style="flex:1; padding:1rem 1.5rem; text-align:center; border-right:1px solid rgba(255,255,255,0.08);">
+          <div style="font-size:0.7rem; color:#888; text-transform:uppercase; font-weight:700; letter-spacing:0.1em;">Biglietti Venduti</div>
+          <div style="font-size:2rem; color:#fff; font-weight:900; font-family:'Barlow Condensed',sans-serif;">${ev.ticketsSold}</div>
         </div>
-        <div style="font-size:0.85rem; color:#aaa; text-align:center;">
-          ${ev.orderCount} ordini spostati in archivio.
+        <div style="flex:1; padding:1rem 1.5rem; text-align:center; border-right:1px solid rgba(255,255,255,0.08);">
+          <div style="font-size:0.7rem; color:#888; text-transform:uppercase; font-weight:700; letter-spacing:0.1em;">Incasso Totale</div>
+          <div style="font-size:2rem; color:var(--orange); font-weight:900; font-family:'Barlow Condensed',sans-serif;">€${ev.revenue}</div>
+        </div>
+        <div style="flex:1; padding:1rem 1.5rem; text-align:center;">
+          <div style="font-size:0.7rem; color:#888; text-transform:uppercase; font-weight:700; letter-spacing:0.1em;">Clienti</div>
+          <div style="font-size:2rem; color:#fff; font-weight:900; font-family:'Barlow Condensed',sans-serif;">${evOrders.length}</div>
+        </div>
+      </div>
+
+      <div style="padding:0 1.5rem; background:#0a0a0a;">
+        <button onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'; this.textContent = this.textContent.includes('Mostra') ? '▲ Nascondi Ordini & Clienti' : '▼ Mostra Ordini & Clienti (${evOrders.length})';"
+          style="background:none; border:none; color:var(--orange); cursor:pointer; font-family:'Barlow Condensed',sans-serif; font-size:0.95rem; font-weight:700; padding:1rem 0; letter-spacing:0.05em; width:100%; text-align:left;">
+          ▼ Mostra Ordini &amp; Clienti (${evOrders.length})
+        </button>
+        <div style="display:none; overflow-x:auto; margin-bottom:1rem;">
+          <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+            <thead>
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.12);">
+                <th style="padding:8px 12px; text-align:left; color:#555; font-size:0.7rem; text-transform:uppercase; font-weight:700; letter-spacing:0.08em;">ID Ordine</th>
+                <th style="padding:8px 12px; text-align:left; color:#555; font-size:0.7rem; text-transform:uppercase; font-weight:700; letter-spacing:0.08em;">Nome</th>
+                <th style="padding:8px 12px; text-align:left; color:#555; font-size:0.7rem; text-transform:uppercase; font-weight:700; letter-spacing:0.08em;">Email</th>
+                <th style="padding:8px 12px; text-align:left; color:#555; font-size:0.7rem; text-transform:uppercase; font-weight:700; letter-spacing:0.08em;">Tipo</th>
+                <th style="padding:8px 12px; text-align:left; color:#555; font-size:0.7rem; text-transform:uppercase; font-weight:700; letter-spacing:0.08em;">Totale</th>
+                <th style="padding:8px 12px; text-align:left; color:#555; font-size:0.7rem; text-transform:uppercase; font-weight:700; letter-spacing:0.08em;">Stato</th>
+              </tr>
+            </thead>
+            <tbody>${ordersHtml}</tbody>
+          </table>
         </div>
       </div>
     `;
     grid.appendChild(card);
   });
-
-  renderEvents();
-  renderSubscribers();
-  renderRefunds();
-  renderArchive();
 }
 
 // Initial Render
