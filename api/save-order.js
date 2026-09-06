@@ -33,6 +33,45 @@ module.exports = async function handler(req, res) {
 
     const { email, order, action, index } = req.body;
 
+    if (action === 'repair-stats') {
+      // Recompute all counters from actual orders
+      let revenue = 0;
+      let ticketsSold = 0;
+      
+      // Reset round sold counts
+      for (const key in data.rounds) {
+        data.rounds[key].sold = 0;
+      }
+      
+      (data.orders || []).forEach(o => {
+        ticketsSold += (o.qty || 0);
+        // Only count paid orders toward revenue
+        const isPaid = o.payment === 'Pagato' || o.status === 'Pagato';
+        if (isPaid) revenue += (o.total || 0);
+        
+        // If used>=1 but still marked Da Pagare, fix it (scanned before fix deployed)
+        if ((o.used || 0) >= 1 && (o.payment === 'Da Pagare' || o.payment === 'To Pay' || o.payment === 'To Be Paid')) {
+          o.payment = 'Pagato';
+          o.status = 'Pagato';
+          revenue += (o.total || 0);
+        }
+        
+        // Update round sold (case-insensitive)
+        for (const key in data.rounds) {
+          if (data.rounds[key].name.toLowerCase() === (o.round || '').toLowerCase()) {
+            data.rounds[key].sold += (o.qty || 0);
+            break;
+          }
+        }
+      });
+      
+      data.revenue = revenue;
+      data.ticketsSold = ticketsSold;
+      
+      await redis.set('luccaAdminData', JSON.stringify(data));
+      return res.status(200).json({ success: true, data });
+    }
+
     if (action === 'reset-orders') {
       data.orders = [];
       data.pastOrders = [];
