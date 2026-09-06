@@ -187,16 +187,32 @@
         
         if (res.ok && data.success) {
           const order = data.order;
-          scanResult.style.backgroundColor = 'rgba(0, 255, 0, 0.15)';
-          scanResult.style.border = '1px solid #44ff44';
-          scanStatus.textContent = "✅ CONSENTITO";
-          scanStatus.style.color = "#44ff44";
-          scanDetails.innerHTML = `
-            <strong>Ordine:</strong> ${order.id}<br/>
-            <strong>Nome:</strong> ${order.name}<br/>
-            <strong>Tipo:</strong> ${order.round}<br/>
-            <strong>Rimanenti:</strong> ${order.qty - order.used} di ${order.qty}
-          `;
+          const isUnpaid = order.status === 'Da Pagare' || order.status === 'To Pay' || order.payment === 'Da Pagare' || order.payment === 'To Pay' || order.payment === 'To Be Paid' || order.status === 'To Be Paid';
+          
+          if (isUnpaid) {
+            scanResult.style.backgroundColor = 'rgba(255, 170, 0, 0.15)';
+            scanResult.style.border = '1px solid #ffaa00';
+            scanStatus.textContent = "⚠️ DA PAGARE IN CASSA";
+            scanStatus.style.color = "#ffaa00";
+            scanDetails.innerHTML = `
+              <strong>DA RISCUOTERE:</strong> <span style="color:#ffaa00; font-size:1.5rem; font-weight:bold;">€${order.total || 0}</span><br/><br/>
+              <strong>Ordine:</strong> ${order.id}<br/>
+              <strong>Nome:</strong> ${order.name}<br/>
+              <strong>Tipo:</strong> ${order.round}<br/>
+              <strong>Rimanenti:</strong> ${order.qty - order.used} di ${order.qty}
+            `;
+          } else {
+            scanResult.style.backgroundColor = 'rgba(0, 255, 0, 0.15)';
+            scanResult.style.border = '1px solid #44ff44';
+            scanStatus.textContent = "✅ CONSENTITO";
+            scanStatus.style.color = "#44ff44";
+            scanDetails.innerHTML = `
+              <strong>Ordine:</strong> ${order.id}<br/>
+              <strong>Nome:</strong> ${order.name}<br/>
+              <strong>Tipo:</strong> ${order.round}<br/>
+              <strong>Rimanenti:</strong> ${order.qty - order.used} di ${order.qty}
+            `;
+          }
         } else if (res.status === 400 && data.order) {
           const order = data.order;
           scanResult.style.backgroundColor = 'rgba(255, 170, 0, 0.15)';
