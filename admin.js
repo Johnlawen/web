@@ -536,18 +536,22 @@ function renderArchive() {
         <span style="background:rgba(76,175,80,0.15); color:#4CAF50; border:1px solid rgba(76,175,80,0.4); padding:4px 14px; border-radius:20px; font-size:0.75rem; font-weight:700; font-family:'Barlow Condensed',sans-serif; letter-spacing:0.08em;">ARCHIVIATO</span>
       </div>
 
-      <div style="display:flex; gap:0; border-bottom:1px solid rgba(255,255,255,0.08);">
-        <div style="flex:1; padding:1rem 1.5rem; text-align:center; border-right:1px solid rgba(255,255,255,0.08);">
-          <div style="font-size:0.7rem; color:#888; text-transform:uppercase; font-weight:700; letter-spacing:0.1em;">Biglietti Venduti</div>
-          <div style="font-size:2rem; color:#fff; font-weight:900; font-family:'Barlow Condensed',sans-serif;">${ev.ticketsSold}</div>
+      <div style="display:flex; gap:0; border-bottom:1px solid rgba(255,255,255,0.08); flex-wrap:wrap;">
+        <div style="flex:1; min-width:100px; padding:1rem; text-align:center; border-right:1px solid rgba(255,255,255,0.08);">
+          <div style="font-size:0.7rem; color:#888; text-transform:uppercase; font-weight:700; letter-spacing:0.1em;">Venduti</div>
+          <div style="font-size:1.8rem; color:#fff; font-weight:900; font-family:'Barlow Condensed',sans-serif;">${ev.ticketsSold}</div>
         </div>
-        <div style="flex:1; padding:1rem 1.5rem; text-align:center; border-right:1px solid rgba(255,255,255,0.08);">
-          <div style="font-size:0.7rem; color:#888; text-transform:uppercase; font-weight:700; letter-spacing:0.1em;">Incasso Totale</div>
-          <div style="font-size:2rem; color:var(--orange); font-weight:900; font-family:'Barlow Condensed',sans-serif;">€${ev.revenue}</div>
+        <div style="flex:1; min-width:100px; padding:1rem; text-align:center; border-right:1px solid rgba(255,255,255,0.08);">
+          <div style="font-size:0.7rem; color:#888; text-transform:uppercase; font-weight:700; letter-spacing:0.1em;">Incasso</div>
+          <div style="font-size:1.8rem; color:var(--orange); font-weight:900; font-family:'Barlow Condensed',sans-serif;">€${ev.revenue}</div>
         </div>
-        <div style="flex:1; padding:1rem 1.5rem; text-align:center;">
+        <div style="flex:1; min-width:100px; padding:1rem; text-align:center; border-right:1px solid rgba(255,255,255,0.08);">
           <div style="font-size:0.7rem; color:#888; text-transform:uppercase; font-weight:700; letter-spacing:0.1em;">Clienti</div>
-          <div style="font-size:2rem; color:#fff; font-weight:900; font-family:'Barlow Condensed',sans-serif;">${evOrders.length}</div>
+          <div style="font-size:1.8rem; color:#fff; font-weight:900; font-family:'Barlow Condensed',sans-serif;">${evOrders.length}</div>
+        </div>
+        <div style="flex:1; min-width:100px; padding:1rem; text-align:center;">
+          <div style="font-size:0.7rem; color:#ff4444; text-transform:uppercase; font-weight:700; letter-spacing:0.1em;">Rimborsi</div>
+          <div style="font-size:1.8rem; color:#ff4444; font-weight:900; font-family:'Barlow Condensed',sans-serif;">${evOrders.filter(o => o.status === 'Rimborsato').length}</div>
         </div>
       </div>
 
