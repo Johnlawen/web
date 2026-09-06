@@ -107,6 +107,7 @@
   <script>
     let html5QrCode;
     let selectedEvent = "";
+    let isProcessing = false; // Lock to prevent duplicate scans
 
     async function fetchEvents() {
       try {
@@ -160,7 +161,18 @@
     }
 
     async function onScanSuccess(decodedText, decodedResult) {
-      // Stop scanning
+      // Prevent duplicate scan events from firing while processing
+      if (isProcessing) return;
+      isProcessing = true;
+
+      // Require event to be selected
+      if (!selectedEvent) {
+        isProcessing = false;
+        alert('Seleziona prima un evento dalla lista!');
+        return;
+      }
+
+      // Stop camera immediately
       try { await html5QrCode.stop(); } catch(e) {}
       
       const orderId = decodedText;
@@ -238,6 +250,9 @@
         scanStatus.textContent = "❌ ERRORE DI RETE";
         scanStatus.style.color = "#ff4444";
         scanDetails.textContent = "Impossibile contattare il server. Riprova.";
+      } finally {
+        // Lock stays on — user must press the button to scan next ticket
+        // isProcessing is reset by resetScanner()
       }
     }
 
@@ -246,6 +261,7 @@
     }
 
     function resetScanner() {
+      isProcessing = false; // Release the lock so next scan works
       document.getElementById('scan-result').style.display = 'none';
       document.getElementById('qr-reader').style.display = 'block';
       initScanner();
