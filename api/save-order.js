@@ -72,9 +72,13 @@ module.exports = async function handler(req, res) {
 
     // Normal customer booking
     if (action === 'book') {
-      const existingOrder = data.orders.find(o => o.email && o.email.toLowerCase() === email.toLowerCase());
+      const existingOrder = data.orders.find(o => 
+        o.email && 
+        o.email.toLowerCase() === email.toLowerCase() &&
+        (o.event || '-') === (order.event || '-')
+      );
       if (existingOrder) {
-        return res.status(400).json({ error: 'Hai già prenotato un biglietto con questa email. Ogni persona può ottenere solo un biglietto.' });
+        return res.status(400).json({ error: 'Hai già prenotato un biglietto per questo evento. Ogni persona può ottenere solo un biglietto per evento.' });
       }
 
       data.orders.unshift(order);
