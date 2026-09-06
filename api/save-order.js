@@ -147,6 +147,13 @@ module.exports = async function handler(req, res) {
       data.pastOrders.push(...eventOrders);
       data.orders = otherOrders;
       
+      // Clear out refund requests for the archived event (keep only those matching active orders)
+      if (data.refundRequests) {
+        data.refundRequests = data.refundRequests.filter(req => 
+          data.orders.some(o => o.id === req.orderId)
+        );
+      }
+      
       // Remove from active events
       data.events.splice(evIndex, 1);
 
