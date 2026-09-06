@@ -263,6 +263,42 @@ function saveEventDetails() {
   appData.rounds.r3.limit = parseInt(document.getElementById('limit-r3').value);
   appData.rounds.r3.active = document.getElementById('toggle-r3').checked;
 
+  // Marketing & Notifications
+  const notifyAll = document.getElementById('notify-all');
+  const notifyUnbooked = document.getElementById('notify-unbooked');
+  
+  if (notifyAll && notifyAll.checked || notifyUnbooked && notifyUnbooked.checked) {
+    showToast('Invio email in corso...');
+    
+    // We send this asynchronously via fetch directly to the backend
+    fetch('/api/save-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        action: 'notify-marketing', 
+        eventName: newName,
+        notifyAll: notifyAll.checked,
+        notifyUnbooked: notifyUnbooked.checked
+      })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if(data.success) {
+        showToast(`Email inviate con successo a ${data.audienceCount} contatti!`);
+      } else {
+        alert("Errore nell'invio delle email: " + (data.error || 'Sconosciuto'));
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Errore nell'invio delle email promozionali.");
+    });
+    
+    // Uncheck them after sending
+    if (notifyAll) notifyAll.checked = false;
+    if (notifyUnbooked) notifyUnbooked.checked = false;
+  }
+
   saveState();
   
   showToast('Salvataggio effettuato con successo!');
