@@ -537,19 +537,25 @@ function renderRefunds() {
     return;
   }
   
-  const statusColors = { pending: '#FF6B00', approved: '#4CAF50', rejected: '#f44336' };
-  const statusLabels = { pending: 'In Attesa', approved: 'Approvato', rejected: 'Rifiutato' };
-  
   refunds.forEach(r => {
+    let statusBadge = '';
+    if (r.status === 'pending') {
+      statusBadge = '<span class="badge" style="background:rgba(255,107,0,0.15);color:var(--orange);border:1px solid var(--orange);">In attesa di rimborso</span>';
+    } else if (r.status === 'approved') {
+      statusBadge = '<span class="badge" style="background:rgba(76,175,80,0.15);color:#4CAF50;border:1px solid #4CAF50;">Rimborsato</span>';
+    } else {
+      statusBadge = '<span class="badge" style="background:rgba(244,67,54,0.15);color:#f44336;border:1px solid #f44336;">Rifiutato</span>';
+    }
+
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td style="font-size:0.75rem;color:#888;">${r.id}</td>
       <td><strong>${r.orderId}</strong></td>
-      <td>${r.name}</td>
-      <td style="font-size:0.8rem;">${r.email}</td>
-      <td style="font-size:0.85rem;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.reason}">${r.reason}</td>
+      <td><strong>${r.name}</strong></td>
+      <td style="font-size:0.85rem;">${r.email || '-'}</td>
+      <td style="font-size:0.85rem; max-width: 300px; white-space: pre-wrap; line-height: 1.4;">${r.reason}</td>
       <td>${r.date}</td>
-      <td><span style="color:${statusColors[r.status] || '#888'};font-weight:700;">${statusLabels[r.status] || r.status}</span></td>
+      <td>${statusBadge}</td>
       <td style="display:flex;gap:5px;">
         ${r.status === 'pending' ? `
           <button class="btn btn-ghost btn-sm" style="color:#4CAF50;border-color:#4CAF50;" onclick="handleRefund('${r.id}', 'approved')">✅ Approva</button>
