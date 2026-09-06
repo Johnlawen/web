@@ -45,15 +45,17 @@ module.exports = async function handler(req, res) {
         data.orders = data.orders.filter(o => !orphanedOrders.includes(o));
         
         orphanedOrders.forEach(o => {
+          const isPaid = o.payment === 'Pagato' || o.status === 'Pagato';
+          
           // Deduct from live dashboard stats
-          data.revenue = Math.max(0, data.revenue - (o.total || 0));
+          if (isPaid) data.revenue = Math.max(0, data.revenue - (o.total || 0));
           data.ticketsSold = Math.max(0, data.ticketsSold - (o.qty || 0));
           
           // Add to the archived event's stats
           const archEv = data.archivedEvents.find(ae => ae.name.toLowerCase() === (o.event || '').toLowerCase());
           if (archEv) {
             archEv.ticketsSold = (archEv.ticketsSold || 0) + (o.qty || 0);
-            archEv.revenue = (archEv.revenue || 0) + (o.total || 0);
+            if (isPaid) archEv.revenue = (archEv.revenue || 0) + (o.total || 0);
             archEv.orderCount = (archEv.orderCount || 0) + 1;
           }
           

@@ -126,7 +126,8 @@ module.exports = async function handler(req, res) {
       let evRevenue = 0;
       let evTickets = 0;
       eventOrders.forEach(o => {
-        evRevenue += o.total || 0;
+        const isPaid = o.payment === 'Pagato' || o.status === 'Pagato';
+        if (isPaid) evRevenue += o.total || 0;
         evTickets += o.qty || 0;
         
         // Decrement round sold count
