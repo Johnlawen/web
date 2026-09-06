@@ -104,20 +104,11 @@ module.exports = async function handler(req, res) {
       if (process.env.RESEND_API_KEY) {
         try {
           const { Resend } = require('resend');
-          const QRCode = require('qrcode');
           const resend = new Resend(process.env.RESEND_API_KEY);
           const refundUrl = `https://luccagroove.com/refund-ticket?orderId=${order.id}`;
-
-          // Generate QR code as base64 data URL
-          const qrData = `LUCCA GROOVE\nID: ${order.id}\nNome: ${order.name}\nRound: ${order.round}\nTotale: €${order.total}`;
-          const qrDataUrl = await QRCode.toDataURL(qrData, {
-            width: 250,
-            margin: 2,
-            color: { dark: '#000000', light: '#ffffff' }
-          });
           
           await resend.emails.send({
-            from: 'Lucca Groove <onboarding@resend.dev>',
+            from: 'Lucca Groove <noreply@luccagroove.com>',
             to: email,
             subject: `Il tuo biglietto per Lucca Groove – ${order.round}`,
             html: `
@@ -136,11 +127,10 @@ module.exports = async function handler(req, res) {
                     <p style="margin:4px 0;color:#eee;font-size:0.95rem;"><strong>Da pagare all'ingresso:</strong> <strong style="color:#FF6B00;">€${order.total}</strong></p>
                   </div>
 
-                  <!-- QR CODE -->
-                  <div style="text-align:center;margin:24px 0;">
-                    <p style="color:#aaa;font-size:0.8rem;letter-spacing:0.15em;margin-bottom:12px;">MOSTRA QUESTO QR CODE ALL'INGRESSO</p>
-                    <img src="${qrDataUrl}" alt="QR Code Biglietto" width="200" height="200" style="background:#fff;padding:10px;border-radius:12px;display:block;margin:0 auto;" />
-                    <p style="color:#666;font-size:0.75rem;margin-top:10px;font-family:monospace;">${order.id}</p>
+                  <!-- TICKET LINK -->
+                  <div style="text-align:center;margin:32px 0;">
+                    <a href="https://luccagroove.com/ticket.html?id=${order.id}" style="display:inline-block;padding:14px 28px;background:#FF6B00;color:#000;font-weight:bold;text-decoration:none;border-radius:8px;font-size:1.1rem;letter-spacing:1px;text-transform:uppercase;">🎫 Visualizza & Scarica PDF</a>
+                    <p style="color:#888;font-size:0.85rem;margin-top:16px;">Clicca sul pulsante qui sopra per visualizzare il QR Code e scaricare il biglietto in formato PDF.</p>
                   </div>
 
                   <hr style="border-color:#333;margin:20px 0;" />

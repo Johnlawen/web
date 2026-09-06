@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Il tuo Biglietto - Lucca Groove</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    :root {
+      --orange: #FF6B00;
+      --bg-deep: #000000;
+      --text-primary: #FFFFFF;
+      --text-muted: rgba(255,255,255,0.6);
+    }
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .ticket-container {
+      width: 100%;
+      max-width: 400px;
+      background: #111;
+      border: 1px solid rgba(255,107,0,0.3);
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(255,107,0,0.15);
+      margin-bottom: 2rem;
+    }
+    .ticket-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--orange);
+      margin: 0 0 1rem;
+      letter-spacing: 0.1em;
+    }
+    .ticket-details {
+      background: #1a1a1a;
+      padding: 1rem;
+      border-radius: 8px;
+      border-left: 4px solid var(--orange);
+      text-align: left;
+      margin-bottom: 1.5rem;
+    }
+    .ticket-details p {
+      margin: 0.5rem 0;
+      font-size: 1rem;
+    }
+    .ticket-details strong {
+      color: var(--orange);
+    }
+    .qr-box {
+      background: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      display: inline-block;
+      margin-bottom: 1rem;
+    }
+    .btn {
+      display: inline-block;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      padding: 0.8rem 2rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      background: var(--orange);
+      color: #000;
+      text-transform: uppercase;
+      transition: opacity 0.3s;
+    }
+    .btn:hover {
+      opacity: 0.9;
+    }
+    .error-msg {
+      color: #ff4444;
+      font-size: 1.2rem;
+    }
+    .loading {
+      color: var(--text-muted);
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="loading" class="loading">Caricamento biglietto...</div>
+  <div id="error" class="error-msg" style="display:none;">Biglietto non trovato o ID non valido.</div>
+
+  <div id="ticket-content" style="display:none; width: 100%; max-width: 400px;">
+    <!-- Printable Area -->
+    <div id="printable-ticket" class="ticket-container">
+      <h1 class="ticket-title">LUCCA GROOVE</h1>
+      <div class="ticket-details">
+        <p>Intestatario: <strong id="t-name"></strong></p>
+        <p>Evento: <strong id="t-event"></strong></p>
+        <p>Round: <strong id="t-round"></strong></p>
+        <p>Quantità: <strong id="t-qty"></strong></p>
+        <p>Totale (da pagare): <strong>€<span id="t-total"></span></strong></p>
+        <p>ID Ordine: <span style="font-family:monospace; color:#aaa;" id="t-id"></span></p>
+      </div>
+      <p style="font-size:0.8rem; color:var(--text-muted); letter-spacing:0.1em; margin-bottom:1rem;">MOSTRA QUESTO QR ALL'INGRESSO</p>
+      <div class="qr-box" id="qrcode"></div>
+    </div>
+    
+    <div style="text-align:center;">
+      <button class="btn" onclick="downloadPDF()">Scarica Biglietto (PDF)</button>
+    </div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('id');
+
+    if (!orderId) {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error').style.display = 'block';
+    } else {
+      fetch('/api/get-data')
+        .then(res => res.json())
+        .then(data => {
+          const order = (data.orders || []).find(o => o.id === orderId);
+          document.getElementById('loading').style.display = 'none';
+          if (order) {
+            document.getElementById('t-name').textContent = order.name;
+            document.getElementById('t-event').textContent = order.event || '-';
+            document.getElementById('t-round').textContent = order.round;
+            document.getElementById('t-qty').textContent = order.qty;
+            document.getElementById('t-total').textContent = order.total;
+            document.getElementById('t-id').textContent = order.id;
+
+            new QRCode(document.getElementById('qrcode'), {
+              text: order.id,
+              width: 180,
+              height: 180,
+              colorDark : "#000000",
+              colorLight : "#ffffff",
+              correctLevel : QRCode.CorrectLevel.H
+            });
+
+            document.getElementById('ticket-content').style.display = 'block';
+          } else {
+            document.getElementById('error').style.display = 'block';
+          }
+        })
+        .catch(err => {
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('error').textContent = 'Errore di connessione.';
+          document.getElementById('error').style.display = 'block';
+        });
+    }
+
+    function downloadPDF() {
+      const element = document.getElementById('printable-ticket');
+      const name = document.getElementById('t-name').textContent.replace(/\s+/g, '_');
+      
+      const opt = {
+        margin:       0.5,
+        filename:     \`LuccaGroove_Ticket_\${name}.pdf\`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 3, useCORS: true, backgroundColor: '#000000' },
+        jsPDF:        { unit: 'in', format: 'a5', orientation: 'portrait' }
+      };
+      
+      html2pdf().set(opt).from(element).save();
+    }
+  </script>
+</body>
+</html>
