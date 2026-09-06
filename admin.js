@@ -338,6 +338,26 @@ function renderEvents() {
   });
 }
 
+// ===== CLEAR ACTIVE ORDERS (TESTING) =====
+async function clearActiveOrders() {
+  if (!confirm("Sei sicuro di voler svuotare tutti gli ordini attivi e resettare i contatori? (Azione irreversibile)")) return;
+  try {
+    const res = await fetch('/api/save-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'reset-orders' })
+    });
+    const data = await res.json();
+    if (data.success) {
+      appData = data.data;
+      renderDashboard();
+      showToast('✅ Tutti gli ordini sono stati eliminati.');
+    }
+  } catch (err) {
+    showToast('❌ Errore durante lo svuotamento.');
+  }
+}
+
 // ===== RENDER DASHBOARD =====
 function renderDashboard() {
   // Stats

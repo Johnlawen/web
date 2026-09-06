@@ -279,7 +279,10 @@
     <div id="view-orders" class="view-section">
       <div class="panel">
         <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
-          <h3>Tutti gli Ordini</h3>
+          <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+            <h3>Tutti gli Ordini</h3>
+            <button onclick="clearActiveOrders()" class="btn btn-outline" style="color:#ff4444; border-color:#ff4444; padding:0.3rem 1rem;">Svuota Ordini</button>
+          </div>
           <div class="table-controls" style="display:flex; gap:1rem; flex:1; max-width:600px; justify-content:flex-end;">
             <input type="text" id="order-search-input" placeholder="Cerca per nome, email o ID..." style="flex:1; padding:0.5rem 1rem; background:#0a0a0a; border:1px solid rgba(255,255,255,0.1); border-radius:4px; color:#fff; font-family:'Barlow',sans-serif;" />
             <select id="order-event-filter" style="padding:0.5rem 1rem; background:#0a0a0a; border:1px solid rgba(255,255,255,0.1); border-radius:4px; color:#fff; font-family:'Barlow',sans-serif;">

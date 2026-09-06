@@ -33,6 +33,22 @@ module.exports = async function handler(req, res) {
 
     const { email, order, action, index } = req.body;
 
+    if (action === 'reset-orders') {
+      data.orders = [];
+      data.pastOrders = [];
+      data.archivedEvents = [];
+      data.revenue = 0;
+      data.ticketsSold = 0;
+      
+      // Reset rounds
+      data.rounds.r1.sold = 0;
+      data.rounds.r2.sold = 0;
+      data.rounds.r3.sold = 0;
+
+      await redis.set('luccaAdminData', JSON.stringify(data));
+      return res.status(200).json({ success: true, data });
+    }
+
     if (!data.events) {
       data.events = defaultData.events;
     }
