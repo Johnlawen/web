@@ -67,22 +67,27 @@ async function openRoundsModal(eventName) {
         const renderRound = (roundData, name) => {
           if (!roundData) return;
           
-          if (!roundData.active) {
+          const isSoldOut = roundData.sold >= roundData.limit;
+          
+          if (!roundData.active || isSoldOut) {
+            const label = isSoldOut ? 'SOLD OUT' : 'CHIUSO';
             container.innerHTML += `
               <div class="round-list-item" style="opacity:0.6; filter:grayscale(1);">
                 <div class="round-list-info">
                   <span class="round-list-name">${name.toUpperCase()}</span>
-                  <span class="round-list-price" style="color:var(--red);">CHIUSO</span>
+                  <span class="round-list-price" style="color:var(--red);">${label}</span>
                 </div>
-                <button class="btn btn-outline" disabled style="border-color:#555;color:#555;">CHIUSO</button>
+                <button class="btn btn-outline" disabled style="border-color:#555;color:#555;">${label}</button>
               </div>
             `;
           } else {
+            const remaining = roundData.limit - roundData.sold;
+            const lowStock  = remaining > 0 && remaining <= 10;
             container.innerHTML += `
               <div class="round-list-item">
                 <div class="round-list-info">
                   <span class="round-list-name">${name.toUpperCase()}</span>
-                  <span class="round-list-price">€${roundData.price}</span>
+                  <span class="round-list-price">€${roundData.price}${lowStock ? ` <span style="color:#ff8800;font-size:0.75rem;">(${remaining} rimasti)</span>` : ''}</span>
                 </div>
                 <button class="btn btn-primary" onclick="selectRoundAndCheckout('${name.toUpperCase()}', ${roundData.price})">PRENOTA</button>
               </div>

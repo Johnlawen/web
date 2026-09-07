@@ -518,8 +518,9 @@ function renderArchive() {
   }
   
   archived.forEach((ev, evIdx) => {
-    // Get orders for this specific event
-    const evOrders = pastOrders.filter(o => o.event === ev.name);
+    // Get orders for this specific event — case-insensitive match
+    const evOrders = pastOrders.filter(o => (o.event || '').toLowerCase() === ev.name.toLowerCase());
+    const refundCount = evOrders.filter(o => o.status === 'Rimborsato' || o.payment === 'Rimborsato').length;
     
     const card = document.createElement('div');
     card.style.cssText = 'background:#111; border:1px solid rgba(255,255,255,0.08); border-radius:12px; overflow:hidden; grid-column: 1 / -1;';
@@ -534,8 +535,8 @@ function renderArchive() {
           'Pagato': '#4CAF50', 'Da Pagare': '#ffaa00', 'To Be Paid': '#ffaa00',
           'Rimborsato': '#ff4444', 'Rimborso in attesa': '#ff8800'
         };
-        const statusCol = statusColors[o.status] || statusColors[o.payment] || '#888';
         const displayStatus = o.status || o.payment || '-';
+        const statusCol = statusColors[displayStatus] || '#888';
         ordersHtml += `
           <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
             <td style="padding:10px 12px; font-size:0.8rem; color:#888; font-family:monospace;">${o.id || '-'}</td>
@@ -547,6 +548,9 @@ function renderArchive() {
           </tr>`;
       });
     }
+    
+    const toggleId = `archive-orders-${evIdx}`;
+    const toggleBtnId = `archive-btn-${evIdx}`;
     
     card.innerHTML = `
       <div style="padding:1.25rem 1.5rem; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.08);">
@@ -572,16 +576,16 @@ function renderArchive() {
         </div>
         <div style="flex:1; min-width:100px; padding:1rem; text-align:center;">
           <div style="font-size:0.7rem; color:#ff4444; text-transform:uppercase; font-weight:700; letter-spacing:0.1em;">Rimborsi</div>
-          <div style="font-size:1.8rem; color:#ff4444; font-weight:900; font-family:'Barlow Condensed',sans-serif;">${evOrders.filter(o => o.status === 'Rimborsato').length}</div>
+          <div style="font-size:1.8rem; color:#ff4444; font-weight:900; font-family:'Barlow Condensed',sans-serif;">${refundCount}</div>
         </div>
       </div>
 
       <div style="padding:0 1.5rem; background:#0a0a0a;">
-        <button onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'; this.textContent = this.textContent.includes('Mostra') ? '▲ Nascondi Ordini & Clienti' : '▼ Mostra Ordini & Clienti (${evOrders.length})';"
+        <button id="${toggleBtnId}" onclick="toggleArchiveOrders('${toggleId}', '${toggleBtnId}', ${evOrders.length})"
           style="background:none; border:none; color:var(--orange); cursor:pointer; font-family:'Barlow Condensed',sans-serif; font-size:0.95rem; font-weight:700; padding:1rem 0; letter-spacing:0.05em; width:100%; text-align:left;">
           ▼ Mostra Ordini &amp; Clienti (${evOrders.length})
         </button>
-        <div style="display:none; overflow-x:auto; margin-bottom:1rem;">
+        <div id="${toggleId}" style="display:none; overflow-x:auto; margin-bottom:1rem;">
           <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
             <thead>
               <tr style="border-bottom:1px solid rgba(255,255,255,0.12);">
@@ -600,6 +604,17 @@ function renderArchive() {
     `;
     grid.appendChild(card);
   });
+}
+
+function toggleArchiveOrders(panelId, btnId, count) {
+  const panel = document.getElementById(panelId);
+  const btn   = document.getElementById(btnId);
+  if (!panel || !btn) return;
+  const isHidden = panel.style.display === 'none';
+  panel.style.display = isHidden ? 'block' : 'none';
+  btn.textContent = isHidden
+    ? `▲ Nascondi Ordini & Clienti`
+    : `▼ Mostra Ordini & Clienti (${count})`;
 }
 
 // Initial Render
