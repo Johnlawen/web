@@ -464,7 +464,7 @@
         </div>
         <div class="panel-body">
           <table class="data-table" id="subscribers-table">
-            <thead><tr><th>Nome</th><th>Email</th><th>Telefono</th><th>Data Iscrizione</th></tr></thead>
+            <thead><tr><th>Nome / Email</th><th>Telefono</th><th>Data Iscrizione</th></tr></thead>
             <tbody id="subscribers-tbody">
               <tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px;">Nessun iscritto ancora</td></tr>
             </tbody>
@@ -480,9 +480,21 @@
           <h3>Richieste di Rimborso (<span id="refund-count">0</span>)</h3>
         </div>
         <div class="panel-body">
-          <div id="refunds-grid" class="refund-grid">
-            <div style="text-align:center;color:#aaa;padding:40px;width:100%;grid-column:1/-1;">Nessuna richiesta di rimborso</div>
-          </div>
+          <table class="data-table" id="refunds-table">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Nome / Email</th>
+                <th>Ordine</th>
+                <th>Motivo</th>
+                <th>Stato</th>
+                <th>Azioni</th>
+              </tr>
+            </thead>
+            <tbody id="refunds-tbody">
+              <tr><td colspan="6" style="text-align:center;color:#aaa;padding:20px;">Nessuna richiesta di rimborso</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

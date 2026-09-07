@@ -760,8 +760,7 @@ function renderSubscribers() {
   subs.forEach(s => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><strong>${s.name}</strong></td>
-      <td>${s.email}</td>
+      <td><strong>${s.name}</strong><br/><span style="font-size:0.7rem;color:var(--text-muted)">${s.email}</span></td>
       <td>${s.phone || '-'}</td>
       <td>${s.date || '-'}</td>
     `;
@@ -813,9 +812,8 @@ async function sendNotifyAll() {
 }
 
 // ===== RIMBORSI =====
-function renderRefunds() {
-  const grid = document.getElementById('refunds-grid');
-  if (!grid) return;
+  const tbody = document.getElementById('refunds-tbody');
+  if (!tbody) return;
   
   const refunds = appData.refundRequests || [];
   const countEl = document.getElementById('refund-count');
@@ -823,42 +821,42 @@ function renderRefunds() {
   const navLabel = document.getElementById('nav-refunds-label');
   if (navLabel) navLabel.textContent = `Richieste di Rimborso ( ${refunds.length} )`;
   
-  grid.innerHTML = '';
+  tbody.innerHTML = '';
   
   if (refunds.length === 0) {
-    grid.innerHTML = '<div style="text-align:center;color:#aaa;padding:40px;width:100%;grid-column:1/-1;">Nessuna richiesta di rimborso</div>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#aaa;padding:20px;">Nessuna richiesta di rimborso</td></tr>';
     return;
   }
   
   refunds.forEach(r => {
-    let statusClass = r.status;
-    let statusText = r.status === 'pending' ? 'IN ATTESA' : (r.status === 'approved' ? 'APPROVATO' : 'RIFIUTATO');
+    let statusClass = '';
+    let statusText = '';
+    if (r.status === 'pending') { statusClass = 'pending'; statusText = 'IN ATTESA'; }
+    else if (r.status === 'approved') { statusClass = 'approved'; statusText = 'APPROVATO'; }
+    else { statusClass = 'rejected'; statusText = 'RIFIUTATO'; }
     
-    const card = document.createElement('div');
-    card.className = 'refund-card';
-    card.innerHTML = `
-      <div class="refund-card-header">
-        <div>
-          <h4 class="refund-card-title">${r.name}</h4>
-          <div class="refund-card-subtitle">${r.email || '-'} &bull; Ordine: ${r.orderId}</div>
+    const badgeHTML = `<span class="refund-badge ${statusClass}">${statusText}</span>`;
+    
+    let actionsHtml = '-';
+    if (r.status === 'pending') {
+      actionsHtml = `
+        <div style="display:flex; gap:0.5rem;">
+          <button class="btn btn-ghost btn-sm" style="color:#4CAF50;border-color:#4CAF50;padding:0.2rem 0.5rem;" onclick="handleRefund('${r.id}', 'approved')">✅</button>
+          <button class="btn btn-ghost btn-sm" style="color:#f44336;border-color:#f44336;padding:0.2rem 0.5rem;" onclick="handleRefund('${r.id}', 'rejected')">❌</button>
         </div>
-        <span class="refund-badge ${statusClass}">${statusText}</span>
-      </div>
-      <div class="refund-card-body">
-        <div class="refund-detail">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-          Richiesto il: ${r.date}
-        </div>
-        <div class="refund-reason-box">"${r.reason}"</div>
-        ${r.status === 'pending' ? `
-          <div class="refund-card-actions">
-            <button class="btn btn-ghost btn-sm" style="color:#4CAF50;border-color:#4CAF50;" onclick="handleRefund('${r.id}', 'approved')">✅ Approva</button>
-            <button class="btn btn-ghost btn-sm" style="color:#f44336;border-color:#f44336;" onclick="handleRefund('${r.id}', 'rejected')">❌ Rifiuta</button>
-          </div>
-        ` : ''}
-      </div>
+      `;
+    }
+    
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r.date || '-'}</td>
+      <td><strong>${r.name}</strong><br/><span style="font-size:0.7rem;color:var(--text-muted)">${r.email || '-'}</span></td>
+      <td style="font-size:0.8rem;color:var(--text-muted)">${r.orderId}</td>
+      <td style="max-width:200px; white-space:pre-wrap; font-size:0.85rem;">${r.reason}</td>
+      <td>${badgeHTML}</td>
+      <td>${actionsHtml}</td>
     `;
-    grid.appendChild(card);
+    tbody.appendChild(tr);
   });
 }
 
@@ -904,10 +902,10 @@ function renderContacts() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${c.date || '-'}</td>
-      <td><strong>${c.firstName} ${c.lastName}</strong></td>
+      <td><strong>${c.firstName} ${c.lastName}</strong><br/><span style="font-size:0.7rem;color:var(--text-muted)">Contatto diretto</span></td>
       <td>${c.phone || '-'}</td>
       <td><span class="badge badge-active">${c.role}</span></td>
-      <td style="max-width:300px; white-space:pre-wrap; word-break:break-word;">${c.message}</td>
+      <td style="max-width:300px; white-space:pre-wrap; font-size:0.85rem;">${c.message}</td>
     `;
     tbody.appendChild(tr);
   });
