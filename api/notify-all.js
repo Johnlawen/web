@@ -3,6 +3,7 @@ const redis = Redis.fromEnv();
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+  if (req.headers['x-admin-token'] !== 'johnl') return res.status(401).json({ error: 'Unauthorized: Invalid Admin Token' });
 
   try {
     const { subject, message } = req.body;

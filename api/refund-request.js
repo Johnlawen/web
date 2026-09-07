@@ -44,6 +44,8 @@ module.exports = async function handler(req, res) {
 
     // Admin approves or rejects
     if (action === 'update') {
+      if (req.headers['x-admin-token'] !== 'johnl') return res.status(401).json({ error: 'Unauthorized: Invalid Admin Token' });
+      
       const idx = data.refundRequests.findIndex(r => r.id === requestId);
       if (idx === -1) return res.status(404).json({ error: 'Request not found' });
       

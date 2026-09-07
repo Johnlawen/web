@@ -30,11 +30,20 @@
   </div>
 
   <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('adminToken') === 'johnl') {
+        document.getElementById('login-overlay').style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    });
+
     function checkAdminCode() {
       const code = document.getElementById('admin-code-input').value;
       if (code === 'johnl') {
+        localStorage.setItem('adminToken', 'johnl');
         document.getElementById('login-overlay').style.display = 'none';
         document.body.style.overflow = ''; // Ripristina lo scroll
+        if (typeof loadData === 'function') loadData();
       } else {
         const err = document.getElementById('admin-error-msg');
         err.style.display = 'block';

@@ -76,8 +76,19 @@ module.exports = async function handler(req, res) {
       await redis.set('luccaAdminData', JSON.stringify(data));
     }
     // -------------------------------------
+    // -------------------------------------
 
-    res.status(200).json(data);
+    const isAdmin = req.headers['x-admin-token'] === 'johnl';
+    
+    if (isAdmin) {
+      res.status(200).json(data);
+    } else {
+      // Return only public data for regular users
+      res.status(200).json({
+        rounds: data.rounds,
+        events: data.events
+      });
+    }
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to fetch data' });

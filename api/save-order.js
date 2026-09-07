@@ -33,6 +33,13 @@ module.exports = async function handler(req, res) {
 
     const { email, order, action, index } = req.body;
 
+    const isAdmin = req.headers['x-admin-token'] === 'johnl';
+    const adminActions = ['repair-stats', 'reset-orders', 'delete-event', 'settings', 'archive-event', 'mark-paid', 'manual', 'scan', 'delete-order'];
+
+    if (adminActions.includes(action) && !isAdmin) {
+      return res.status(401).json({ error: 'Unauthorized: Invalid Admin Token' });
+    }
+
     if (action === 'repair-stats') {
       // Recompute all counters from actual orders
       let revenue = 0;

@@ -1,3 +1,26 @@
+// ===== AUTH INTERCEPTOR =====
+const originalFetch = window.fetch;
+window.fetch = async function() {
+  let [resource, config] = arguments;
+  if (!config) config = {};
+  if (!config.headers) config.headers = {};
+  const token = localStorage.getItem('adminToken');
+  if (token) {
+    if (config.headers instanceof Headers) {
+      config.headers.append('x-admin-token', token);
+    } else {
+      config.headers['x-admin-token'] = token;
+    }
+  }
+  const response = await originalFetch(resource, config);
+  if (response.status === 401) {
+    alert("Accesso negato. Ricaricamento pagina...");
+    localStorage.removeItem('adminToken');
+    window.location.reload();
+  }
+  return response;
+};
+
 // ===== STATE MANAGEMENT =====
 let appData = {
   revenue: 0,
