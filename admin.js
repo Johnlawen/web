@@ -84,6 +84,7 @@ const viewRenderMap = {
   'view-refunds':   () => renderRefunds(),
   'view-archive':   () => renderArchive(),
   'view-orders':    () => renderAllOrders(),
+  'view-contact':   () => renderContacts(),
 };
 
 navBtns.forEach(btn => {
@@ -820,4 +821,31 @@ async function handleRefund(requestId, status) {
   } catch(e) {
     showToast('❌ Errore di connessione. Riprova.');
   }
+}
+
+// ===== CONTATTI =====
+function renderContacts() {
+  const tbody = document.getElementById('contacts-tbody');
+  const countEl = document.getElementById('contact-count');
+  if (!tbody) return;
+  
+  const contacts = appData.contacts || [];
+  if (countEl) countEl.textContent = contacts.length;
+  
+  tbody.innerHTML = '';
+  if (contacts.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px;">Nessun contatto ancora</td></tr>';
+    return;
+  }
+  
+  contacts.forEach(c => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${c.date || '-'}</td>
+      <td><strong>${c.firstName} ${c.lastName}</strong></td>
+      <td><span class="badge badge-active">${c.role}</span></td>
+      <td style="max-width:300px; white-space:pre-wrap; word-break:break-word;">${c.message}</td>
+    `;
+    tbody.appendChild(tr);
+  });
 }

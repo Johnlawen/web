@@ -22,6 +22,7 @@
         <li><a href="#hero" class="active">HOME</a></li>
         <li><a href="#events">BIGLIETTI</a></li>
         <li><a href="#about">CHI SIAMO</a></li>
+        <li><a href="#contact">CONTATTI</a></li>
       </ul>
       <a href="#events" class="btn btn-outline" id="nav-cta">ACQUISTA BIGLIETTI</a>
       <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
@@ -30,6 +31,7 @@
       <a href="#hero">HOME</a>
       <a href="#events">BIGLIETTI</a>
       <a href="#about">CHI SIAMO</a>
+      <a href="#contact">CONTATTI</a>
       <a href="#events" class="mob-cta">ACQUISTA BIGLIETTI</a>
     </div>
   </nav>
@@ -128,6 +130,87 @@
     </div>
   </section>
 
+  <!-- ======================== CONTATTI ======================== -->
+  <section id="contact" class="section-contact" style="padding: 5rem 2rem; background: var(--bg-dark);">
+    <div class="events-inner" style="max-width: 800px; margin: 0 auto;">
+      <div class="section-tag" style="justify-content: center; margin-bottom: 1rem;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+        CONTATTACI
+      </div>
+      <h2 class="section-title center-title">LAVORA CON <span class="orange">NOI</span></h2>
+      <p style="text-align: center; color: #888; margin-bottom: 3rem; font-family: 'Barlow', sans-serif;">Compila il form per collaborare o richiedere informazioni.</p>
+      
+      <form id="contact-form" style="background: #111; padding: 2rem; border-radius: 12px; border: 1px solid rgba(255,107,0,0.2);">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="contact-firstname">Nome *</label>
+            <input type="text" id="contact-firstname" placeholder="Nome" required />
+          </div>
+          <div class="form-group">
+            <label for="contact-lastname">Cognome *</label>
+            <input type="text" id="contact-lastname" placeholder="Cognome" required />
+          </div>
+        </div>
+        <div class="form-group" style="margin-top: 1rem;">
+          <label for="contact-role">Ruolo *</label>
+          <select id="contact-role" required style="width: 100%; padding: 0.8rem 1rem; background: #0a0a0a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-family: 'Barlow', sans-serif;">
+            <option value="" disabled selected>Seleziona un ruolo</option>
+            <option value="DJ">DJ</option>
+            <option value="Promoter">Promoter</option>
+            <option value="Sponsor">Sponsor</option>
+            <option value="Photographer">Fotografo (Photographer)</option>
+            <option value="Videographer">Videomaker (Videographer)</option>
+            <option value="Personal Social">Personal Social</option>
+            <option value="Blogger">Blogger</option>
+            <option value="Altro">Altro (Other)</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-top: 1rem;">
+          <label for="contact-message">Cosa vuoi dirci? *</label>
+          <textarea id="contact-message" rows="5" placeholder="Scrivi qui il tuo messaggio..." required style="width: 100%; padding: 0.8rem 1rem; background: #0a0a0a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-family: 'Barlow', sans-serif; resize: vertical;"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" style="margin-top: 2rem;">INVIA RICHIESTA</button>
+        <p id="contact-status" style="margin-top: 1rem; text-align: center; font-size: 0.9rem; font-family: 'Barlow', sans-serif; display: none;"></p>
+      </form>
+    </div>
+  </section>
+  <script>
+    document.getElementById('contact-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const firstName = document.getElementById('contact-firstname').value.trim();
+      const lastName = document.getElementById('contact-lastname').value.trim();
+      const role = document.getElementById('contact-role').value;
+      const message = document.getElementById('contact-message').value.trim();
+      const statusEl = document.getElementById('contact-status');
+      
+      if (!firstName || !lastName || !role || !message) return;
+      
+      statusEl.style.display = 'block';
+      statusEl.style.color = '#fff';
+      statusEl.textContent = 'Invio in corso...';
+      
+      try {
+        const res = await fetch('/api/save-contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ firstName, lastName, role, message })
+        });
+        const data = await res.json();
+        if (data.success) {
+          statusEl.style.color = 'var(--orange)';
+          statusEl.textContent = 'Richiesta inviata con successo! Ti contatteremo presto.';
+          document.getElementById('contact-form').reset();
+        } else {
+          statusEl.style.color = '#ff5555';
+          statusEl.textContent = 'Errore durante l\\'invio: ' + (data.error || 'sconosciuto');
+        }
+      } catch(err) {
+        statusEl.style.color = '#ff5555';
+        statusEl.textContent = 'Errore di connessione.';
+      }
+    });
+  </script>
+
   <!-- ======================== FOOTER ======================== -->
   <footer id="footer">
     <div class="footer-inner">
@@ -139,6 +222,7 @@
         <a href="#hero">Home</a>
         <a href="#events">Biglietti</a>
         <a href="#about">Chi siamo</a>
+        <a href="#contact">Contatti</a>
       </div>
       <div class="footer-col">
         <p class="footer-heading">INFO</p>

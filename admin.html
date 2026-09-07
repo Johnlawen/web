@@ -49,6 +49,10 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/></svg>
         Storico Eventi
       </button>
+      <button class="nav-btn" data-target="view-contact">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        Contatti
+      </button>
     </nav>
     <a href="index.html" class="back-link">← Torna al sito</a>
   </aside>
@@ -451,6 +455,30 @@
             <!-- Filled by JS -->
             <div style="text-align:center;color:#aaa;padding:40px;width:100%;grid-column:1/-1;">Nessun evento in archivio</div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: CONTACT INFO -->
+    <div id="view-contact" class="view-section">
+      <div class="panel">
+        <div class="panel-header">
+          <h3>Richieste di Contatto (<span id="contact-count">0</span>)</h3>
+        </div>
+        <div class="panel-body">
+          <table class="data-table" id="contacts-table">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Nome</th>
+                <th>Ruolo</th>
+                <th>Messaggio</th>
+              </tr>
+            </thead>
+            <tbody id="contacts-tbody">
+              <tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px;">Nessun contatto ancora</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
