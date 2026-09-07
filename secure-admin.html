@@ -81,11 +81,11 @@
       </button>
       <button class="nav-btn" data-target="view-subscribers">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        Lista Iscritti
+        <span id="nav-subscribers-label">Lista Iscritti ( 0 )</span>
       </button>
       <button class="nav-btn" data-target="view-refunds">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-5"/></svg>
-        Rimborsi
+        <span id="nav-refunds-label">Richieste di Rimborso ( 0 )</span>
       </button>
       <button class="nav-btn" data-target="view-archive">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/></svg>
@@ -93,7 +93,7 @@
       </button>
       <button class="nav-btn" data-target="view-contact">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-        Contatti
+        <span id="nav-contact-label">Richieste di Contatto ( 0 )</span>
       </button>
     </nav>
     <a href="index.html" class="back-link">← Torna al sito</a>
@@ -102,6 +102,7 @@
   <!-- Main Content -->
   <main class="main-content">
     <header class="topbar">
+      <button id="mobile-menu-toggle" class="mobile-menu-btn" style="display:none; background:none; border:none; color:var(--orange); font-size:1.8rem; cursor:pointer;">☰</button>
       <h1 id="page-title">Dashboard</h1>
       <div class="user-profile">
         <span>Admin</span>
@@ -476,7 +477,7 @@
     <div id="view-refunds" class="view-section">
       <div class="panel">
         <div class="panel-header">
-          <h3>Richieste di Rimborso</h3>
+          <h3>Richieste di Rimborso (<span id="refund-count">0</span>)</h3>
         </div>
         <div class="panel-body">
           <div id="refunds-grid" class="refund-grid">

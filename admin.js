@@ -123,7 +123,22 @@ navBtns.forEach(btn => {
     
     // Call the specific render function for this view
     if (viewRenderMap[target]) viewRenderMap[target]();
+    
+    // Close sidebar on mobile
+    if (window.innerWidth <= 900) {
+      document.querySelector('.sidebar').classList.remove('open');
+    }
   });
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const menuToggle = document.getElementById('mobile-menu-toggle');
+  const sidebar = document.querySelector('.sidebar');
+  if (menuToggle && sidebar) {
+    menuToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+    });
+  }
 });
 
 // ===== IMAGE DROP ZONE =====
@@ -734,6 +749,8 @@ function renderSubscribers() {
   
   const subs = appData.subscribers || [];
   if (countEl) countEl.textContent = subs.length;
+  const navLabel = document.getElementById('nav-subscribers-label');
+  if (navLabel) navLabel.textContent = `Lista Iscritti ( ${subs.length} )`;
   
   tbody.innerHTML = '';
   if (subs.length === 0) {
@@ -801,6 +818,11 @@ function renderRefunds() {
   if (!grid) return;
   
   const refunds = appData.refundRequests || [];
+  const countEl = document.getElementById('refund-count');
+  if (countEl) countEl.textContent = refunds.length;
+  const navLabel = document.getElementById('nav-refunds-label');
+  if (navLabel) navLabel.textContent = `Richieste di Rimborso ( ${refunds.length} )`;
+  
   grid.innerHTML = '';
   
   if (refunds.length === 0) {
@@ -869,6 +891,8 @@ function renderContacts() {
   
   const contacts = appData.contacts || [];
   if (countEl) countEl.textContent = contacts.length;
+  const navLabel = document.getElementById('nav-contact-label');
+  if (navLabel) navLabel.textContent = `Richieste di Contatto ( ${contacts.length} )`;
   
   tbody.innerHTML = '';
   if (contacts.length === 0) {
