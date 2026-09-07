@@ -9,203 +9,24 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-
-  <!-- ======================== NAV ======================== -->
-  <nav id="navbar">
-    <div class="nav-inner">
-      <a href="#" class="nav-logo">
-        <img src="logo-ready.png" alt="Lucca Groove" />
-      </a>
-      <ul class="nav-links">
-        <li><a href="#hero" class="active">HOME</a></li>
-        <li><a href="#events">BIGLIETTI</a></li>
-        <li><a href="#about">CHI SIAMO</a></li>
-        <li><a href="#contact">CONTATTI</a></li>
-      </ul>
-      <a href="#events" class="btn btn-outline" id="nav-cta">ACQUISTA BIGLIETTI</a>
-      <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
-    </div>
-    <div class="mobile-menu" id="mobile-menu">
-      <a href="#hero">HOME</a>
-      <a href="#events">BIGLIETTI</a>
-      <a href="#about">CHI SIAMO</a>
-      <a href="#contact">CONTATTI</a>
-      <a href="#events" class="mob-cta">ACQUISTA BIGLIETTI</a>
-    </div>
-  </nav>
-
-  <!-- ======================== HERO ======================== -->
-  <section id="hero">
-    <div class="hero-left">
-      <h1 class="hero-title">LUCCA<br /><span>GROOVE</span></h1>
-      <h2 class="hero-sub">LA TUA CITTÀ.<br />IL TUO GROOVE.</h2>
-      <p class="hero-desc">Eventi esclusivi nel cuore di Lucca.<br />Musica, energia e connessioni<br />autentiche ti aspettano sotto le stelle.</p>
-      <a href="#events" class="btn btn-primary hero-btn" id="hero-cta">
-        ACQUISTA BIGLIETTI
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
-      </a>
-    </div>
-    <div class="hero-right">
-      <img src="hero-tower.png" alt="Lucca Groove Event" class="hero-img" />
-      <div class="hero-img-overlay"></div>
-    </div>
-  </section>
-
-  <!-- ======================== EVENTS (BIGLIETTI) ======================== -->
-  <section id="events" class="section-events">
-    
-    <!-- Background floating tickets -->
-    <div class="bg-tickets-container">
-      <div class="ticket-mockup bg-ticket bg-ticket-1">
-        <div class="ticket-inner">
-          <img src="logo-ready.png" alt="Lucca Groove" class="ticket-logo" />
-          <div class="ticket-divider"><span>◆</span></div>
-          <div class="ticket-label">TICKET</div>
-          <div class="ticket-type">VIP ACCESS</div>
-          <div class="ticket-barcode"><div class="barcode-bars"></div></div>
-        </div>
-      </div>
-      <div class="ticket-mockup bg-ticket bg-ticket-2">
-        <div class="ticket-inner">
-          <img src="logo-ready.png" alt="Lucca Groove" class="ticket-logo" />
-          <div class="ticket-divider"><span>◆</span></div>
-          <div class="ticket-label">TICKET</div>
-          <div class="ticket-type">EARLY ACCESS</div>
-          <div class="ticket-barcode"><div class="barcode-bars"></div></div>
-        </div>
-      </div>
-      <div class="ticket-mockup bg-ticket bg-ticket-3">
-        <div class="ticket-inner">
-          <img src="logo-ready.png" alt="Lucca Groove" class="ticket-logo" />
-          <div class="ticket-divider"><span>◆</span></div>
-          <div class="ticket-label">TICKET</div>
-          <div class="ticket-type">LATE ACCESS</div>
-          <div class="ticket-barcode"><div class="barcode-bars"></div></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="events-inner">
-      <h2 class="section-title center-title">VIVI IL PROSSIMO <span class="orange">GROOVE</span></h2>
-
-      <div class="events-carousel-wrap" style="margin-top: 3rem;">
-        <button class="carousel-arrow left-arrow">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-        </button>
-
-        <div class="events-grid" id="events-track">
-          <!-- Populated dynamically by script.js -->
-        </div>
-        <button class="carousel-arrow right-arrow">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
-        </button>
-      </div>
-      
-      <div class="view-all-wrap" style="text-align: center; margin-top: 3rem;">
-        <a href="#events" class="btn btn-outline btn-arrow">
-          VEDI TUTTI GLI EVENTI
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======================== CHI SIAMO ======================== -->
-  <section id="about" class="section-about">
-    <div class="about-inner">
-      <div class="about-left">
-        <div class="section-tag">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"></circle><path d="M3 21v-2a4 4 0 0 1 4-4h4"></path><circle cx="17" cy="7" r="4"></circle><path d="M21 21v-2a4 4 0 0 0-4-4h-4"></path></svg>
-          CHI SIAMO
-        </div>
-        <h2 class="section-title about-title">MUSICA.<br /><span class="orange">COMUNITÀ.</span><br />PASSIONE.</h2>
-        <p class="section-desc">Siamo un collettivo di appassionati con una missione: portare a Lucca eventi di qualità che uniscono le persone attraverso la musica.<br /><br />Ogni dettaglio è pensato per creare esperienze autentiche e indimenticabili.</p>
-      </div>
-      <div class="about-right">
-        <img src="crowd.png" alt="Lucca Groove Community" class="about-img" />
-        <div class="about-img-overlay"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======================== CONTATTI ======================== -->
-  <section id="contact" class="section-contact" style="padding: 5rem 2rem; background: var(--bg-dark);">
-    <div class="events-inner" style="max-width: 800px; margin: 0 auto;">
-      <div class="section-tag" style="justify-content: center; margin-bottom: 1rem;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-        CONTATTACI
-      </div>
-      <h2 class="section-title center-title">LAVORA CON <span class="orange">NOI</span></h2>
-      <p style="text-align: center; color: #888; margin-bottom: 3rem; font-family: 'Barlow', sans-serif;">Compila il form per collaborare o richiedere informazioni.</p>
-      
-      <form id="contact-form" style="background: #111; padding: 2rem; border-radius: 12px; border: 1px solid rgba(255,107,0,0.2); position: relative; overflow: hidden;">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="contact-firstname">Nome *</label>
-            <input type="text" id="contact-firstname" placeholder="Nome" required />
-          </div>
-          <div class="form-group">
-            <label for="contact-lastname">Cognome *</label>
-            <input type="text" id="contact-lastname" placeholder="Cognome" required />
-          </div>
-        </div>
-        <div class="form-row" style="margin-top: 1rem;">
-          <div class="form-group">
-            <label for="contact-phone">Telefono *</label>
-            <input type="tel" id="contact-phone" placeholder="+39 333 000 0000" required />
-          </div>
-          <div class="form-group">
-            <label for="contact-role">Ruolo *</label>
-            <select id="contact-role" required style="width: 100%; padding: 0.8rem 1rem; background: #0a0a0a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-family: 'Barlow', sans-serif;">
-              <option value="" disabled selected>Seleziona un ruolo</option>
-              <option value="DJ">DJ</option>
-              <option value="Promoter">Promoter</option>
-              <option value="Sponsor">Sponsor</option>
-              <option value="Photographer">Fotografo (Photographer)</option>
-              <option value="Videographer">Videomaker (Videographer)</option>
-              <option value="Personal Social">Personal Social</option>
-              <option value="Blogger">Blogger</option>
-              <option value="Altro">Altro (Other)</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-group" style="margin-top: 1rem;">
-          <label for="contact-message">Cosa vuoi dirci? *</label>
-          <textarea id="contact-message" rows="5" placeholder="Scrivi qui il tuo messaggio..." required style="width: 100%; padding: 0.8rem 1rem; background: #0a0a0a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-family: 'Barlow', sans-serif; resize: vertical;"></textarea>
-        </div>
-        <button type="submit" id="contact-submit-btn" class="btn btn-primary btn-full" style="margin-top: 2rem; position: relative; overflow: hidden; min-height: 52px; transition: all 0.3s ease;">
-          <span id="contact-btn-text">INVIA RICHIESTA</span>
-          <span id="contact-btn-loader" style="display:none; position:absolute; inset:0; align-items:center; justify-content:center; gap:6px;">
-            <span class="contact-dot"></span><span class="contact-dot"></span><span class="contact-dot"></span>
-          </span>
-        </button>
-
-        <!-- SUCCESS OVERLAY -->
-        <div id="contact-success-overlay" style="display:none; position:absolute; inset:0; background:rgba(10,10,10,0.97); border-radius:12px; align-items:center; justify-content:center; flex-direction:column; gap:1rem; z-index:10; opacity:0; transition: opacity 0.4s ease; padding: 2rem; text-align:center;">
-          <div id="contact-success-icon" style="width:80px; height:80px; border-radius:50%; background:rgba(255,107,0,0.12); border:2px solid var(--orange); display:flex; align-items:center; justify-content:center; transform:scale(0); transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1);">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          </div>
-          <p style="font-family:'Barlow Condensed',sans-serif; font-size:1.8rem; font-weight:900; letter-spacing:0.06em; color:#fff; margin:0;">RICHIESTA INVIATA!</p>
-          <p style="font-family:'Barlow',sans-serif; font-size:0.95rem; color:#aaa; margin:0; max-width:300px; line-height:1.6;">Ti contatteremo presto. Grazie per il tuo interesse in Lucca Groove! 🎶</p>
-          <button type="button" onclick="resetContactForm()" style="margin-top:0.5rem; background:none; border:1px solid rgba(255,107,0,0.4); color:var(--orange); padding:0.6rem 2rem; border-radius:6px; cursor:pointer; font-family:'Barlow Condensed',sans-serif; font-size:0.95rem; font-weight:700; letter-spacing:0.08em; transition:all 0.2s;" onmouseover="this.style.background='rgba(255,107,0,0.1)'" onmouseout="this.style.background='none'">CHIUDI</button>
-        </div>
-
-        <!-- ERROR OVERLAY -->
-        <div id="contact-error-overlay" style="display:none; position:absolute; inset:0; background:rgba(10,10,10,0.97); border-radius:12px; align-items:center; justify-content:center; flex-direction:column; gap:1rem; z-index:10; opacity:0; transition: opacity 0.4s ease; padding: 2rem; text-align:center;">
-          <div id="contact-error-icon" style="width:80px; height:80px; border-radius:50%; background:rgba(255,60,60,0.12); border:2px solid #ff5555; display:flex; align-items:center; justify-content:center; transform:scale(0); transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1);">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ff5555" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </div>
-          <p style="font-family:'Barlow Condensed',sans-serif; font-size:1.8rem; font-weight:900; letter-spacing:0.06em; color:#ff5555; margin:0;">ERRORE INVIO</p>
-          <p id="contact-error-msg" style="font-family:'Barlow',sans-serif; font-size:0.95rem; color:#aaa; margin:0; max-width:300px; line-height:1.6;">Si è verificato un errore. Riprova.</p>
-          <button type="button" onclick="hideContactError()" style="margin-top:0.5rem; background:none; border:1px solid rgba(255,60,60,0.4); color:#ff5555; padding:0.6rem 2rem; border-radius:6px; cursor:pointer; font-family:'Barlow Condensed',sans-serif; font-size:0.95rem; font-weight:700; letter-spacing:0.08em; transition:all 0.2s;" onmouseover="this.style.background='rgba(255,60,60,0.1)'" onmouseout="this.style.background='none'">RIPROVA</button>
-        </div>
-      </form>
-    </div>
-  </section>
-
   <style>
+    .lang-toggle {
+      display: flex; align-items: center;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 50px; padding: 3px; flex-shrink: 0;
+    }
+    .lang-btn {
+      background: none; border: none;
+      color: rgba(255,255,255,0.4);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.78rem; font-weight: 800;
+      letter-spacing: 0.08em; padding: 4px 11px;
+      border-radius: 50px; cursor: pointer;
+      transition: all 0.22s ease; line-height: 1;
+    }
+    .lang-btn.active { background: var(--orange, #FF6B00); color: #000; }
+    .lang-btn:hover:not(.active) { color: rgba(255,255,255,0.75); }
     .contact-dot {
       width: 8px; height: 8px; border-radius: 50%;
       background: #000; display: inline-block;
@@ -218,104 +39,175 @@
       40% { transform: scale(1); opacity: 1; }
     }
   </style>
-  <script>
-    document.getElementById('contact-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const firstName = document.getElementById('contact-firstname').value.trim();
-      const lastName  = document.getElementById('contact-lastname').value.trim();
-      const phone     = document.getElementById('contact-phone').value.trim();
-      const role      = document.getElementById('contact-role').value;
-      const message   = document.getElementById('contact-message').value.trim();
-      
-      if (!firstName || !lastName || !phone || !role || !message) return;
-      
-      // Show loading state on button
-      const btn       = document.getElementById('contact-submit-btn');
-      const btnText   = document.getElementById('contact-btn-text');
-      const btnLoader = document.getElementById('contact-btn-loader');
-      btn.disabled = true;
-      btn.style.opacity = '0.8';
-      btnText.style.display = 'none';
-      btnLoader.style.display = 'flex';
-      
-      try {
-        const res = await fetch('/api/save-contact', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ firstName, lastName, phone, role, message })
-        });
-        const data = await res.json();
-        
-        if (data.success) {
-          showContactSuccess();
-        } else {
-          showContactError(data.error || 'Errore sconosciuto');
-        }
-      } catch(err) {
-        showContactError('Errore di connessione. Controlla la tua rete e riprova.');
-      } finally {
-        btn.disabled = false;
-        btn.style.opacity = '1';
-        btnText.style.display = 'inline';
-        btnLoader.style.display = 'none';
-      }
-    });
+</head>
+<body>
 
-    function showContactSuccess() {
-      const overlay = document.getElementById('contact-success-overlay');
-      const icon    = document.getElementById('contact-success-icon');
-      overlay.style.display = 'flex';
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          overlay.style.opacity = '1';
-          setTimeout(() => { icon.style.transform = 'scale(1)'; }, 80);
-        });
-      });
-    }
+  <!-- NAV -->
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo"><img src="logo-ready.png" alt="Lucca Groove" /></a>
+      <ul class="nav-links">
+        <li><a href="#hero" class="active" data-i18n="nav.home">HOME</a></li>
+        <li><a href="#events" data-i18n="nav.tickets">BIGLIETTI</a></li>
+        <li><a href="#about" data-i18n="nav.about">CHI SIAMO</a></li>
+        <li><a href="#contact" data-i18n="nav.contact">CONTATTI</a></li>
+      </ul>
+      <a href="#events" class="btn btn-outline" id="nav-cta" data-i18n="nav.cta">ACQUISTA BIGLIETTI</a>
+      <div class="lang-toggle" title="Switch language">
+        <button class="lang-btn active" id="lang-it" onclick="setLang('it')">IT</button>
+        <button class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
+      </div>
+      <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+    </div>
+    <div class="mobile-menu" id="mobile-menu">
+      <a href="#hero" data-i18n="nav.home">HOME</a>
+      <a href="#events" data-i18n="nav.tickets">BIGLIETTI</a>
+      <a href="#about" data-i18n="nav.about">CHI SIAMO</a>
+      <a href="#contact" data-i18n="nav.contact">CONTATTI</a>
+      <a href="#events" class="mob-cta" data-i18n="nav.cta">ACQUISTA BIGLIETTI</a>
+    </div>
+  </nav>
 
-    function showContactError(msg) {
-      const overlay = document.getElementById('contact-error-overlay');
-      const icon    = document.getElementById('contact-error-icon');
-      document.getElementById('contact-error-msg').textContent = msg;
-      overlay.style.display = 'flex';
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          overlay.style.opacity = '1';
-          setTimeout(() => { icon.style.transform = 'scale(1)'; }, 80);
-        });
-      });
-    }
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-left">
+      <h1 class="hero-title">LUCCA<br /><span>GROOVE</span></h1>
+      <h2 class="hero-sub" data-i18n="hero.sub">LA TUA CITTÀ.<br />IL TUO GROOVE.</h2>
+      <p class="hero-desc" data-i18n="hero.desc">Eventi esclusivi nel cuore di Lucca.<br />Musica, energia e connessioni<br />autentiche ti aspettano sotto le stelle.</p>
+      <a href="#events" class="btn btn-primary hero-btn" id="hero-cta">
+        <span data-i18n="nav.cta">ACQUISTA BIGLIETTI</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+      </a>
+    </div>
+    <div class="hero-right">
+      <img src="hero-tower.png" alt="Lucca Groove Event" class="hero-img" />
+      <div class="hero-img-overlay"></div>
+    </div>
+  </section>
 
-    function hideContactError() {
-      const overlay = document.getElementById('contact-error-overlay');
-      const icon    = document.getElementById('contact-error-icon');
-      overlay.style.opacity = '0';
-      icon.style.transform = 'scale(0)';
-      setTimeout(() => { overlay.style.display = 'none'; }, 400);
-    }
+  <!-- EVENTS -->
+  <section id="events" class="section-events">
+    <div class="bg-tickets-container">
+      <div class="ticket-mockup bg-ticket bg-ticket-1"><div class="ticket-inner"><img src="logo-ready.png" alt="" class="ticket-logo" /><div class="ticket-divider"><span>◆</span></div><div class="ticket-label">TICKET</div><div class="ticket-type">VIP ACCESS</div><div class="ticket-barcode"><div class="barcode-bars"></div></div></div></div>
+      <div class="ticket-mockup bg-ticket bg-ticket-2"><div class="ticket-inner"><img src="logo-ready.png" alt="" class="ticket-logo" /><div class="ticket-divider"><span>◆</span></div><div class="ticket-label">TICKET</div><div class="ticket-type">EARLY ACCESS</div><div class="ticket-barcode"><div class="barcode-bars"></div></div></div></div>
+      <div class="ticket-mockup bg-ticket bg-ticket-3"><div class="ticket-inner"><img src="logo-ready.png" alt="" class="ticket-logo" /><div class="ticket-divider"><span>◆</span></div><div class="ticket-label">TICKET</div><div class="ticket-type">LATE ACCESS</div><div class="ticket-barcode"><div class="barcode-bars"></div></div></div></div>
+    </div>
+    <div class="events-inner">
+      <h2 class="section-title center-title" data-i18n="events.title">VIVI IL PROSSIMO <span class="orange">GROOVE</span></h2>
+      <div class="events-carousel-wrap" style="margin-top: 3rem;">
+        <button class="carousel-arrow left-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <div class="events-grid" id="events-track"></div>
+        <button class="carousel-arrow right-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
+      </div>
+      <div class="view-all-wrap" style="text-align: center; margin-top: 3rem;">
+        <a href="#events" class="btn btn-outline btn-arrow">
+          <span data-i18n="events.viewAll">VEDI TUTTI GLI EVENTI</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
 
-    function resetContactForm() {
-      const overlay = document.getElementById('contact-success-overlay');
-      const icon    = document.getElementById('contact-success-icon');
-      overlay.style.opacity = '0';
-      icon.style.transform = 'scale(0)';
-      setTimeout(() => { overlay.style.display = 'none'; }, 400);
-      document.getElementById('contact-form').reset();
-    }
-  </script>
+  <!-- ABOUT -->
+  <section id="about" class="section-about">
+    <div class="about-inner">
+      <div class="about-left">
+        <div class="section-tag">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"></circle><path d="M3 21v-2a4 4 0 0 1 4-4h4"></path><circle cx="17" cy="7" r="4"></circle><path d="M21 21v-2a4 4 0 0 0-4-4h-4"></path></svg>
+          <span data-i18n="about.tag">CHI SIAMO</span>
+        </div>
+        <h2 class="section-title about-title" data-i18n="about.title">MUSICA.<br /><span class="orange">COMUNITÀ.</span><br />PASSIONE.</h2>
+        <p class="section-desc" data-i18n="about.desc">Siamo un collettivo di appassionati con una missione: portare a Lucca eventi di qualità che uniscono le persone attraverso la musica.<br /><br />Ogni dettaglio è pensato per creare esperienze autentiche e indimenticabili.</p>
+      </div>
+      <div class="about-right">
+        <img src="crowd.png" alt="Lucca Groove Community" class="about-img" />
+        <div class="about-img-overlay"></div>
+      </div>
+    </div>
+  </section>
 
-  <!-- ======================== FOOTER ======================== -->
+  <!-- CONTACT -->
+  <section id="contact" class="section-contact" style="padding: 5rem 2rem; background: var(--bg-dark);">
+    <div class="events-inner" style="max-width: 800px; margin: 0 auto;">
+      <div class="section-tag" style="justify-content: center; margin-bottom: 1rem;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+        <span data-i18n="contact.tag">CONTATTACI</span>
+      </div>
+      <h2 class="section-title center-title" data-i18n="contact.title">LAVORA CON <span class="orange">NOI</span></h2>
+      <p style="text-align:center;color:#888;margin-bottom:3rem;font-family:'Barlow',sans-serif;" data-i18n="contact.subtitle">Compila il form per collaborare o richiedere informazioni.</p>
+      <form id="contact-form" style="background:#111;padding:2rem;border-radius:12px;border:1px solid rgba(255,107,0,0.2);position:relative;overflow:hidden;">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="contact-firstname" data-i18n="contact.firstName">Nome *</label>
+            <input type="text" id="contact-firstname" data-i18n-placeholder="contact.firstNamePh" placeholder="Nome" required />
+          </div>
+          <div class="form-group">
+            <label for="contact-lastname" data-i18n="contact.lastName">Cognome *</label>
+            <input type="text" id="contact-lastname" data-i18n-placeholder="contact.lastNamePh" placeholder="Cognome" required />
+          </div>
+        </div>
+        <div class="form-row" style="margin-top:1rem;">
+          <div class="form-group">
+            <label for="contact-phone" data-i18n="contact.phone">Telefono *</label>
+            <input type="tel" id="contact-phone" placeholder="+39 333 000 0000" required />
+          </div>
+          <div class="form-group">
+            <label for="contact-role" data-i18n="contact.role">Ruolo *</label>
+            <select id="contact-role" required style="width:100%;padding:0.8rem 1rem;background:#0a0a0a;border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-family:'Barlow',sans-serif;">
+              <option value="" disabled selected data-i18n-opt="contact.rolePh">Seleziona un ruolo</option>
+              <option value="DJ">DJ</option>
+              <option value="Promoter">Promoter</option>
+              <option value="Sponsor">Sponsor</option>
+              <option value="Photographer" data-i18n-opt="contact.rolePhotographer">Fotografo (Photographer)</option>
+              <option value="Videographer" data-i18n-opt="contact.roleVideographer">Videomaker (Videographer)</option>
+              <option value="Personal Social">Personal Social</option>
+              <option value="Blogger">Blogger</option>
+              <option value="Altro" data-i18n-opt="contact.roleOther">Altro (Other)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:1rem;">
+          <label for="contact-message" data-i18n="contact.message">Cosa vuoi dirci? *</label>
+          <textarea id="contact-message" rows="5" data-i18n-placeholder="contact.messagePh" placeholder="Scrivi qui il tuo messaggio..." required style="width:100%;padding:0.8rem 1rem;background:#0a0a0a;border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-family:'Barlow',sans-serif;resize:vertical;"></textarea>
+        </div>
+        <button type="submit" id="contact-submit-btn" class="btn btn-primary btn-full" style="margin-top:2rem;position:relative;overflow:hidden;min-height:52px;transition:all 0.3s ease;">
+          <span id="contact-btn-text" data-i18n="contact.submit">INVIA RICHIESTA</span>
+          <span id="contact-btn-loader" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;gap:6px;">
+            <span class="contact-dot"></span><span class="contact-dot"></span><span class="contact-dot"></span>
+          </span>
+        </button>
+        <!-- SUCCESS OVERLAY -->
+        <div id="contact-success-overlay" style="display:none;position:absolute;inset:0;background:rgba(10,10,10,0.97);border-radius:12px;align-items:center;justify-content:center;flex-direction:column;gap:1rem;z-index:10;opacity:0;transition:opacity 0.4s ease;padding:2rem;text-align:center;">
+          <div id="contact-success-icon" style="width:80px;height:80px;border-radius:50%;background:rgba(255,107,0,0.12);border:2px solid var(--orange);display:flex;align-items:center;justify-content:center;transform:scale(0);transition:transform 0.5s cubic-bezier(0.34,1.56,0.64,1);">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <p style="font-family:'Barlow Condensed',sans-serif;font-size:1.8rem;font-weight:900;letter-spacing:0.06em;color:#fff;margin:0;" data-i18n="contact.successTitle">RICHIESTA INVIATA!</p>
+          <p style="font-family:'Barlow',sans-serif;font-size:0.95rem;color:#aaa;margin:0;max-width:300px;line-height:1.6;" data-i18n="contact.successMsg">Ti contatteremo presto. Grazie per il tuo interesse in Lucca Groove! 🎶</p>
+          <button type="button" onclick="resetContactForm()" data-i18n="contact.close" style="margin-top:0.5rem;background:none;border:1px solid rgba(255,107,0,0.4);color:var(--orange);padding:0.6rem 2rem;border-radius:6px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:0.95rem;font-weight:700;letter-spacing:0.08em;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,107,0,0.1)'" onmouseout="this.style.background='none'">CHIUDI</button>
+        </div>
+        <!-- ERROR OVERLAY -->
+        <div id="contact-error-overlay" style="display:none;position:absolute;inset:0;background:rgba(10,10,10,0.97);border-radius:12px;align-items:center;justify-content:center;flex-direction:column;gap:1rem;z-index:10;opacity:0;transition:opacity 0.4s ease;padding:2rem;text-align:center;">
+          <div id="contact-error-icon" style="width:80px;height:80px;border-radius:50%;background:rgba(255,60,60,0.12);border:2px solid #ff5555;display:flex;align-items:center;justify-content:center;transform:scale(0);transition:transform 0.5s cubic-bezier(0.34,1.56,0.64,1);">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ff5555" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </div>
+          <p style="font-family:'Barlow Condensed',sans-serif;font-size:1.8rem;font-weight:900;letter-spacing:0.06em;color:#ff5555;margin:0;" data-i18n="contact.errorTitle">ERRORE INVIO</p>
+          <p id="contact-error-msg" style="font-family:'Barlow',sans-serif;font-size:0.95rem;color:#aaa;margin:0;max-width:300px;line-height:1.6;">Si è verificato un errore. Riprova.</p>
+          <button type="button" onclick="hideContactError()" data-i18n="contact.retry" style="margin-top:0.5rem;background:none;border:1px solid rgba(255,60,60,0.4);color:#ff5555;padding:0.6rem 2rem;border-radius:6px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:0.95rem;font-weight:700;letter-spacing:0.08em;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,60,60,0.1)'" onmouseout="this.style.background='none'">RIPROVA</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
   <footer id="footer">
     <div class="footer-inner">
-      <div class="footer-col logo-col">
-        <img src="logo-ready.png" alt="Lucca Groove" class="footer-logo" />
-      </div>
+      <div class="footer-col logo-col"><img src="logo-ready.png" alt="Lucca Groove" class="footer-logo" /></div>
       <div class="footer-col">
-        <p class="footer-heading">NAVIGAZIONE</p>
-        <a href="#hero">Home</a>
-        <a href="#events">Biglietti</a>
-        <a href="#about">Chi siamo</a>
-        <a href="#contact">Contatti</a>
+        <p class="footer-heading" data-i18n="footer.nav">NAVIGAZIONE</p>
+        <a href="#hero" data-i18n="footer.home">Home</a>
+        <a href="#events" data-i18n="footer.tickets">Biglietti</a>
+        <a href="#about" data-i18n="footer.about">Chi siamo</a>
+        <a href="#contact" data-i18n="footer.contact">Contatti</a>
       </div>
       <div class="footer-col">
         <p class="footer-heading">INFO</p>
@@ -327,71 +219,63 @@
       </div>
     </div>
     <div class="footer-bottom">
-      © 2025 Lucca Groove. Tutti i diritti riservati.<br>
-      <div style="margin-top: 10px; font-size: 0.8rem; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-        <a href="terms.html" style="color: #888; text-decoration: none;">Termini e Condizioni</a>
-        <a href="privacy.html" style="color: #888; text-decoration: none;">Privacy Policy</a>
-        <a href="media-policy.html" style="color: #888; text-decoration: none;">Photo & Video Policy</a>
+      <span data-i18n="footer.copy">© 2025 Lucca Groove. Tutti i diritti riservati.</span><br>
+      <div style="margin-top:10px;font-size:0.8rem;display:flex;gap:15px;justify-content:center;flex-wrap:wrap;">
+        <a href="terms.html" style="color:#888;text-decoration:none;" data-i18n="footer.terms">Termini e Condizioni</a>
+        <a href="privacy.html" style="color:#888;text-decoration:none;" data-i18n="footer.privacy">Privacy Policy</a>
+        <a href="media-policy.html" style="color:#888;text-decoration:none;">Photo &amp; Video Policy</a>
       </div>
     </div>
   </footer>
 
-  <!-- ======================== ROUNDS MODAL ======================== -->
+  <!-- ROUNDS MODAL -->
   <div class="modal-overlay" id="rounds-modal-overlay">
     <div class="modal" id="rounds-modal">
       <button class="modal-close" onclick="closeRoundsModal()">×</button>
-      <div class="modal-header" style="margin-bottom: 1.5rem;">
+      <div class="modal-header" style="margin-bottom:1.5rem;">
         <img src="logo-ready.png" alt="Lucca Groove" class="modal-logo" />
-        <h2 class="modal-title">Scegli il Biglietto</h2>
+        <h2 class="modal-title" data-i18n="rounds.title">Scegli il Biglietto</h2>
         <p id="rounds-event-name" class="modal-tier" style="margin-top:0.5rem;"></p>
       </div>
-      
-      <div class="rounds-list" id="rounds-list-container">
-        <!-- Dynamically populated by JS -->
-      </div>
-      
+      <div class="rounds-list" id="rounds-list-container"></div>
       <div class="rounds-list">
         <div class="round-list-item vip-list-item">
           <div class="round-list-info">
-            <span class="round-list-name" style="color: #fff;">VIP & TAVOLI</span>
-            <span class="round-list-price" style="font-size: 0.8rem; font-family: 'Barlow', sans-serif;">Info e Prenotazioni</span>
+            <span class="round-list-name" style="color:#fff;">VIP &amp; TAVOLI</span>
+            <span class="round-list-price" style="font-size:0.8rem;font-family:'Barlow',sans-serif;" data-i18n="rounds.vipInfo">Info e Prenotazioni</span>
           </div>
-          <a href="https://wa.me/393336527455" target="_blank" rel="noopener" class="btn btn-outline" style="padding: 0.6rem 1rem;">
-            WHATSAPP
-          </a>
+          <a href="https://wa.me/393336527455" target="_blank" rel="noopener" class="btn btn-outline" style="padding:0.6rem 1rem;">WHATSAPP</a>
         </div>
-        
       </div>
     </div>
   </div>
 
-  <!-- ======================== CHECKOUT MODAL ======================== -->
+  <!-- CHECKOUT MODAL -->
   <div class="modal-overlay" id="modal-overlay">
     <div class="modal" id="checkout-modal">
       <button class="modal-close" onclick="closeModal()">×</button>
       <div class="modal-header">
         <img src="logo-ready.png" alt="Lucca Groove" class="modal-logo" />
-        <h2 class="modal-title">Prenotazione</h2>
+        <h2 class="modal-title" data-i18n="checkout.title">Prenotazione</h2>
         <p id="modal-event-name" class="modal-tier"></p>
       </div>
       <form id="checkout-form" novalidate>
-        <!-- Error banner -->
-        <div id="booking-error-banner" style="display:none; background:rgba(255,60,60,0.1); border:1px solid rgba(255,60,60,0.35); border-radius:10px; padding:1rem 1.2rem; margin-bottom:1.2rem; display:none; align-items:flex-start; gap:0.8rem;">
-          <span style="font-size:1.3rem; flex-shrink:0;">⚠️</span>
+        <div id="booking-error-banner" style="display:none;background:rgba(255,60,60,0.1);border:1px solid rgba(255,60,60,0.35);border-radius:10px;padding:1rem 1.2rem;margin-bottom:1.2rem;align-items:flex-start;gap:0.8rem;">
+          <span style="font-size:1.3rem;flex-shrink:0;">⚠️</span>
           <div>
-            <p id="booking-error-title" style="font-family:'Barlow Condensed',sans-serif; font-size:1rem; font-weight:900; letter-spacing:0.05em; color:#ff5555; margin-bottom:0.2rem;">PRENOTAZIONE NON VALIDA</p>
-            <p id="booking-error-text" style="font-size:0.85rem; color:rgba(255,150,150,0.9); line-height:1.5;"></p>
+            <p id="booking-error-title" style="font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:900;letter-spacing:0.05em;color:#ff5555;margin-bottom:0.2rem;" data-i18n="checkout.errorTitle">PRENOTAZIONE NON VALIDA</p>
+            <p id="booking-error-text" style="font-size:0.85rem;color:rgba(255,150,150,0.9);line-height:1.5;"></p>
           </div>
         </div>
-        <div class="checkout-section-title">I Tuoi Dati</div>
+        <div class="checkout-section-title" data-i18n="checkout.yourData">I Tuoi Dati</div>
         <div class="form-row">
           <div class="form-group">
-            <label for="input-nome">Nome *</label>
-            <input type="text" id="input-nome" placeholder="Nome" required />
+            <label for="input-nome" data-i18n="contact.firstName">Nome *</label>
+            <input type="text" id="input-nome" data-i18n-placeholder="contact.firstNamePh" placeholder="Nome" required />
           </div>
           <div class="form-group">
-            <label for="input-cognome">Cognome *</label>
-            <input type="text" id="input-cognome" placeholder="Cognome" required />
+            <label for="input-cognome" data-i18n="contact.lastName">Cognome *</label>
+            <input type="text" id="input-cognome" data-i18n-placeholder="contact.lastNamePh" placeholder="Cognome" required />
           </div>
         </div>
         <div class="form-row">
@@ -400,85 +284,138 @@
             <input type="email" id="input-email" placeholder="esempio@gmail.com" required />
           </div>
           <div class="form-group">
-            <label for="input-phone">Telefono *</label>
+            <label for="input-phone" data-i18n="contact.phone">Telefono *</label>
             <input type="tel" id="input-phone" placeholder="+39 333 000 0000" required />
           </div>
         </div>
         <div class="form-group">
-          <label>Sesso *</label>
-          <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
-            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;"><input type="radio" name="gender" value="Male" required> Uomo (Male)</label>
-            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;"><input type="radio" name="gender" value="Female" required> Donna (Female)</label>
+          <label data-i18n="checkout.gender">Sesso *</label>
+          <div style="display:flex;gap:1rem;margin-top:0.5rem;">
+            <label style="display:flex;align-items:center;gap:0.5rem;font-weight:normal;"><input type="radio" name="gender" value="Male" required> <span data-i18n="checkout.male">Uomo (Male)</span></label>
+            <label style="display:flex;align-items:center;gap:0.5rem;font-weight:normal;"><input type="radio" name="gender" value="Female" required> <span data-i18n="checkout.female">Donna (Female)</span></label>
           </div>
         </div>
-        <div class="form-group" style="display: none;">
-          <label>Numero Biglietti *</label>
-          <div class="qty-control">
-            <input type="number" id="input-qty" value="1" min="1" max="1" readonly />
-          </div>
+        <div class="form-group" style="display:none;">
+          <label data-i18n="checkout.qty">Numero Biglietti *</label>
+          <div class="qty-control"><input type="number" id="input-qty" value="1" min="1" max="1" readonly /></div>
         </div>
-        <div class="form-group" style="margin-top: 1rem; border-top: 1px solid #333; padding-top: 1rem;">
-          <label style="display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-size: 0.85rem; color: #ccc;">
-            <input type="checkbox" id="input-terms" required style="margin-top: 3px; accent-color: var(--orange);" />
-            <span>Ho letto e accetto i <a href="terms.html" target="_blank" style="color: var(--orange);">Termini e Condizioni</a>, la <a href="privacy.html" target="_blank" style="color: var(--orange);">Privacy Policy</a> e la <a href="media-policy.html" target="_blank" style="color: var(--orange);">Photo & Video Policy</a>. Accetto di essere fotografato/ripreso durante l'evento.</span>
+        <div class="form-group" style="margin-top:1rem;border-top:1px solid #333;padding-top:1rem;">
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:0.85rem;color:#ccc;">
+            <input type="checkbox" id="input-terms" required style="margin-top:3px;accent-color:var(--orange);" />
+            <span data-i18n="checkout.terms">Ho letto e accetto i <a href="terms.html" target="_blank" style="color:var(--orange);">Termini e Condizioni</a>, la <a href="privacy.html" target="_blank" style="color:var(--orange);">Privacy Policy</a> e la <a href="media-policy.html" target="_blank" style="color:var(--orange);">Photo &amp; Video Policy</a>. Accetto di essere fotografato/ripreso durante l'evento.</span>
           </label>
         </div>
         <div class="form-total">
-          <span>DA PAGARE ALLA PORTA</span>
+          <span data-i18n="checkout.payAt">DA PAGARE ALLA PORTA</span>
           <span id="modal-total" class="form-total-amount">€10</span>
         </div>
-        <button type="submit" class="btn btn-primary btn-full">PRENOTA ORA</button>
+        <button type="submit" class="btn btn-primary btn-full" data-i18n="checkout.book">PRENOTA ORA</button>
         <div class="secure-badge">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          Pagamento (Contanti o Carte) all'ingresso
+          <span data-i18n="checkout.payment">Pagamento (Contanti o Carte) all'ingresso</span>
         </div>
       </form>
       <div class="modal-success" id="modal-success" style="display:none;">
         <div class="success-icon">✓</div>
-        <h3>Prenotazione Confermata!</h3>
-        <p>Il tuo codice di prenotazione è stato inviato alla tua email. Mostralo alla porta per pagare ed entrare.<br />Ci vediamo a Lucca Groove!</p>
+        <h3 data-i18n="checkout.successTitle">Prenotazione Confermata!</h3>
+        <p data-i18n="checkout.successMsg">Il tuo codice di prenotazione è stato inviato alla tua email. Mostralo alla porta per pagare ed entrare.<br />Ci vediamo a Lucca Groove!</p>
         <p class="success-sub">MUSICA • ATMOSFERA • PERSONE</p>
-        <button type="button" class="btn btn-outline" onclick="closeModal()">CHIUDI</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal()" data-i18n="contact.close">CHIUDI</button>
       </div>
     </div>
   </div>
 
-  <!-- ======================== COOKIE BANNER ======================== -->
-  <div id="cookie-banner" style="display:none; position:fixed; bottom:0; left:0; width:100%; background:rgba(10,10,10,0.95); border-top:1px solid #333; padding:20px; z-index:9999; backdrop-filter:blur(10px); flex-direction:column; align-items:center; text-align:center;">
-    <p style="margin:0 0 15px 0; font-size:0.9rem; color:#ccc; max-width:800px;">
+  <!-- COOKIE BANNER -->
+  <div id="cookie-banner" style="display:none;position:fixed;bottom:0;left:0;width:100%;background:rgba(10,10,10,0.95);border-top:1px solid #333;padding:20px;z-index:9999;backdrop-filter:blur(10px);flex-direction:column;align-items:center;text-align:center;">
+    <p style="margin:0 0 15px 0;font-size:0.9rem;color:#ccc;max-width:800px;" data-i18n="cookie.text">
       Utilizziamo cookie tecnici per garantirti la migliore esperienza sul nostro sito. Continuando a navigare, accetti la nostra <a href="privacy.html" style="color:var(--orange);">Privacy Policy</a>.
     </p>
-    <button onclick="acceptCookies()" style="background:var(--orange); color:#000; border:none; padding:10px 30px; font-weight:bold; border-radius:5px; cursor:pointer; font-family:'Barlow Condensed', sans-serif; font-size:1.1rem; letter-spacing:0.05em; transition:transform 0.2s;">
+    <button onclick="acceptCookies()" data-i18n="cookie.accept" style="background:var(--orange);color:#000;border:none;padding:10px 30px;font-weight:bold;border-radius:5px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;letter-spacing:0.05em;transition:transform 0.2s;">
       ACCETTA
     </button>
   </div>
 
   <script>
-    // Cookie Banner Logic
-    document.addEventListener("DOMContentLoaded", () => {
-      if (!localStorage.getItem("cookiesAccepted")) {
-        const banner = document.getElementById("cookie-banner");
-        banner.style.display = "flex";
-        
-        // Slight animation
-        banner.style.transform = "translateY(100%)";
-        setTimeout(() => {
-          banner.style.transition = "transform 0.4s ease-out";
-          banner.style.transform = "translateY(0)";
-        }, 100);
+    document.addEventListener('DOMContentLoaded', function() {
+      if (!localStorage.getItem('cookiesAccepted')) {
+        var b = document.getElementById('cookie-banner');
+        b.style.display = 'flex';
+        b.style.transform = 'translateY(100%)';
+        setTimeout(function() { b.style.transition = 'transform 0.4s ease-out'; b.style.transform = 'translateY(0)'; }, 100);
       }
     });
-
     function acceptCookies() {
-      localStorage.setItem("cookiesAccepted", "true");
-      const banner = document.getElementById("cookie-banner");
-      banner.style.transition = "transform 0.4s ease-in, opacity 0.4s ease-in";
-      banner.style.transform = "translateY(100%)";
-      banner.style.opacity = "0";
-      setTimeout(() => banner.style.display = "none", 400);
+      localStorage.setItem('cookiesAccepted', 'true');
+      var b = document.getElementById('cookie-banner');
+      b.style.transition = 'transform 0.4s ease-in, opacity 0.4s ease-in';
+      b.style.transform = 'translateY(100%)'; b.style.opacity = '0';
+      setTimeout(function() { b.style.display = 'none'; }, 400);
     }
   </script>
 
+  <script>
+    document.getElementById('contact-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      var firstName = document.getElementById('contact-firstname').value.trim();
+      var lastName  = document.getElementById('contact-lastname').value.trim();
+      var phone     = document.getElementById('contact-phone').value.trim();
+      var role      = document.getElementById('contact-role').value;
+      var message   = document.getElementById('contact-message').value.trim();
+      if (!firstName || !lastName || !phone || !role || !message) return;
+      var btn = document.getElementById('contact-submit-btn');
+      var btnText = document.getElementById('contact-btn-text');
+      var btnLoader = document.getElementById('contact-btn-loader');
+      btn.disabled = true; btn.style.opacity = '0.8';
+      btnText.style.display = 'none'; btnLoader.style.display = 'flex';
+      try {
+        var res = await fetch('/api/save-contact', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ firstName: firstName, lastName: lastName, phone: phone, role: role, message: message })
+        });
+        var data = await res.json();
+        if (data.success) { showContactSuccess(); }
+        else { showContactError(data.error || 'Errore sconosciuto'); }
+      } catch(err) {
+        var lang = typeof currentLang !== 'undefined' ? currentLang : 'it';
+        showContactError(lang === 'en' ? 'Connection error. Try again.' : 'Errore di connessione. Riprova.');
+      } finally {
+        btn.disabled = false; btn.style.opacity = '1';
+        btnText.style.display = 'inline'; btnLoader.style.display = 'none';
+      }
+    });
+    function showContactSuccess() {
+      var o = document.getElementById('contact-success-overlay');
+      var i = document.getElementById('contact-success-icon');
+      o.style.display = 'flex';
+      requestAnimationFrame(function() { requestAnimationFrame(function() {
+        o.style.opacity = '1'; setTimeout(function() { i.style.transform = 'scale(1)'; }, 80);
+      }); });
+    }
+    function showContactError(msg) {
+      var o = document.getElementById('contact-error-overlay');
+      var i = document.getElementById('contact-error-icon');
+      document.getElementById('contact-error-msg').textContent = msg;
+      o.style.display = 'flex';
+      requestAnimationFrame(function() { requestAnimationFrame(function() {
+        o.style.opacity = '1'; setTimeout(function() { i.style.transform = 'scale(1)'; }, 80);
+      }); });
+    }
+    function hideContactError() {
+      var o = document.getElementById('contact-error-overlay');
+      var i = document.getElementById('contact-error-icon');
+      o.style.opacity = '0'; i.style.transform = 'scale(0)';
+      setTimeout(function() { o.style.display = 'none'; }, 400);
+    }
+    function resetContactForm() {
+      var o = document.getElementById('contact-success-overlay');
+      var i = document.getElementById('contact-success-icon');
+      o.style.opacity = '0'; i.style.transform = 'scale(0)';
+      setTimeout(function() { o.style.display = 'none'; }, 400);
+      document.getElementById('contact-form').reset();
+    }
+  </script>
+
+  <script src="i18n.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
