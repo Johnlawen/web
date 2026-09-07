@@ -812,6 +812,7 @@ async function sendNotifyAll() {
 }
 
 // ===== RIMBORSI =====
+function renderRefunds() {
   const tbody = document.getElementById('refunds-tbody');
   if (!tbody) return;
   
