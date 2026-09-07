@@ -834,7 +834,7 @@ function renderContacts() {
   
   tbody.innerHTML = '';
   if (contacts.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px;">Nessun contatto ancora</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#aaa;padding:20px;">Nessun contatto ancora</td></tr>';
     return;
   }
   
@@ -843,6 +843,7 @@ function renderContacts() {
     tr.innerHTML = `
       <td>${c.date || '-'}</td>
       <td><strong>${c.firstName} ${c.lastName}</strong></td>
+      <td>${c.phone || '-'}</td>
       <td><span class="badge badge-active">${c.role}</span></td>
       <td style="max-width:300px; white-space:pre-wrap; word-break:break-word;">${c.message}</td>
     `;

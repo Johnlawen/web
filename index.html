@@ -140,7 +140,7 @@
       <h2 class="section-title center-title">LAVORA CON <span class="orange">NOI</span></h2>
       <p style="text-align: center; color: #888; margin-bottom: 3rem; font-family: 'Barlow', sans-serif;">Compila il form per collaborare o richiedere informazioni.</p>
       
-      <form id="contact-form" style="background: #111; padding: 2rem; border-radius: 12px; border: 1px solid rgba(255,107,0,0.2);">
+      <form id="contact-form" style="background: #111; padding: 2rem; border-radius: 12px; border: 1px solid rgba(255,107,0,0.2); position: relative; overflow: hidden;">
         <div class="form-row">
           <div class="form-group">
             <label for="contact-firstname">Nome *</label>
@@ -151,64 +151,157 @@
             <input type="text" id="contact-lastname" placeholder="Cognome" required />
           </div>
         </div>
-        <div class="form-group" style="margin-top: 1rem;">
-          <label for="contact-role">Ruolo *</label>
-          <select id="contact-role" required style="width: 100%; padding: 0.8rem 1rem; background: #0a0a0a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-family: 'Barlow', sans-serif;">
-            <option value="" disabled selected>Seleziona un ruolo</option>
-            <option value="DJ">DJ</option>
-            <option value="Promoter">Promoter</option>
-            <option value="Sponsor">Sponsor</option>
-            <option value="Photographer">Fotografo (Photographer)</option>
-            <option value="Videographer">Videomaker (Videographer)</option>
-            <option value="Personal Social">Personal Social</option>
-            <option value="Blogger">Blogger</option>
-            <option value="Altro">Altro (Other)</option>
-          </select>
+        <div class="form-row" style="margin-top: 1rem;">
+          <div class="form-group">
+            <label for="contact-phone">Telefono *</label>
+            <input type="tel" id="contact-phone" placeholder="+39 333 000 0000" required />
+          </div>
+          <div class="form-group">
+            <label for="contact-role">Ruolo *</label>
+            <select id="contact-role" required style="width: 100%; padding: 0.8rem 1rem; background: #0a0a0a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-family: 'Barlow', sans-serif;">
+              <option value="" disabled selected>Seleziona un ruolo</option>
+              <option value="DJ">DJ</option>
+              <option value="Promoter">Promoter</option>
+              <option value="Sponsor">Sponsor</option>
+              <option value="Photographer">Fotografo (Photographer)</option>
+              <option value="Videographer">Videomaker (Videographer)</option>
+              <option value="Personal Social">Personal Social</option>
+              <option value="Blogger">Blogger</option>
+              <option value="Altro">Altro (Other)</option>
+            </select>
+          </div>
         </div>
         <div class="form-group" style="margin-top: 1rem;">
           <label for="contact-message">Cosa vuoi dirci? *</label>
           <textarea id="contact-message" rows="5" placeholder="Scrivi qui il tuo messaggio..." required style="width: 100%; padding: 0.8rem 1rem; background: #0a0a0a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-family: 'Barlow', sans-serif; resize: vertical;"></textarea>
         </div>
-        <button type="submit" class="btn btn-primary btn-full" style="margin-top: 2rem;">INVIA RICHIESTA</button>
-        <p id="contact-status" style="margin-top: 1rem; text-align: center; font-size: 0.9rem; font-family: 'Barlow', sans-serif; display: none;"></p>
+        <button type="submit" id="contact-submit-btn" class="btn btn-primary btn-full" style="margin-top: 2rem; position: relative; overflow: hidden; min-height: 52px; transition: all 0.3s ease;">
+          <span id="contact-btn-text">INVIA RICHIESTA</span>
+          <span id="contact-btn-loader" style="display:none; position:absolute; inset:0; align-items:center; justify-content:center; gap:6px;">
+            <span class="contact-dot"></span><span class="contact-dot"></span><span class="contact-dot"></span>
+          </span>
+        </button>
+
+        <!-- SUCCESS OVERLAY -->
+        <div id="contact-success-overlay" style="display:none; position:absolute; inset:0; background:rgba(10,10,10,0.97); border-radius:12px; align-items:center; justify-content:center; flex-direction:column; gap:1rem; z-index:10; opacity:0; transition: opacity 0.4s ease; padding: 2rem; text-align:center;">
+          <div id="contact-success-icon" style="width:80px; height:80px; border-radius:50%; background:rgba(255,107,0,0.12); border:2px solid var(--orange); display:flex; align-items:center; justify-content:center; transform:scale(0); transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1);">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <p style="font-family:'Barlow Condensed',sans-serif; font-size:1.8rem; font-weight:900; letter-spacing:0.06em; color:#fff; margin:0;">RICHIESTA INVIATA!</p>
+          <p style="font-family:'Barlow',sans-serif; font-size:0.95rem; color:#aaa; margin:0; max-width:300px; line-height:1.6;">Ti contatteremo presto. Grazie per il tuo interesse in Lucca Groove! 🎶</p>
+          <button type="button" onclick="resetContactForm()" style="margin-top:0.5rem; background:none; border:1px solid rgba(255,107,0,0.4); color:var(--orange); padding:0.6rem 2rem; border-radius:6px; cursor:pointer; font-family:'Barlow Condensed',sans-serif; font-size:0.95rem; font-weight:700; letter-spacing:0.08em; transition:all 0.2s;" onmouseover="this.style.background='rgba(255,107,0,0.1)'" onmouseout="this.style.background='none'">CHIUDI</button>
+        </div>
+
+        <!-- ERROR OVERLAY -->
+        <div id="contact-error-overlay" style="display:none; position:absolute; inset:0; background:rgba(10,10,10,0.97); border-radius:12px; align-items:center; justify-content:center; flex-direction:column; gap:1rem; z-index:10; opacity:0; transition: opacity 0.4s ease; padding: 2rem; text-align:center;">
+          <div id="contact-error-icon" style="width:80px; height:80px; border-radius:50%; background:rgba(255,60,60,0.12); border:2px solid #ff5555; display:flex; align-items:center; justify-content:center; transform:scale(0); transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1);">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ff5555" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </div>
+          <p style="font-family:'Barlow Condensed',sans-serif; font-size:1.8rem; font-weight:900; letter-spacing:0.06em; color:#ff5555; margin:0;">ERRORE INVIO</p>
+          <p id="contact-error-msg" style="font-family:'Barlow',sans-serif; font-size:0.95rem; color:#aaa; margin:0; max-width:300px; line-height:1.6;">Si è verificato un errore. Riprova.</p>
+          <button type="button" onclick="hideContactError()" style="margin-top:0.5rem; background:none; border:1px solid rgba(255,60,60,0.4); color:#ff5555; padding:0.6rem 2rem; border-radius:6px; cursor:pointer; font-family:'Barlow Condensed',sans-serif; font-size:0.95rem; font-weight:700; letter-spacing:0.08em; transition:all 0.2s;" onmouseover="this.style.background='rgba(255,60,60,0.1)'" onmouseout="this.style.background='none'">RIPROVA</button>
+        </div>
       </form>
     </div>
   </section>
+
+  <style>
+    .contact-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #000; display: inline-block;
+      animation: contact-bounce 1.2s infinite ease-in-out;
+    }
+    .contact-dot:nth-child(2) { animation-delay: 0.2s; }
+    .contact-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes contact-bounce {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+  </style>
   <script>
     document.getElementById('contact-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const firstName = document.getElementById('contact-firstname').value.trim();
-      const lastName = document.getElementById('contact-lastname').value.trim();
-      const role = document.getElementById('contact-role').value;
-      const message = document.getElementById('contact-message').value.trim();
-      const statusEl = document.getElementById('contact-status');
+      const lastName  = document.getElementById('contact-lastname').value.trim();
+      const phone     = document.getElementById('contact-phone').value.trim();
+      const role      = document.getElementById('contact-role').value;
+      const message   = document.getElementById('contact-message').value.trim();
       
-      if (!firstName || !lastName || !role || !message) return;
+      if (!firstName || !lastName || !phone || !role || !message) return;
       
-      statusEl.style.display = 'block';
-      statusEl.style.color = '#fff';
-      statusEl.textContent = 'Invio in corso...';
+      // Show loading state on button
+      const btn       = document.getElementById('contact-submit-btn');
+      const btnText   = document.getElementById('contact-btn-text');
+      const btnLoader = document.getElementById('contact-btn-loader');
+      btn.disabled = true;
+      btn.style.opacity = '0.8';
+      btnText.style.display = 'none';
+      btnLoader.style.display = 'flex';
       
       try {
         const res = await fetch('/api/save-contact', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ firstName, lastName, role, message })
+          body: JSON.stringify({ firstName, lastName, phone, role, message })
         });
         const data = await res.json();
+        
         if (data.success) {
-          statusEl.style.color = 'var(--orange)';
-          statusEl.textContent = 'Richiesta inviata con successo! Ti contatteremo presto.';
-          document.getElementById('contact-form').reset();
+          showContactSuccess();
         } else {
-          statusEl.style.color = '#ff5555';
-          statusEl.textContent = 'Errore durante l\\'invio: ' + (data.error || 'sconosciuto');
+          showContactError(data.error || 'Errore sconosciuto');
         }
       } catch(err) {
-        statusEl.style.color = '#ff5555';
-        statusEl.textContent = 'Errore di connessione.';
+        showContactError('Errore di connessione. Controlla la tua rete e riprova.');
+      } finally {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btnText.style.display = 'inline';
+        btnLoader.style.display = 'none';
       }
     });
+
+    function showContactSuccess() {
+      const overlay = document.getElementById('contact-success-overlay');
+      const icon    = document.getElementById('contact-success-icon');
+      overlay.style.display = 'flex';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          overlay.style.opacity = '1';
+          setTimeout(() => { icon.style.transform = 'scale(1)'; }, 80);
+        });
+      });
+    }
+
+    function showContactError(msg) {
+      const overlay = document.getElementById('contact-error-overlay');
+      const icon    = document.getElementById('contact-error-icon');
+      document.getElementById('contact-error-msg').textContent = msg;
+      overlay.style.display = 'flex';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          overlay.style.opacity = '1';
+          setTimeout(() => { icon.style.transform = 'scale(1)'; }, 80);
+        });
+      });
+    }
+
+    function hideContactError() {
+      const overlay = document.getElementById('contact-error-overlay');
+      const icon    = document.getElementById('contact-error-icon');
+      overlay.style.opacity = '0';
+      icon.style.transform = 'scale(0)';
+      setTimeout(() => { overlay.style.display = 'none'; }, 400);
+    }
+
+    function resetContactForm() {
+      const overlay = document.getElementById('contact-success-overlay');
+      const icon    = document.getElementById('contact-success-icon');
+      overlay.style.opacity = '0';
+      icon.style.transform = 'scale(0)';
+      setTimeout(() => { overlay.style.display = 'none'; }, 400);
+      document.getElementById('contact-form').reset();
+    }
   </script>
 
   <!-- ======================== FOOTER ======================== -->

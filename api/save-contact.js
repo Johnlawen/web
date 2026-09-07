@@ -15,7 +15,7 @@ module.exports = async function handler(req, res) {
       data = JSON.parse(data);
     }
 
-    const { firstName, lastName, role, message } = req.body;
+    const { firstName, lastName, phone, role, message } = req.body;
 
     if (!firstName || !lastName || !role || !message) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -30,6 +30,7 @@ module.exports = async function handler(req, res) {
       date: new Date().toLocaleDateString('it-IT'),
       firstName,
       lastName,
+      phone: phone || '',
       role,
       message
     };
