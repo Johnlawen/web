@@ -113,6 +113,7 @@ module.exports = async function handler(req, res) {
     if (action === 'settings') {
       if (req.body.events) data.events = req.body.events;
       if (req.body.rounds) data.rounds = req.body.rounds;
+      if (typeof req.body.comingSoon !== 'undefined') data.comingSoon = req.body.comingSoon;
       await redis.set('luccaAdminData', JSON.stringify(data));
       return res.status(200).json({ success: true, data });
     }
@@ -255,6 +256,7 @@ module.exports = async function handler(req, res) {
     if (action === 'settings') {
       if (req.body.rounds) data.rounds = req.body.rounds;
       if (req.body.events) data.events = req.body.events;
+      if (typeof req.body.comingSoon !== 'undefined') data.comingSoon = req.body.comingSoon;
       await redis.set('luccaAdminData', JSON.stringify(data));
       return res.status(200).json({ success: true, data });
     }

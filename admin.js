@@ -31,7 +31,8 @@ let appData = {
     r3: { name: 'Last Round', price: 20, limit: 300, sold: 0, active: true }
   },
   orders: [],
-  archivedEvents: [] // Storico eventi
+  archivedEvents: [], // Storico eventi
+  comingSoon: false
 };
 
 // ===== PAGINATION & FILTER STATE =====
@@ -75,6 +76,9 @@ async function loadData() {
         used: o.used || 0
       }));
       
+      const csToggle = document.getElementById('toggle-coming-soon');
+      if (csToggle) csToggle.checked = !!appData.comingSoon;
+      
       renderDashboard();
     }
   } catch (error) {
@@ -87,10 +91,19 @@ async function saveSettingsToBackend() {
     await fetch('/api/save-order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'settings', rounds: appData.rounds, events: appData.events })
+      body: JSON.stringify({ action: 'settings', rounds: appData.rounds, events: appData.events, comingSoon: appData.comingSoon })
     });
   } catch(e) { console.error(e); }
 }
+
+window.saveComingSoon = function() {
+  const csToggle = document.getElementById('toggle-coming-soon');
+  if (csToggle) {
+    appData.comingSoon = csToggle.checked;
+    saveSettingsToBackend();
+    showToast('Impostazioni aggiornate!');
+  }
+};
 
 function saveState() {
   // localStorage.setItem('luccaAdminData', JSON.stringify(appData));

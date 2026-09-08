@@ -268,6 +268,21 @@ async function loadEvents() {
       return;
     }
     
+    if (data.comingSoon) {
+      const eventsInner = document.querySelector('.events-inner');
+      if (eventsInner) {
+         eventsInner.innerHTML = `
+           <h2 class="section-title center-title" data-i18n="events.title">VIVI IL PROSSIMO <span class="orange">GROOVE</span></h2>
+           <div style="text-align:center; padding: 4rem 1rem; border: 1px solid rgba(255,107,0,0.3); border-radius: 12px; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); margin-top: 3rem; margin-bottom: 3rem;">
+             <h3 style="font-family: 'Barlow Condensed', sans-serif; font-size: 3rem; color: #fff; letter-spacing: 0.1em; margin-bottom: 1rem;">COMING SOON</h3>
+             <p style="color: #aaa; font-family: 'Barlow', sans-serif; font-size: 1.1rem; max-width: 500px; margin: 0 auto;" data-i18n="events.comingSoonDesc">Stiamo preparando qualcosa di speciale. Resta sintonizzato per scoprire i prossimi eventi Lucca Groove.</p>
+           </div>
+         `;
+         if (typeof applyTranslations === 'function') applyTranslations();
+      }
+      return;
+    }
+    
     track.style.justifyContent = 'flex-start'; // Reset for when events exist
     
     const images = ['crowd.png', 'hero-tower.png', 'event3.png'];

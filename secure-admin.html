@@ -194,7 +194,16 @@
       <div class="panel">
         <div class="panel-header">
           <h3>Gestione Eventi</h3>
-          <button class="btn btn-primary btn-sm" onclick="openEventEditor()">+ Nuovo Evento</button>
+          <div style="display: flex; gap: 1rem; align-items: center;">
+            <label class="switch" style="display: flex; align-items: center; gap: 0.5rem; color: #fff; font-family: 'Barlow', sans-serif;">
+              <span style="font-size: 0.9rem;">Coming Soon</span>
+              <div style="position: relative; display: inline-block; width: 40px; height: 20px;">
+                <input type="checkbox" id="toggle-coming-soon" onchange="saveComingSoon()" style="opacity: 0; width: 0; height: 0; position: absolute;">
+                <span class="slider"></span>
+              </div>
+            </label>
+            <button class="btn btn-primary btn-sm" onclick="openEventEditor()">+ Nuovo Evento</button>
+          </div>
         </div>
         <div class="panel-body">
           <table class="data-table">

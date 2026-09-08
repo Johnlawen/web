@@ -86,7 +86,8 @@ module.exports = async function handler(req, res) {
       // Return only public data for regular users
       res.status(200).json({
         rounds: data.rounds,
-        events: data.events
+        events: data.events,
+        comingSoon: data.comingSoon
       });
     }
   } catch (error) {
