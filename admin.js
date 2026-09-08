@@ -76,8 +76,8 @@ async function loadData() {
         used: o.used || 0
       }));
       
-      const csToggle = document.getElementById('toggle-coming-soon');
-      if (csToggle) csToggle.checked = !!appData.comingSoon;
+      
+      updateComingSoonBtn();
       
       renderDashboard();
     }
@@ -96,14 +96,25 @@ async function saveSettingsToBackend() {
   } catch(e) { console.error(e); }
 }
 
-window.saveComingSoon = function() {
-  const csToggle = document.getElementById('toggle-coming-soon');
-  if (csToggle) {
-    appData.comingSoon = csToggle.checked;
-    saveSettingsToBackend();
-    showToast('Impostazioni aggiornate!');
-  }
+window.toggleComingSoon = function() {
+  appData.comingSoon = !appData.comingSoon;
+  updateComingSoonBtn();
+  saveSettingsToBackend();
+  showToast(appData.comingSoon ? 'Coming Soon: ATTIVATO' : 'Coming Soon: DISATTIVATO');
 };
+
+function updateComingSoonBtn() {
+  const btn = document.getElementById('btn-coming-soon');
+  if (btn) {
+    if (appData.comingSoon) {
+      btn.textContent = 'Coming Soon: ON';
+      btn.className = 'btn btn-primary btn-sm';
+    } else {
+      btn.textContent = 'Coming Soon: OFF';
+      btn.className = 'btn btn-outline btn-sm';
+    }
+  }
+}
 
 function saveState() {
   // localStorage.setItem('luccaAdminData', JSON.stringify(appData));
