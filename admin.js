@@ -388,10 +388,10 @@ function renderEvents() {
   appData.events.forEach((ev, index) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><strong>${ev.name}</strong></td>
-      <td>${ev.date}</td>
-      <td><span class="badge ${ev.active ? 'badge-active' : ''}">${ev.active ? 'Attivo' : 'Inattivo'}</span></td>
-      <td style="display: flex; gap: 5px;">
+      <td data-label="Evento"><strong>${ev.name}</strong></td>
+      <td data-label="Data">${ev.date}</td>
+      <td data-label="Stato"><span class="badge ${ev.active ? 'badge-active' : ''}">${ev.active ? 'Attivo' : 'Inattivo'}</span></td>
+      <td data-label="Azioni" style="display: flex; gap: 5px;">
         <button class="btn btn-ghost btn-sm" onclick="openEventEditor('${ev.name}')">Modifica</button>
         <button class="btn btn-ghost btn-sm" style="color: #4CAF50; border-color: #4CAF50;" onclick="archiveEvent('${ev.name}')">Archivia</button>
         <button class="btn btn-ghost btn-sm" style="color: #ff4444; border-color: #ff4444;" onclick="deleteEvent(${index})">Elimina</button>
@@ -453,9 +453,9 @@ function renderDashboard() {
   appData.orders.slice(0, 3).forEach(o => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><strong>${o.name}</strong><br/><span style="font-size:0.6rem;color:var(--text-muted)">${o.round}</span></td>
-      <td>${o.qty}</td>
-      <td style="color:var(--orange);font-weight:600">€${o.total}</td>
+      <td data-label="Utente"><strong>${o.name}</strong><br/><span style="font-size:0.6rem;color:var(--text-muted)">${o.round}</span></td>
+      <td data-label="Qtà">${o.qty}</td>
+      <td data-label="Totale" style="color:var(--orange);font-weight:600">€${o.total}</td>
     `;
     tbodyRecent.appendChild(tr);
   });
@@ -527,15 +527,15 @@ function renderAllOrders() {
     
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td style="font-size:0.8rem;color:var(--text-muted)">${o.id}</td>
-      <td>${o.date}</td>
-      <td><strong>${o.name}</strong><br/><span style="font-size:0.7rem;color:var(--text-muted)">${o.email || '-'}</span></td>
-      <td><strong>${o.event || '-'}</strong></td>
-      <td><span class="badge ${o.payment === 'Contanti' ? 'badge-active' : ''}">${o.payment}</span>${statusBadge}</td>
-      <td>${o.round}</td>
-      <td>${o.qty}</td>
-      <td>${o.used} / ${o.qty}</td>
-      <td style="color:var(--orange);font-weight:600">€${o.total}</td>
+      <td data-label="ID" style="font-size:0.8rem;color:var(--text-muted)">${o.id}</td>
+      <td data-label="Data">${o.date}</td>
+      <td data-label="Utente"><strong>${o.name}</strong><br/><span style="font-size:0.7rem;color:var(--text-muted)">${o.email || '-'}</span></td>
+      <td data-label="Evento"><strong>${o.event || '-'}</strong></td>
+      <td data-label="Pagamento"><span class="badge ${o.payment === 'Contanti' ? 'badge-active' : ''}">${o.payment}</span>${statusBadge}</td>
+      <td data-label="Round">${o.round}</td>
+      <td data-label="Qtà">${o.qty}</td>
+      <td data-label="Ingressi">${o.used} / ${o.qty}</td>
+      <td data-label="Totale" style="color:var(--orange);font-weight:600">€${o.total}</td>
     `;
     tbodyAll.appendChild(tr);
   });
@@ -601,12 +601,12 @@ function renderArchive() {
         const statusCol = statusColors[displayStatus] || '#888';
         ordersHtml += `
           <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
-            <td style="padding:10px 12px; font-size:0.8rem; color:#888; font-family:monospace;">${o.id || '-'}</td>
-            <td style="padding:10px 12px; font-weight:600; color:#fff;">${o.name || '-'}</td>
-            <td style="padding:10px 12px; color:#aaa; font-size:0.85rem;">${o.email || '-'}</td>
-            <td style="padding:10px 12px; color:#aaa; font-size:0.85rem;">${o.round || '-'}</td>
-            <td style="padding:10px 12px; color:var(--orange); font-weight:700;">€${o.total || 0}</td>
-            <td style="padding:10px 12px;"><span style="background:${statusCol}22; color:${statusCol}; border:1px solid ${statusCol}55; padding:2px 10px; border-radius:20px; font-size:0.75rem; font-weight:700; font-family:'Barlow Condensed',sans-serif; letter-spacing:0.05em;">${displayStatus}</span></td>
+            <td data-label="ID" style="padding:10px 12px; font-size:0.8rem; color:#888; font-family:monospace;">${o.id || '-'}</td>
+            <td data-label="Utente" style="padding:10px 12px; font-weight:600; color:#fff;">${o.name || '-'}</td>
+            <td data-label="Email" style="padding:10px 12px; color:#aaa; font-size:0.85rem;">${o.email || '-'}</td>
+            <td data-label="Turno" style="padding:10px 12px; color:#aaa; font-size:0.85rem;">${o.round || '-'}</td>
+            <td data-label="Totale" style="padding:10px 12px; color:var(--orange); font-weight:700;">€${o.total || 0}</td>
+            <td data-label="Stato" style="padding:10px 12px;"><span style="background:${statusCol}22; color:${statusCol}; border:1px solid ${statusCol}55; padding:2px 10px; border-radius:20px; font-size:0.75rem; font-weight:700; font-family:'Barlow Condensed',sans-serif; letter-spacing:0.05em;">${displayStatus}</span></td>
           </tr>`;
       });
     }
@@ -784,9 +784,9 @@ function renderSubscribers() {
   subs.forEach(s => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><strong>${s.name}</strong><br/><span style="font-size:0.7rem;color:var(--text-muted)">${s.email}</span></td>
-      <td>${s.phone || '-'}</td>
-      <td>${s.date || '-'}</td>
+      <td data-label="Utente"><strong>${s.name}</strong><br/><span style="font-size:0.7rem;color:var(--text-muted)">${s.email}</span></td>
+      <td data-label="Telefono">${s.phone || '-'}</td>
+      <td data-label="Data">${s.date || '-'}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -874,12 +874,12 @@ function renderRefunds() {
     
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${r.date || '-'}</td>
-      <td><strong>${r.name}</strong><br/><span style="font-size:0.7rem;color:var(--text-muted)">${r.email || '-'}</span></td>
-      <td style="font-size:0.8rem;color:var(--text-muted)">${r.orderId}</td>
-      <td style="max-width:200px; white-space:pre-wrap; font-size:0.85rem;">${r.reason}</td>
-      <td>${badgeHTML}</td>
-      <td>${actionsHtml}</td>
+      <td data-label="Data">${r.date || '-'}</td>
+      <td data-label="Utente"><strong>${r.name}</strong><br/><span style="font-size:0.7rem;color:var(--text-muted)">${r.email || '-'}</span></td>
+      <td data-label="Ordine" style="font-size:0.8rem;color:var(--text-muted)">${r.orderId}</td>
+      <td data-label="Motivo" style="max-width:200px; white-space:pre-wrap; font-size:0.85rem;">${r.reason}</td>
+      <td data-label="Stato">${badgeHTML}</td>
+      <td data-label="Azioni">${actionsHtml}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -926,11 +926,11 @@ function renderContacts() {
   contacts.forEach(c => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${c.date || '-'}</td>
-      <td><strong>${c.firstName} ${c.lastName}</strong><br/><span style="font-size:0.7rem;color:var(--text-muted)">Contatto diretto</span></td>
-      <td>${c.phone || '-'}</td>
-      <td><span class="badge badge-active">${c.role}</span></td>
-      <td style="max-width:300px; white-space:pre-wrap; font-size:0.85rem;">${c.message}</td>
+      <td data-label="Data">${c.date || '-'}</td>
+      <td data-label="Nome"><strong>${c.firstName} ${c.lastName}</strong><br/><span style="font-size:0.7rem;color:var(--text-muted)">Contatto diretto</span></td>
+      <td data-label="Telefono">${c.phone || '-'}</td>
+      <td data-label="Ruolo"><span class="badge badge-active">${c.role}</span></td>
+      <td data-label="Messaggio" style="max-width:300px; white-space:pre-wrap; font-size:0.85rem;">${c.message}</td>
     `;
     tbody.appendChild(tr);
   });
