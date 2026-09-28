@@ -27,7 +27,7 @@ a { text-decoration: none; color: inherit; }
 /* ===== SIDEBAR ===== */
 .sidebar { width: 250px; background: var(--bg-card); border-right: 1px solid var(--border-orange); display: flex; flex-direction: column; }
 .sidebar-header { padding: 2rem 1.5rem; display: flex; align-items: center; gap: 1rem; border-bottom: 1px solid rgba(255,107,0,0.1); }
-.sidebar-logo { width: 40px; height: 40px; border-radius: 50%; }
+.sidebar-logo { width: 40px; height: 40px; object-fit: contain; }
 .sidebar-brand { font-family: 'Barlow Condensed', sans-serif; font-size: 1.1rem; font-weight: 900; letter-spacing: 0.05em; color: var(--orange); line-height: 1.1; }
 .sidebar-brand span { color: var(--text-primary); font-weight: 600; font-size: 0.85rem; letter-spacing: 0.2em; }
 .sidebar-nav { flex: 1; padding: 1.5rem 0; display: flex; flex-direction: column; gap: 0.5rem; }
@@ -110,7 +110,7 @@ input:checked + .slider:before { transform: translateX(18px); background-color: 
   padding: 2rem 1.5rem; display: flex; flex-direction: column;
   align-items: center; gap: 1rem; text-align: center;
 }
-.ticket-logo { width: 70px; height: 70px; object-fit: contain; border-radius: 50%; }
+.ticket-logo { width: 70px; height: 70px; object-fit: contain; }
 .ticket-divider { color: var(--orange); font-size: 0.6rem; letter-spacing: 0.4em; }
 .ticket-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem; font-weight: 700; letter-spacing: 0.1em; color: var(--text-primary); text-transform: uppercase; }
 .ticket-type { font-family: 'Barlow Condensed', sans-serif; font-size: 1.4rem; font-weight: 900; letter-spacing: 0.1em; color: var(--orange); text-transform: uppercase; }

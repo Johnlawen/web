@@ -132,7 +132,7 @@ img { display: block; }
   padding: 2rem 1.5rem; display: flex; flex-direction: column;
   align-items: center; gap: 1rem;
 }
-.ticket-logo { width: 70px; height: 70px; object-fit: contain; border-radius: 50%; }
+.ticket-logo { width: 70px; height: 70px; object-fit: contain; }
 .ticket-divider { color: var(--orange); font-size: 0.6rem; letter-spacing: 0.4em; }
 .ticket-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.3em; color: var(--text-muted); }
 .ticket-type { font-family: 'Barlow Condensed', sans-serif; font-size: 1.4rem; font-weight: 900; letter-spacing: 0.1em; color: var(--orange); }
@@ -258,7 +258,7 @@ img { display: block; }
 .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: rgba(255,255,255,0.4); font-size: 1.8rem; cursor: pointer; line-height: 1; transition: color 0.25s; }
 .modal-close:hover { color: var(--orange); }
 .modal-header { text-align: center; margin-bottom: 2rem; }
-.modal-logo { width: 55px; height: 55px; border-radius: 50%; margin: 0 auto 1rem; border: 2px solid var(--border); padding: 5px; }
+.modal-logo { width: 70px; height: 70px; object-fit: contain; margin: 0 auto 1rem; }
 .modal-title { font-family: 'Barlow Condensed', sans-serif; font-size: 1.8rem; font-weight: 900; color: var(--text); }
 .modal-tier { font-size: 0.75rem; letter-spacing: 0.2em; color: var(--orange); font-weight: 700; margin-top: 0.3rem; }
 .checkout-section-title { font-family: 'Barlow Condensed', sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.2em; color: var(--orange); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin: 1.5rem 0 1rem; }
