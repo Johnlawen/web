@@ -919,11 +919,19 @@ function renderContacts() {
   
   tbody.innerHTML = '';
   if (contacts.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#aaa;padding:20px;">Nessun contatto ancora</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#aaa;padding:20px;">Nessun contatto ancora</td></tr>';
     return;
   }
   
   contacts.forEach(c => {
+    let mixLinkHtml = '<span style="color:#555;">—</span>';
+    if (c.mixLink) {
+      mixLinkHtml = `<a href="${c.mixLink}" target="_blank" rel="noopener" style="color:var(--orange); text-decoration:none; display:inline-flex; align-items:center; gap:4px; font-size:0.85rem; word-break:break-all;" title="${c.mixLink}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        ${c.mixLink.length > 40 ? c.mixLink.substring(0, 40) + '…' : c.mixLink}
+      </a>`;
+    }
+    
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td data-label="Data">${c.date || '-'}</td>
@@ -931,6 +939,7 @@ function renderContacts() {
       <td data-label="Telefono">${c.phone || '-'}</td>
       <td data-label="Ruolo"><span class="badge badge-active">${c.role}</span></td>
       <td data-label="Messaggio" style="max-width:300px; white-space:pre-wrap; font-size:0.85rem;">${c.message}</td>
+      <td data-label="Link Mix">${mixLinkHtml}</td>
     `;
     tbody.appendChild(tr);
   });
