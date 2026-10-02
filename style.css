@@ -45,9 +45,9 @@ img { display: block; }
 }
 .nav-inner {
   max-width: 1200px; margin: 0 auto; padding: 0 2rem;
-  height: 80px; display: flex; align-items: center; justify-content: space-between;
+  height: 120px; display: flex; align-items: center; justify-content: space-between;
 }
-.nav-logo img { height: 68px; width: auto; object-fit: contain; }
+.nav-logo img { height: 100px; width: auto; object-fit: contain; }
 .nav-links { list-style: none; display: flex; gap: 2.5rem; }
 .nav-links a { font-family: 'Barlow Condensed', sans-serif; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.15em; color: var(--text-muted); transition: color 0.25s; }
 .nav-links a:hover, .nav-links a.active { color: var(--orange); }
@@ -63,7 +63,7 @@ img { display: block; }
 /* ===== HERO ===== */
 #hero {
   min-height: 100vh; display: flex; align-items: center;
-  padding-top: 80px; overflow: hidden; position: relative;
+  padding-top: 120px; overflow: hidden; position: relative;
   background: var(--black);
 }
 .hero-left {
