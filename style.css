@@ -263,6 +263,9 @@ img { display: block; }
 .modal-tier { font-size: 0.75rem; letter-spacing: 0.2em; color: var(--orange); font-weight: 700; margin-top: 0.3rem; }
 .checkout-section-title { font-family: 'Barlow Condensed', sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.2em; color: var(--orange); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin: 1.5rem 0 1rem; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 700px) {
+  .form-row { grid-template-columns: 1fr; }
+}
 .form-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
 .form-group label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); }
 .form-group input { background: #0a0a0a; border: 1px solid rgba(255,107,0,0.25); border-radius: 4px; padding: 0.75rem 1rem; color: #fff; font-family: 'Barlow', sans-serif; font-size: 0.9rem; outline: none; transition: border-color 0.25s; }
