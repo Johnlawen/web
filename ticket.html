@@ -107,7 +107,7 @@
     <div id="printable-ticket" class="ticket-container">
       <h1 class="ticket-title">LUCCA GROOVE</h1>
       <div class="ticket-details">
-        <p>Intestatario: <strong id="t-name"></strong></p>
+        <p>Intestatario: <strong id="t-name"></strong> <span id="t-gender" style="color:var(--text-muted); font-size: 0.9em; margin-left: 5px;"></span></p>
         <p>Evento: <strong id="t-event"></strong></p>
         <p>Round: <strong id="t-round"></strong></p>
         <p>Quantità: <strong id="t-qty"></strong></p>
@@ -138,6 +138,14 @@
           document.getElementById('loading').style.display = 'none';
           if (order) {
             document.getElementById('t-name').textContent = order.name;
+            
+            // Format gender label
+            let genderText = '';
+            if (order.gender === 'Male') genderText = '(Uomo)';
+            else if (order.gender === 'Female') genderText = '(Donna)';
+            else if (order.gender) genderText = `(${order.gender})`;
+            document.getElementById('t-gender').textContent = genderText;
+
             document.getElementById('t-event').textContent = order.event || '-';
             document.getElementById('t-round').textContent = order.round;
             document.getElementById('t-qty').textContent = order.qty;
