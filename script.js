@@ -288,7 +288,8 @@ async function loadEvents() {
     const images = ['crowd.png', 'hero-tower.png', 'event3.png'];
     
     data.events.forEach((ev, idx) => {
-      if (!ev.active) return;
+      const isTestMode = window.location.search.includes('test=1');
+      if (!ev.active && !isTestMode) return;
       
       const dateParts = ev.date.split(' ');
       const day = dateParts[0] || '00';
@@ -308,6 +309,7 @@ async function loadEvents() {
             </div>
           </div>
           <div class="event-content">
+            ${!ev.active ? '<div style="background:#ff4444;color:#fff;padding:4px 8px;border-radius:4px;font-size:0.8rem;font-weight:bold;margin-bottom:0.5rem;display:inline-block;">TEST EVENT (INATTIVO)</div>' : ''}
             <h3 class="event-title">LUCCA GROOVE<br /><span class="orange">${ev.name}</span></h3>
             <p class="event-location">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>

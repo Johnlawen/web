@@ -228,6 +228,7 @@ function openEventEditor(eventName = '') {
     const ev = appData.events.find(e => e.name === eventName);
     if(ev) {
       document.getElementById('edit-event-date').value = ev.date;
+      document.getElementById('edit-event-active').checked = ev.active !== false;
       const img = ev.image || '';
       document.getElementById('edit-event-image').value = img;
       // Show preview if there's a saved image
@@ -246,6 +247,7 @@ function openEventEditor(eventName = '') {
     document.getElementById('editor-event-title').textContent = 'Nuovo Evento';
     document.getElementById('edit-event-name').value = '';
     document.getElementById('edit-event-date').value = '';
+    document.getElementById('edit-event-active').checked = true;
     document.getElementById('edit-event-image').value = '';
     document.getElementById('drop-zone-preview').style.display = 'none';
     document.getElementById('drop-zone-inner').style.display = 'flex';
@@ -305,13 +307,14 @@ function saveEventDetails() {
       appData.events[evIndex].name = newName;
       appData.events[evIndex].date = newDate;
       appData.events[evIndex].image = newImage;
+      appData.events[evIndex].active = document.getElementById('edit-event-active').checked;
     }
   } else {
     appData.events.push({
       name: newName,
       date: newDate,
       image: newImage,
-      active: true
+      active: document.getElementById('edit-event-active').checked
     });
   }
   
