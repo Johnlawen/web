@@ -113,12 +113,13 @@
     <!-- VIEW: DASHBOARD -->
     <div id="view-dashboard" class="view-section active">
       <div class="stats-grid">
-        <div class="stat-card">
+        <div class="stat-card" style="position:relative;">
           <div class="stat-icon">€</div>
           <div class="stat-info">
             <span class="stat-label">Ricavi Totali</span>
             <h3 class="stat-value" id="dash-revenue">€0</h3>
           </div>
+          <button onclick="repairStats()" style="position:absolute; top:1rem; right:1rem; background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;" title="Ricalcola Statistiche">🔄</button>
         </div>
         <div class="stat-card">
           <div class="stat-icon">
@@ -146,21 +147,21 @@
           <div class="panel-body">
             <div class="progress-bar-group">
               <div class="progress-info">
-                <span>Early Tickets (€10)</span>
+                <span id="label-early">Early Tickets (€10)</span>
                 <span id="prog-early">0 / 100</span>
               </div>
               <div class="progress-track"><div class="progress-fill" id="fill-early" style="width:0%"></div></div>
             </div>
             <div class="progress-bar-group">
               <div class="progress-info">
-                <span>Round 2 (€15)</span>
+                <span id="label-round2">Round 2 (€15)</span>
                 <span id="prog-round2">0 / 200</span>
               </div>
               <div class="progress-track"><div class="progress-fill" id="fill-round2" style="width:0%"></div></div>
             </div>
             <div class="progress-bar-group">
               <div class="progress-info">
-                <span>Last Round (€20)</span>
+                <span id="label-last">Last Round (€20)</span>
                 <span id="prog-last">0 / 300</span>
               </div>
               <div class="progress-track"><div class="progress-fill" id="fill-last" style="width:0%"></div></div>

@@ -424,6 +424,25 @@ async function clearActiveOrders() {
   }
 }
 
+async function repairStats() {
+  if (!confirm("Vuoi ricalcolare le statistiche dei biglietti venduti, incassi e round in base agli ordini attuali?")) return;
+  try {
+    const res = await fetch('/api/save-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'repair-stats' })
+    });
+    const data = await res.json();
+    if (data.success) {
+      appData = data.data;
+      renderDashboard();
+      showToast('✅ Statistiche aggiornate con successo!');
+    }
+  } catch (err) {
+    showToast('❌ Errore durante l\'aggiornamento.');
+  }
+}
+
 // ===== RENDER DASHBOARD =====
 function renderDashboard() {
   // Stats
@@ -437,16 +456,19 @@ function renderDashboard() {
   // Progress Bars
   const r1 = appData.rounds.r1;
   const p1 = (r1.sold / r1.limit) * 100;
+  if(document.getElementById('label-early')) document.getElementById('label-early').textContent = `${r1.name} (€${r1.price})`;
   document.getElementById('prog-early').textContent = `${r1.sold} / ${r1.limit}`;
   document.getElementById('fill-early').style.width = `${Math.min(p1, 100)}%`;
 
   const r2 = appData.rounds.r2;
   const p2 = (r2.sold / r2.limit) * 100;
+  if(document.getElementById('label-round2')) document.getElementById('label-round2').textContent = `${r2.name} (€${r2.price})`;
   document.getElementById('prog-round2').textContent = `${r2.sold} / ${r2.limit}`;
   document.getElementById('fill-round2').style.width = `${Math.min(p2, 100)}%`;
 
   const r3 = appData.rounds.r3;
   const p3 = (r3.sold / r3.limit) * 100;
+  if(document.getElementById('label-last')) document.getElementById('label-last').textContent = `${r3.name} (€${r3.price})`;
   document.getElementById('prog-last').textContent = `${r3.sold} / ${r3.limit}`;
   document.getElementById('fill-last').style.width = `${Math.min(p3, 100)}%`;
 
