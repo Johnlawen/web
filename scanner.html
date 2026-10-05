@@ -165,9 +165,7 @@
         select.innerHTML = '<option value="">-- Seleziona Evento --</option>';
         if (data.events && data.events.length > 0) {
           data.events.forEach(ev => {
-            const isTestMode = window.location.search.includes('test=1');
-            if (!ev.active && !isTestMode) return;
-            const badge = !ev.active ? ' (TEST)' : '';
+            const badge = !ev.active ? ' (TEST / INATTIVO)' : '';
             select.innerHTML += `<option value="${ev.name}">${ev.name}${badge}</option>`;
           });
         }
