@@ -77,6 +77,53 @@
   </style>
 </head>
 <body>
+  <!-- LOGIN OVERLAY -->
+  <div id="login-overlay" style="position: fixed; inset: 0; background: #0a0a0a; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Barlow', sans-serif;">
+    <img src="logo-new.png" alt="Lucca Groove" style="height: 60px; margin-bottom: 2rem;" />
+    <div style="background: #111; padding: 3rem; border-radius: 12px; border: 1px solid rgba(255,107,0,0.3); text-align: center; max-width: 400px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+      <h2 style="font-family: 'Barlow Condensed', sans-serif; font-size: 2rem; color: #fff; margin-bottom: 0.5rem; letter-spacing: 0.05em;">ACCESSO SCANNER</h2>
+      <p style="color: #aaa; font-size: 0.95rem; margin-bottom: 2rem;">Inserisci il codice di sicurezza per attivare lo scanner.</p>
+      
+      <input type="password" id="admin-code-input" placeholder="Codice" style="width: 100%; padding: 1rem; background: #000; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-size: 1.1rem; text-align: center; margin-bottom: 1.5rem; letter-spacing: 0.2em; font-family: 'Barlow', sans-serif;" />
+      
+      <button onclick="checkAdminCode()" style="width: 100%; padding: 1rem; background: var(--orange, #FF6B00); color: #000; font-family: 'Barlow Condensed', sans-serif; font-size: 1.2rem; font-weight: 800; border: none; border-radius: 6px; cursor: pointer; transition: opacity 0.2s;">ACCEDI</button>
+      
+      <p id="admin-error-msg" style="color: #ff5555; font-size: 0.9rem; margin-top: 1rem; display: none;">Codice errato. Riprova.</p>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('adminToken') === 'johnl') {
+        document.getElementById('login-overlay').style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    });
+
+    function checkAdminCode() {
+      const code = document.getElementById('admin-code-input').value;
+      if (code === 'johnl') {
+        localStorage.setItem('adminToken', 'johnl');
+        document.getElementById('login-overlay').style.display = 'none';
+        document.body.style.overflow = '';
+      } else {
+        const err = document.getElementById('admin-error-msg');
+        err.style.display = 'block';
+        setTimeout(() => err.style.display = 'none', 3000);
+        document.getElementById('admin-code-input').value = '';
+      }
+    }
+    
+    // Allow pressing Enter to login
+    document.addEventListener('DOMContentLoaded', () => {
+      const input = document.getElementById('admin-code-input');
+      if (input) {
+        input.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') checkAdminCode();
+        });
+      }
+    });
+  </script>
 
   <div class="scanner-container">
     <div class="scanner-header">
@@ -117,8 +164,11 @@
         
         select.innerHTML = '<option value="">-- Seleziona Evento --</option>';
         if (data.events && data.events.length > 0) {
-          data.events.filter(e => e.active).forEach(ev => {
-            select.innerHTML += `<option value="${ev.name}">${ev.name}</option>`;
+          data.events.forEach(ev => {
+            const isTestMode = window.location.search.includes('test=1');
+            if (!ev.active && !isTestMode) return;
+            const badge = !ev.active ? ' (TEST)' : '';
+            select.innerHTML += `<option value="${ev.name}">${ev.name}${badge}</option>`;
           });
         }
         
@@ -189,9 +239,13 @@
       scanResult.style.border = '1px solid #333';
 
       try {
+        const adminToken = localStorage.getItem('adminToken') || '';
         const res = await fetch('/api/save-order', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-admin-token': adminToken
+          },
           body: JSON.stringify({ action: 'scan', orderId, eventName: selectedEvent })
         });
         
