@@ -83,12 +83,23 @@ module.exports = async function handler(req, res) {
     if (isAdmin) {
       res.status(200).json(data);
     } else {
-      // Return only public data for regular users
-      res.status(200).json({
+      const publicData = {
         rounds: data.rounds,
         events: data.events,
         comingSoon: data.comingSoon
-      });
+      };
+      
+      // If a specific order is requested (e.g. for the ticket page), include only that order
+      if (req.query && req.query.orderId) {
+        const orderId = req.query.orderId;
+        const order = (data.orders || []).find(o => o.id === orderId);
+        if (order) {
+          publicData.orders = [order];
+        }
+      }
+      
+      // Return only public data for regular users
+      res.status(200).json(publicData);
     }
   } catch (error) {
     console.error(error);

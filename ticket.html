@@ -131,7 +131,7 @@
       document.getElementById('loading').style.display = 'none';
       document.getElementById('error').style.display = 'block';
     } else {
-      fetch('/api/get-data')
+      fetch('/api/get-data?orderId=' + encodeURIComponent(orderId))
         .then(res => res.json())
         .then(data => {
           const order = (data.orders || []).find(o => o.id === orderId);
