@@ -1,3 +1,10 @@
+// ===== REFERRAL TRACKING =====
+const urlParams = new URLSearchParams(window.location.search);
+const refParam = urlParams.get('ref');
+if (refParam) {
+  localStorage.setItem('promoter_ref', refParam.toUpperCase());
+}
+
 // ===== NAV =====
 const navbar = document.getElementById('navbar');
 window.addEventListener('scroll', () => {
@@ -179,6 +186,8 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
   const eventName = modalEventName.includes(' - ') ? modalEventName.split(' - ')[0] : '-';
   const roundName = modalEventName.includes(' - ') ? modalEventName.split(' - ')[1] : modalEventName || 'Ingresso';
   
+  const promoterRef = localStorage.getItem('promoter_ref') || '';
+
   const newOrder = {
     id: 'RES-' + Math.floor(Math.random() * 90000 + 10000),
     date: new Date().toLocaleDateString('it-IT'),
@@ -190,7 +199,8 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
     qty: qty,
     total: qty * currentPrice,
     payment: 'Da Pagare',
-    used: 0
+    used: 0,
+    promoter: promoterRef
   };
 
   try {

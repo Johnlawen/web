@@ -485,6 +485,55 @@ function renderDashboard() {
     tbodyRecent.appendChild(tr);
   });
 
+  // Promoter Sales Table
+  const tbodyPromoter = document.querySelector('#promoter-sales-table tbody');
+  if (tbodyPromoter) {
+    tbodyPromoter.innerHTML = '';
+    const promoterMapping = {
+      "Alicea Dorni": ["ALICEA DORNI", "ALICEA", "ALICEADORNI"],
+      "Francesca Calta": ["FRANCESCA CALTA", "FRANCESCA", "FRANCESCACALTA", "CALTA"],
+      "Valentina Severini": ["VALENTINA SEVERINI", "VALENTINA", "VALENTINASEVERINI"],
+      "Chiara Comella": ["CHIARA COMELLA", "CHIARA", "CHIARACOMELLA"],
+      "DJL": ["DJL", "DJ L", "DJ-L"]
+    };
+
+    const promoterCounts = {
+      "Alicea Dorni": 0,
+      "Francesca Calta": 0,
+      "Valentina Severini": 0,
+      "Chiara Comella": 0,
+      "DJL": 0,
+      "Altri": 0
+    };
+
+    appData.orders.forEach(o => {
+      if (o.promoter && o.status !== 'Rimborsato') {
+        const pUpper = o.promoter.toUpperCase().trim();
+        let matched = false;
+        for (const [fullName, aliases] of Object.entries(promoterMapping)) {
+          if (aliases.includes(pUpper)) {
+            promoterCounts[fullName] += (o.qty || 1);
+            matched = true;
+            break;
+          }
+        }
+        if (!matched && pUpper !== '') {
+          promoterCounts["Altri"] += (o.qty || 1);
+        }
+      }
+    });
+
+    Object.keys(promoterCounts).forEach(p => {
+      if (p === "Altri" && promoterCounts[p] === 0) return;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td data-label="Promoter"><strong>${p}</strong></td>
+        <td data-label="Vendite" style="color:var(--orange);font-weight:600">${promoterCounts[p]}</td>
+      `;
+      tbodyPromoter.appendChild(tr);
+    });
+  }
+
   // Update Event Filter Dropdown Options
   const filterSelect = document.getElementById('order-event-filter');
   if (filterSelect) {
@@ -557,6 +606,7 @@ function renderAllOrders() {
       <td data-label="Utente"><strong>${o.name}</strong><br/><span style="font-size:0.7rem;color:var(--text-muted)">${o.email || '-'}</span></td>
       <td data-label="Evento"><strong>${o.event || '-'}</strong></td>
       <td data-label="Pagamento"><span class="badge ${o.payment === 'Contanti' ? 'badge-active' : ''}">${o.payment}</span>${statusBadge}</td>
+      <td data-label="Promoter">${o.promoter || '-'}</td>
       <td data-label="Round">${o.round}</td>
       <td data-label="Qtà">${o.qty}</td>
       <td data-label="Ingressi">${o.used} / ${o.qty}</td>
