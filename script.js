@@ -3,6 +3,8 @@ const urlParams = new URLSearchParams(window.location.search);
 const refParam = urlParams.get('ref');
 if (refParam) {
   localStorage.setItem('promoter_ref', refParam.toUpperCase());
+} else if (!localStorage.getItem('promoter_ref')) {
+  localStorage.setItem('promoter_ref', 'LUCCA GROOVE IG');
 }
 
 // ===== NAV =====

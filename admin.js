@@ -494,10 +494,12 @@ function renderDashboard() {
       "Francesca Calta": ["FRANCESCA CALTA", "FRANCESCA", "FRANCESCACALTA", "CALTA"],
       "Valentina Severini": ["VALENTINA SEVERINI", "VALENTINA", "VALENTINASEVERINI"],
       "Chiara Comella": ["CHIARA COMELLA", "CHIARA", "CHIARACOMELLA"],
-      "DJL": ["DJL", "DJ L", "DJ-L"]
+      "DJL": ["DJL", "DJ L", "DJ-L"],
+      "Lucca Groove IG": ["LUCCA GROOVE IG", "LUCCA GROOVE", "IG", "INSTAGRAM", "ORGANIC", ""]
     };
 
     const promoterCounts = {
+      "Lucca Groove IG": 0,
       "Alicea Dorni": 0,
       "Francesca Calta": 0,
       "Valentina Severini": 0,
