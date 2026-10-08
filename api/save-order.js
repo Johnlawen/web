@@ -109,6 +109,42 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ success: true, data });
     }
 
+    // Delete Order
+    if (action === 'delete-order') {
+      const orderId = req.body.orderId;
+      const orderIndex = data.orders.findIndex(o => o.id === orderId);
+      if (orderIndex === -1) return res.status(404).json({ error: 'Order not found' });
+      
+      const order = data.orders[orderIndex];
+      const isPaid = order.payment === 'Pagato' || order.status === 'Pagato';
+      
+      // Deduct from revenue and sold tickets
+      if (isPaid) {
+        data.revenue = Math.max(0, data.revenue - (order.total || 0));
+      }
+      data.ticketsSold = Math.max(0, data.ticketsSold - (order.qty || 1));
+      
+      // Update round sold
+      const roundName = order.round;
+      for (const key in data.rounds) {
+        if (data.rounds[key].name.toLowerCase() === (roundName || '').toLowerCase()) {
+          data.rounds[key].sold = Math.max(0, data.rounds[key].sold - (order.qty || 1));
+          break;
+        }
+      }
+      
+      // Remove the order
+      data.orders.splice(orderIndex, 1);
+      
+      // Also remove any refund requests for this order
+      if (data.refundRequests) {
+        data.refundRequests = data.refundRequests.filter(r => r.orderId !== orderId);
+      }
+      
+      await redis.set('luccaAdminData', JSON.stringify(data));
+      return res.status(200).json({ success: true, data });
+    }
+
     // Save Settings
     if (action === 'settings') {
       if (req.body.events) data.events = req.body.events;

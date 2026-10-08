@@ -613,9 +613,36 @@ function renderAllOrders() {
       <td data-label="Qtà">${o.qty}</td>
       <td data-label="Ingressi">${o.used} / ${o.qty}</td>
       <td data-label="Totale" style="color:var(--orange);font-weight:600">€${o.total}</td>
+      <td data-label="Azioni">
+        <button class="btn btn-ghost btn-sm" style="color:#ff4444; border-color:#ff4444;" onclick="deleteOrder('${o.id}')">Elimina</button>
+      </td>
     `;
     tbodyAll.appendChild(tr);
   });
+}
+
+}
+
+async function deleteOrder(orderId) {
+  if (!confirm(`Sei sicuro di voler eliminare definitivamente l'ordine ${orderId}? L'azione è irreversibile.`)) return;
+
+  try {
+    const res = await fetch('/api/save-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete-order', orderId })
+    });
+    const data = await res.json();
+    if (data.success) {
+      appData = data.data;
+      renderDashboard();
+      showToast('✅ Ordine eliminato con successo!');
+    } else {
+      showToast('❌ Errore durante l\'eliminazione: ' + data.error);
+    }
+  } catch (err) {
+    showToast('❌ Errore di connessione.');
+  }
 }
 
 // ===== STORICO EVENTI (ARCHIVE) =====
