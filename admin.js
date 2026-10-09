@@ -621,8 +621,6 @@ function renderAllOrders() {
   });
 }
 
-}
-
 async function deleteOrder(orderId) {
   if (!confirm(`Sei sicuro di voler eliminare definitivamente l'ordine ${orderId}? L'azione è irreversibile.`)) return;
 
