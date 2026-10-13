@@ -108,7 +108,18 @@ async function openRoundsModal(eventName) {
 
   currentEventName = eventName;
   const titleEl = document.getElementById('rounds-event-name');
-  if (titleEl) titleEl.textContent = eventName;
+  if (titleEl) {
+    let subInfo = eventName;
+    const currentEv = (cachedData && cachedData.events) ? cachedData.events.find(e => e.name === eventName) : null;
+    if (currentEv) {
+      let locStr = '';
+      if (currentEv.club && currentEv.location) locStr = `${currentEv.club} • ${currentEv.location}`;
+      else if (currentEv.location) locStr = currentEv.location;
+      else if (currentEv.club) locStr = currentEv.club;
+      if (locStr) subInfo = `${eventName} • ${locStr}`;
+    }
+    titleEl.textContent = subInfo;
+  }
 
   const container = document.getElementById('rounds-list-container');
   if (!container) return;
@@ -403,6 +414,15 @@ function renderEventCards(eventsList) {
     const year = dateParts[2] || new Date().getFullYear();
     const imgSrc = ev.image || images[idx % images.length];
 
+    let locDisplay = 'LUCCA, ITALIA';
+    if (ev.club && ev.location) {
+      locDisplay = `${ev.club} • ${ev.location}`;
+    } else if (ev.location) {
+      locDisplay = ev.location;
+    } else if (ev.club) {
+      locDisplay = ev.club;
+    }
+
     const card = document.createElement('div');
     card.className = 'event-card';
     card.innerHTML = `
@@ -419,7 +439,7 @@ function renderEventCards(eventsList) {
         <h3 class="event-title">LUCCA GROOVE<br /><span class="orange">${escapeHtml(ev.name)}</span></h3>
         <p class="event-location">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-          LUCCA, ITALIA
+          ${escapeHtml(locDisplay.toUpperCase())}
         </p>
         <button class="btn btn-outline btn-full event-btn" data-event-name="${encodeURIComponent(ev.name)}">
           <span data-i18n="events.buyTicket">${buyBtnText}</span>

@@ -241,6 +241,8 @@ function openEventEditor(eventName = '') {
     const ev = appData.events.find(e => e.name === eventName);
     if(ev) {
       document.getElementById('edit-event-date').value = ev.date;
+      document.getElementById('edit-event-club').value = ev.club || '';
+      document.getElementById('edit-event-location').value = ev.location || 'Borgo a Mozzano - Lucca';
       document.getElementById('edit-event-active').checked = ev.active !== false;
       const img = ev.image || '';
       document.getElementById('edit-event-image').value = img;
@@ -260,6 +262,8 @@ function openEventEditor(eventName = '') {
     document.getElementById('editor-event-title').textContent = 'Nuovo Evento';
     document.getElementById('edit-event-name').value = '';
     document.getElementById('edit-event-date').value = '';
+    document.getElementById('edit-event-club').value = '';
+    document.getElementById('edit-event-location').value = 'Borgo a Mozzano - Lucca';
     document.getElementById('edit-event-active').checked = true;
     document.getElementById('edit-event-image').value = '';
     document.getElementById('drop-zone-preview').style.display = 'none';
@@ -313,6 +317,8 @@ function saveRounds() {
 function saveEventDetails() {
   const newName = document.getElementById('edit-event-name').value.trim();
   const newDate = document.getElementById('edit-event-date').value.trim();
+  const newClub = document.getElementById('edit-event-club').value.trim();
+  const newLocation = document.getElementById('edit-event-location').value.trim() || 'Borgo a Mozzano - Lucca';
   const newImage = document.getElementById('edit-event-image').value.trim();
   const originalName = document.getElementById('edit-event-original-name').value;
   
@@ -326,6 +332,8 @@ function saveEventDetails() {
     if(evIndex !== -1) {
       appData.events[evIndex].name = newName;
       appData.events[evIndex].date = newDate;
+      appData.events[evIndex].club = newClub;
+      appData.events[evIndex].location = newLocation;
       appData.events[evIndex].image = newImage;
       appData.events[evIndex].active = document.getElementById('edit-event-active').checked;
     }
@@ -333,6 +341,8 @@ function saveEventDetails() {
     appData.events.push({
       name: newName,
       date: newDate,
+      club: newClub,
+      location: newLocation,
       image: newImage,
       active: document.getElementById('edit-event-active').checked
     });
@@ -406,16 +416,23 @@ function renderEvents() {
   
   if (!appData.events || appData.events.length === 0) {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td colspan="4" style="text-align: center; color: #aaa; padding: 20px;">Nessun evento presente</td>`;
+    tr.innerHTML = `<td colspan="5" style="text-align: center; color: #aaa; padding: 20px;">Nessun evento presente</td>`;
     tbodyEvents.appendChild(tr);
     return;
   }
   
   appData.events.forEach((ev, index) => {
     const tr = document.createElement('tr');
+    let clubLoc = '';
+    if (ev.club && ev.location) clubLoc = `${ev.club} • ${ev.location}`;
+    else if (ev.club) clubLoc = ev.club;
+    else if (ev.location) clubLoc = ev.location;
+    else clubLoc = 'Borgo a Mozzano - Lucca';
+
     tr.innerHTML = `
       <td data-label="Evento"><strong>${escapeHTML(ev.name)}</strong></td>
       <td data-label="Data">${escapeHTML(ev.date)}</td>
+      <td data-label="Club / Luogo"><span style="color:var(--orange); font-size:0.9rem;">${escapeHTML(clubLoc)}</span></td>
       <td data-label="Stato"><span class="badge ${ev.active ? 'badge-active' : ''}">${ev.active ? 'Attivo' : 'Inattivo'}</span></td>
       <td data-label="Azioni" style="display: flex; gap: 5px;">
         <button class="btn btn-ghost btn-sm js-edit-event">Modifica</button>

@@ -109,6 +109,7 @@
       <div class="ticket-details">
         <p>Intestatario: <strong id="t-name"></strong> <span id="t-gender" style="color:var(--text-muted); font-size: 0.9em; margin-left: 5px;"></span></p>
         <p>Evento: <strong id="t-event"></strong></p>
+        <p id="t-location-row" style="display:none;">Luogo: <strong id="t-location"></strong></p>
         <p>Round: <strong id="t-round"></strong></p>
         <p>Quantità: <strong id="t-qty"></strong></p>
         <p id="t-total-row">Totale (da pagare): <strong>€<span id="t-total"></span></strong></p>
@@ -147,6 +148,20 @@
             document.getElementById('t-gender').textContent = genderText;
 
             document.getElementById('t-event').textContent = order.event || '-';
+
+            // Find event location / club
+            const evInfo = (data.events || []).find(e => (e.name || '').toLowerCase() === (order.event || '').toLowerCase());
+            if (evInfo) {
+              let locStr = '';
+              if (evInfo.club && evInfo.location) locStr = `${evInfo.club} • ${evInfo.location}`;
+              else if (evInfo.location) locStr = evInfo.location;
+              else if (evInfo.club) locStr = evInfo.club;
+              if (locStr) {
+                document.getElementById('t-location').textContent = locStr;
+                document.getElementById('t-location-row').style.display = 'block';
+              }
+            }
+
             document.getElementById('t-round').textContent = order.round;
             document.getElementById('t-qty').textContent = order.qty;
             
