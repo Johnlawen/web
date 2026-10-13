@@ -1,6 +1,8 @@
 const { Redis } = require('@upstash/redis');
 const redis = Redis.fromEnv();
 
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'johnl';
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
@@ -14,22 +16,36 @@ module.exports = async function handler(req, res) {
 
     // Customer submits a refund request
     if (action === 'submit') {
+      const cleanOrderId = (orderId || '').trim();
+      const cleanEmail = (email || '').trim().toLowerCase();
+      const cleanReason = (reason || '').replace(/<[^>]*>/g, '').trim().slice(0, 1000);
+
+      if (!cleanOrderId || !cleanEmail || !cleanReason) {
+        return res.status(400).json({ error: 'Tutti i campi (ID Ordine, Email e Motivo) sono obbligatori.' });
+      }
+
       // Check order exists
-      const orderIdx = data.orders.findIndex(o => o.id === orderId);
+      const orderIdx = data.orders.findIndex(o => o.id === cleanOrderId);
       if (orderIdx === -1) return res.status(404).json({ error: 'Ordine non trovato. Controlla il tuo ID.' });
       
       const order = data.orders[orderIdx];
       
-      // Check not already refunded
-      const existing = data.refundRequests.find(r => r.orderId === orderId && r.status !== 'rejected');
+      // Verify email matches to prevent unauthorized cancellation of another customer's ticket
+      if (!order.email || order.email.toLowerCase().trim() !== cleanEmail) {
+        return res.status(400).json({ error: 'L\'email inserita non corrisponde all\'indirizzo utilizzato per questo ordine.' });
+      }
+
+      // Check not already refunded or pending
+      const existing = data.refundRequests.find(r => r.orderId === cleanOrderId && r.status !== 'rejected');
       if (existing) return res.status(400).json({ error: 'Hai già inviato una richiesta di rimborso per questo ordine.' });
 
+      const crypto = require('crypto');
       const request = {
-        id: 'REF-' + Math.floor(Math.random() * 90000 + 10000),
-        orderId,
+        id: 'REF-' + crypto.randomBytes(4).toString('hex').toUpperCase(),
+        orderId: order.id,
         name: order.name,
-        email: order.email || email,
-        reason,
+        email: order.email,
+        reason: cleanReason,
         date: new Date().toLocaleDateString('it-IT'),
         status: 'pending'
       };
@@ -44,7 +60,9 @@ module.exports = async function handler(req, res) {
 
     // Admin approves or rejects
     if (action === 'update') {
-      if (req.headers['x-admin-token'] !== 'johnl') return res.status(401).json({ error: 'Unauthorized: Invalid Admin Token' });
+      if (!req.headers['x-admin-token'] || req.headers['x-admin-token'] !== ADMIN_TOKEN) {
+        return res.status(401).json({ error: 'Unauthorized: Invalid Admin Token' });
+      }
       
       const idx = data.refundRequests.findIndex(r => r.id === requestId);
       if (idx === -1) return res.status(404).json({ error: 'Request not found' });

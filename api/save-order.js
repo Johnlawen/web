@@ -33,11 +33,16 @@ module.exports = async function handler(req, res) {
 
     const { email, order, action, index } = req.body;
 
-    const isAdmin = req.headers['x-admin-token'] === 'johnl';
-    const adminActions = ['repair-stats', 'reset-orders', 'delete-event', 'settings', 'archive-event', 'mark-paid', 'manual', 'scan', 'delete-order'];
+    const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'johnl';
+    const isAdmin = Boolean(req.headers['x-admin-token'] && req.headers['x-admin-token'] === ADMIN_TOKEN);
+    const adminActions = ['verify-token', 'repair-stats', 'reset-orders', 'delete-event', 'settings', 'archive-event', 'mark-paid', 'manual', 'scan', 'delete-order'];
 
     if (adminActions.includes(action) && !isAdmin) {
       return res.status(401).json({ error: 'Unauthorized: Invalid Admin Token' });
+    }
+
+    if (action === 'verify-token') {
+      return res.status(200).json({ success: true, valid: true });
     }
 
     if (action === 'repair-stats') {
@@ -299,30 +304,122 @@ module.exports = async function handler(req, res) {
 
     // Normal customer booking
     if (action === 'book') {
-      const existingOrder = data.orders.find(o => 
+      if (!order || typeof order !== 'object') {
+        return res.status(400).json({ error: 'Dati ordine mancanti o non validi.' });
+      }
+
+      const clientEmail = (email || order.email || '').trim().toLowerCase();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!clientEmail || !emailRegex.test(clientEmail)) {
+        return res.status(400).json({ error: 'Indirizzo email non valido.' });
+      }
+
+      const rawName = (order.name || '').trim();
+      if (!rawName || rawName.length < 2) {
+        return res.status(400).json({ error: 'Nome e cognome obbligatori.' });
+      }
+      const safeName = rawName.replace(/<[^>]*>/g, '').trim().slice(0, 100);
+
+      const rawPhone = (order.phone || '').trim().replace(/<[^>]*>/g, '').slice(0, 30);
+      const rawGender = (order.gender || '').trim();
+      const safeGender = rawGender === 'Uomo' ? 'Male' : (rawGender === 'Donna' ? 'Female' : rawGender.slice(0, 20));
+
+      const requestedEvent = (order.event || '').trim();
+      const activeEvents = data.events || [];
+      const matchedEvent = activeEvents.find(e => e.name.toLowerCase() === requestedEvent.toLowerCase());
+      if (!matchedEvent) {
+        return res.status(400).json({ error: 'Evento non valido o non trovato.' });
+      }
+      if (!matchedEvent.active) {
+        return res.status(400).json({ error: 'Questo evento non è attualmente attivo.' });
+      }
+
+      // Check if user already booked for this event
+      const existingOrder = (data.orders || []).find(o => 
         o.email && 
-        o.email.toLowerCase() === email.toLowerCase() &&
-        (o.event || '-') === (order.event || '-')
+        o.email.toLowerCase() === clientEmail &&
+        (o.event || '').toLowerCase() === matchedEvent.name.toLowerCase() &&
+        o.status !== 'Rimborsato'
       );
       if (existingOrder) {
         return res.status(400).json({ error: 'Hai già prenotato un biglietto per questo evento. Ogni persona può ottenere solo un biglietto per evento.' });
       }
 
-      data.orders.unshift(order);
-      data.ticketsSold += order.qty;
-      
-      // Update round sold count (case-insensitive)
-      for (const key in data.rounds) {
-        if (data.rounds[key].name.toLowerCase() === (order.round || '').toLowerCase()) {
-          data.rounds[key].sold += order.qty;
+      // Verify Round and Price strictly on server side
+      const requestedRound = (order.round || '').trim();
+      let matchedRoundKey = null;
+      let matchedRound = null;
+      for (const [key, r] of Object.entries(data.rounds || {})) {
+        if (r.name.toLowerCase() === requestedRound.toLowerCase()) {
+          matchedRoundKey = key;
+          matchedRound = r;
           break;
         }
       }
 
+      if (!matchedRound) {
+        return res.status(400).json({ error: 'Round biglietti non valido.' });
+      }
+
+      if (!matchedRound.active) {
+        return res.status(400).json({ error: 'Questo round di biglietti non è attualmente disponibile.' });
+      }
+
+      const currentSold = Number(matchedRound.sold) || 0;
+      const roundLimit = Number(matchedRound.limit) || 0;
+      if (currentSold >= roundLimit) {
+        return res.status(400).json({ error: 'Questo round di biglietti è SOLD OUT.' });
+      }
+
+      // Enforce single ticket & official price
+      const safeQty = 1;
+      const officialPrice = Number(matchedRound.price);
+      if (isNaN(officialPrice) || officialPrice < 0) {
+        return res.status(500).json({ error: 'Errore nella configurazione del prezzo del biglietto.' });
+      }
+      const safeTotal = officialPrice * safeQty;
+
+      // Secure Order ID generated server-side (unguessable 8-char crypto hex)
+      const crypto = require('crypto');
+      const secureOrderId = 'RES-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+
+      const safePromoter = (order.promoter || '').replace(/<[^>]*>/g, '').trim().slice(0, 50);
+
+      // Create verified order
+      const verifiedOrder = {
+        id: secureOrderId,
+        date: new Date().toLocaleDateString('it-IT'),
+        name: safeName,
+        email: clientEmail,
+        phone: rawPhone,
+        gender: safeGender,
+        event: matchedEvent.name,
+        round: matchedRound.name,
+        qty: safeQty,
+        total: safeTotal,
+        payment: 'Da Pagare',
+        status: 'Da Pagare',
+        used: 0,
+        promoter: safePromoter
+      };
+
+      data.orders.unshift(verifiedOrder);
+      data.ticketsSold = (data.ticketsSold || 0) + safeQty;
+      data.rounds[matchedRoundKey].sold = currentSold + safeQty;
+
       // Save subscriber (upsert by email)
       if (!data.subscribers) data.subscribers = [];
-      if (!data.subscribers.find(s => s.email.toLowerCase() === email.toLowerCase())) {
-        data.subscribers.push({ name: order.name, email: email, phone: order.phone || '', date: order.date });
+      const subIdx = data.subscribers.findIndex(s => s.email.toLowerCase() === clientEmail);
+      if (subIdx === -1) {
+        data.subscribers.push({
+          name: safeName,
+          email: clientEmail,
+          phone: rawPhone,
+          date: verifiedOrder.date
+        });
+      } else {
+        data.subscribers[subIdx].name = safeName;
+        if (rawPhone) data.subscribers[subIdx].phone = rawPhone;
       }
 
       await redis.set('luccaAdminData', JSON.stringify(data));
@@ -332,12 +429,12 @@ module.exports = async function handler(req, res) {
         try {
           const { Resend } = require('resend');
           const resend = new Resend(process.env.RESEND_API_KEY);
-          const refundUrl = `https://luccagroove.com/refund-ticket?orderId=${order.id}`;
+          const refundUrl = `https://luccagroove.com/refund-ticket?orderId=${verifiedOrder.id}`;
           
           await resend.emails.send({
             from: 'Lucca Groove <noreply@luccagroove.com>',
-            to: email,
-            subject: `Il tuo biglietto per Lucca Groove – ${order.round}`,
+            to: clientEmail,
+            subject: `Il tuo biglietto per Lucca Groove – ${verifiedOrder.round}`,
             html: `
               <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#000;color:#fff;padding:20px;border-radius:8px;">
                 <h1 style="color:#FF6B00;text-align:center;letter-spacing:0.1em;font-size:2rem;margin-bottom:4px;">LUCCA GROOVE</h1>
@@ -345,18 +442,18 @@ module.exports = async function handler(req, res) {
                 
                 <div style="background:#111;padding:24px;border-radius:12px;border:1px solid #333;">
                   <h2 style="margin-top:0;color:#fff;font-size:1.2rem;">✅ Prenotazione Confermata</h2>
-                  <p style="color:#eee;">Ciao <strong>${order.name}</strong>, il tuo biglietto è pronto!</p>
+                  <p style="color:#eee;">Ciao <strong>${verifiedOrder.name}</strong>, il tuo biglietto è pronto!</p>
                   
                   <div style="margin:20px 0;padding:16px;border-left:4px solid #FF6B00;background:#1a1a1a;border-radius:0 8px 8px 0;">
-                    <p style="margin:4px 0;color:#eee;font-size:0.95rem;"><strong>Evento:</strong> ${order.round}</p>
-                    <p style="margin:4px 0;color:#eee;font-size:0.95rem;"><strong>ID Ordine:</strong> <span style="color:#FF6B00;font-family:monospace;">${order.id}</span></p>
-                    <p style="margin:4px 0;color:#eee;font-size:0.95rem;"><strong>Intestatario:</strong> ${order.name}</p>
-                    <p style="margin:4px 0;color:#eee;font-size:0.95rem;"><strong>Da pagare all'ingresso:</strong> <strong style="color:#FF6B00;">€${order.total}</strong></p>
+                    <p style="margin:4px 0;color:#eee;font-size:0.95rem;"><strong>Evento:</strong> ${verifiedOrder.event} - ${verifiedOrder.round}</p>
+                    <p style="margin:4px 0;color:#eee;font-size:0.95rem;"><strong>ID Ordine:</strong> <span style="color:#FF6B00;font-family:monospace;">${verifiedOrder.id}</span></p>
+                    <p style="margin:4px 0;color:#eee;font-size:0.95rem;"><strong>Intestatario:</strong> ${verifiedOrder.name}</p>
+                    <p style="margin:4px 0;color:#eee;font-size:0.95rem;"><strong>Da pagare all'ingresso:</strong> <strong style="color:#FF6B00;">€${verifiedOrder.total}</strong></p>
                   </div>
 
                   <!-- TICKET LINK -->
                   <div style="text-align:center;margin:32px 0;">
-                    <a href="https://luccagroove.com/ticket.html?id=${order.id}" style="display:inline-block;padding:14px 28px;background:#FF6B00;color:#000;font-weight:bold;text-decoration:none;border-radius:8px;font-size:1.1rem;letter-spacing:1px;text-transform:uppercase;">🎫 Visualizza & Scarica PDF</a>
+                    <a href="https://luccagroove.com/ticket.html?id=${verifiedOrder.id}" style="display:inline-block;padding:14px 28px;background:#FF6B00;color:#000;font-weight:bold;text-decoration:none;border-radius:8px;font-size:1.1rem;letter-spacing:1px;text-transform:uppercase;">🎫 Visualizza & Scarica PDF</a>
                     <p style="color:#888;font-size:0.85rem;margin-top:16px;">Clicca sul pulsante qui sopra per visualizzare il QR Code e scaricare il biglietto in formato PDF.</p>
                   </div>
 
@@ -375,7 +472,7 @@ module.exports = async function handler(req, res) {
         }
       }
 
-      return res.status(200).json({ success: true, data });
+      return res.status(200).json({ success: true, orderId: verifiedOrder.id });
     }
 
     res.status(400).json({ error: 'Invalid action' });

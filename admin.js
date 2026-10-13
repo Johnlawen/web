@@ -1,3 +1,14 @@
+// ===== SECURITY UTILS =====
+function escapeHTML(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // ===== AUTH INTERCEPTOR =====
 const originalFetch = window.fetch;
 window.fetch = async function() {
@@ -603,18 +614,18 @@ function renderAllOrders() {
     
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td data-label="ID" style="font-size:0.8rem;color:var(--text-muted)">${o.id}</td>
-      <td data-label="Data">${o.date}</td>
-      <td data-label="Utente"><strong>${o.name}</strong><br/><span style="font-size:0.7rem;color:var(--text-muted)">${o.email || '-'}</span></td>
-      <td data-label="Evento"><strong>${o.event || '-'}</strong></td>
-      <td data-label="Pagamento"><span class="badge ${o.payment === 'Contanti' ? 'badge-active' : ''}">${o.payment}</span>${statusBadge}</td>
-      <td data-label="Promoter">${o.promoter || '-'}</td>
-      <td data-label="Round">${o.round}</td>
-      <td data-label="Qtà">${o.qty}</td>
-      <td data-label="Ingressi">${o.used} / ${o.qty}</td>
-      <td data-label="Totale" style="color:var(--orange);font-weight:600">€${o.total}</td>
+      <td data-label="ID" style="font-size:0.8rem;color:var(--text-muted)">${escapeHTML(o.id)}</td>
+      <td data-label="Data">${escapeHTML(o.date)}</td>
+      <td data-label="Utente"><strong>${escapeHTML(o.name)}</strong><br/><span style="font-size:0.7rem;color:var(--text-muted)">${escapeHTML(o.email || '-')}</span></td>
+      <td data-label="Evento"><strong>${escapeHTML(o.event || '-')}</strong></td>
+      <td data-label="Pagamento"><span class="badge ${o.payment === 'Contanti' ? 'badge-active' : ''}">${escapeHTML(o.payment)}</span>${statusBadge}</td>
+      <td data-label="Promoter">${escapeHTML(o.promoter || '-')}</td>
+      <td data-label="Round">${escapeHTML(o.round)}</td>
+      <td data-label="Qtà">${Number(o.qty) || 0}</td>
+      <td data-label="Ingressi">${Number(o.used) || 0} / ${Number(o.qty) || 0}</td>
+      <td data-label="Totale" style="color:var(--orange);font-weight:600">€${Number(o.total) || 0}</td>
       <td data-label="Azioni">
-        <button class="btn btn-ghost btn-sm" style="color:#ff4444; border-color:#ff4444;" onclick="deleteOrder('${o.id}')">Elimina</button>
+        <button class="btn btn-ghost btn-sm" style="color:#ff4444; border-color:#ff4444;" onclick="deleteOrder('${escapeHTML(o.id)}')">Elimina</button>
       </td>
     `;
     tbodyAll.appendChild(tr);
@@ -886,9 +897,9 @@ function renderSubscribers() {
   subs.forEach(s => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td data-label="Utente"><strong>${s.name}</strong><br/><span style="font-size:0.7rem;color:var(--text-muted)">${s.email}</span></td>
-      <td data-label="Telefono">${s.phone || '-'}</td>
-      <td data-label="Data">${s.date || '-'}</td>
+      <td data-label="Utente"><strong>${escapeHTML(s.name)}</strong><br/><span style="font-size:0.7rem;color:var(--text-muted)">${escapeHTML(s.email)}</span></td>
+      <td data-label="Telefono">${escapeHTML(s.phone || '-')}</td>
+      <td data-label="Data">${escapeHTML(s.date || '-')}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -976,10 +987,10 @@ function renderRefunds() {
     
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td data-label="Data">${r.date || '-'}</td>
-      <td data-label="Utente"><strong>${r.name}</strong><br/><span style="font-size:0.7rem;color:var(--text-muted)">${r.email || '-'}</span></td>
-      <td data-label="Ordine" style="font-size:0.8rem;color:var(--text-muted)">${r.orderId}</td>
-      <td data-label="Motivo" style="max-width:200px; white-space:pre-wrap; font-size:0.85rem;">${r.reason}</td>
+      <td data-label="Data">${escapeHTML(r.date || '-')}</td>
+      <td data-label="Utente"><strong>${escapeHTML(r.name)}</strong><br/><span style="font-size:0.7rem;color:var(--text-muted)">${escapeHTML(r.email || '-')}</span></td>
+      <td data-label="Ordine" style="font-size:0.8rem;color:var(--text-muted)">${escapeHTML(r.orderId)}</td>
+      <td data-label="Motivo" style="max-width:200px; white-space:pre-wrap; font-size:0.85rem;">${escapeHTML(r.reason)}</td>
       <td data-label="Stato">${badgeHTML}</td>
       <td data-label="Azioni">${actionsHtml}</td>
     `;
@@ -1027,20 +1038,21 @@ function renderContacts() {
   
   contacts.forEach(c => {
     let mixLinkHtml = '<span style="color:#555;">—</span>';
-    if (c.mixLink) {
-      mixLinkHtml = `<a href="${c.mixLink}" target="_blank" rel="noopener" style="color:var(--orange); text-decoration:none; display:inline-flex; align-items:center; gap:4px; font-size:0.85rem; word-break:break-all;" title="${c.mixLink}">
+    if (c.mixLink && /^https?:\/\//i.test(c.mixLink)) {
+      const safeLink = escapeHTML(c.mixLink);
+      mixLinkHtml = `<a href="${safeLink}" target="_blank" rel="noopener" style="color:var(--orange); text-decoration:none; display:inline-flex; align-items:center; gap:4px; font-size:0.85rem; word-break:break-all;" title="${safeLink}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
-        ${c.mixLink.length > 40 ? c.mixLink.substring(0, 40) + '…' : c.mixLink}
+        ${safeLink.length > 40 ? safeLink.substring(0, 40) + '…' : safeLink}
       </a>`;
     }
     
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td data-label="Data">${c.date || '-'}</td>
-      <td data-label="Nome"><strong>${c.firstName} ${c.lastName}</strong><br/><span style="font-size:0.7rem;color:var(--text-muted)">Contatto diretto</span></td>
-      <td data-label="Telefono">${c.phone || '-'}</td>
-      <td data-label="Ruolo"><span class="badge badge-active">${c.role}</span></td>
-      <td data-label="Messaggio" style="max-width:300px; white-space:pre-wrap; font-size:0.85rem;">${c.message}</td>
+      <td data-label="Data">${escapeHTML(c.date || '-')}</td>
+      <td data-label="Nome"><strong>${escapeHTML(c.firstName)} ${escapeHTML(c.lastName)}</strong><br/><span style="font-size:0.7rem;color:var(--text-muted)">Contatto diretto</span></td>
+      <td data-label="Telefono">${escapeHTML(c.phone || '-')}</td>
+      <td data-label="Ruolo"><span class="badge badge-active">${escapeHTML(c.role)}</span></td>
+      <td data-label="Messaggio" style="max-width:300px; white-space:pre-wrap; font-size:0.85rem;">${escapeHTML(c.message)}</td>
       <td data-label="Link Mix">${mixLinkHtml}</td>
     `;
     tbody.appendChild(tr);

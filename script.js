@@ -178,6 +178,23 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
     showBookingError('Compila tutti i campi obbligatori prima di procedere.');
     return;
   }
+
+  const terms = document.getElementById('input-terms');
+  if (terms && !terms.checked) {
+    showBookingError('È necessario accettare i Termini e Condizioni e le informative per proseguire.');
+    return;
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    showBookingError('Inserisci un indirizzo email valido.');
+    return;
+  }
+
+  if (phone.replace(/\D/g, '').length < 6) {
+    showBookingError('Inserisci un numero di telefono valido.');
+    return;
+  }
   
   const submitBtn = this.querySelector('button[type="submit"]');
   const originalText = submitBtn.textContent;
@@ -190,18 +207,13 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
   
   const promoterRef = localStorage.getItem('promoter_ref') || '';
 
-  const newOrder = {
-    id: 'RES-' + Math.floor(Math.random() * 90000 + 10000),
-    date: new Date().toLocaleDateString('it-IT'),
+  const bookingPayload = {
     name: nome + ' ' + cognome,
     email: email,
+    phone: phone,
     gender: gender,
     event: eventName,
     round: roundName,
-    qty: qty,
-    total: qty * currentPrice,
-    payment: 'Da Pagare',
-    used: 0,
     promoter: promoterRef
   };
 
@@ -209,7 +221,7 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
     const res = await fetch('/api/save-order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'book', email: email, order: newOrder })
+      body: JSON.stringify({ action: 'book', email: email, order: bookingPayload })
     });
     
     const data = await res.json();

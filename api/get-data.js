@@ -78,7 +78,8 @@ module.exports = async function handler(req, res) {
     // -------------------------------------
     // -------------------------------------
 
-    const isAdmin = req.headers['x-admin-token'] === 'johnl';
+    const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'johnl';
+    const isAdmin = Boolean(req.headers['x-admin-token'] && req.headers['x-admin-token'] === ADMIN_TOKEN);
     
     if (isAdmin) {
       res.status(200).json(data);
@@ -89,12 +90,23 @@ module.exports = async function handler(req, res) {
         comingSoon: data.comingSoon
       };
       
-      // If a specific order is requested (e.g. for the ticket page), include only that order
+      // If a specific order is requested (e.g. for the ticket page), include only safe ticket display fields
       if (req.query && req.query.orderId) {
         const orderId = req.query.orderId;
         const order = (data.orders || []).find(o => o.id === orderId);
         if (order) {
-          publicData.orders = [order];
+          publicData.orders = [{
+            id: order.id,
+            name: order.name,
+            gender: order.gender,
+            event: order.event,
+            round: order.round,
+            qty: order.qty,
+            total: order.total,
+            status: order.status,
+            payment: order.payment,
+            used: order.used
+          }];
         }
       }
       

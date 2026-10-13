@@ -1,9 +1,12 @@
 const { Redis } = require('@upstash/redis');
 const redis = Redis.fromEnv();
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'johnl';
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
-  if (req.headers['x-admin-token'] !== 'johnl') return res.status(401).json({ error: 'Unauthorized: Invalid Admin Token' });
+  if (!req.headers['x-admin-token'] || req.headers['x-admin-token'] !== ADMIN_TOKEN) {
+    return res.status(401).json({ error: 'Unauthorized: Invalid Admin Token' });
+  }
 
   try {
     const { subject, message } = req.body;

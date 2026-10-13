@@ -21,19 +21,34 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    const cleanFirstName = String(firstName).replace(/<[^>]*>/g, '').trim().slice(0, 50);
+    const cleanLastName = String(lastName).replace(/<[^>]*>/g, '').trim().slice(0, 50);
+    const cleanPhone = String(phone || '').replace(/<[^>]*>/g, '').trim().slice(0, 30);
+    const cleanRole = String(role).replace(/<[^>]*>/g, '').trim().slice(0, 50);
+    const cleanMessage = String(message).replace(/<[^>]*>/g, '').trim().slice(0, 2000);
+    let cleanMixLink = String(mixLink || '').trim().slice(0, 500);
+    if (cleanMixLink && !/^https?:\/\//i.test(cleanMixLink)) {
+      cleanMixLink = '';
+    }
+
+    if (!cleanFirstName || !cleanLastName || !cleanMessage) {
+      return res.status(400).json({ error: 'I campi obbligatori non sono validi.' });
+    }
+
     if (!data.contacts) {
       data.contacts = [];
     }
 
+    const crypto = require('crypto');
     const newContact = {
-      id: 'CNT-' + Math.floor(Math.random() * 90000 + 10000),
+      id: 'CNT-' + crypto.randomBytes(4).toString('hex').toUpperCase(),
       date: new Date().toLocaleDateString('it-IT'),
-      firstName,
-      lastName,
-      phone: phone || '',
-      role,
-      message,
-      mixLink: mixLink || ''
+      firstName: cleanFirstName,
+      lastName: cleanLastName,
+      phone: cleanPhone,
+      role: cleanRole,
+      message: cleanMessage,
+      mixLink: cleanMixLink
     };
 
     data.contacts.unshift(newContact);

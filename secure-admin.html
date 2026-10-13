@@ -30,25 +30,59 @@
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      if (localStorage.getItem('adminToken') === 'johnl') {
-        document.getElementById('login-overlay').style.display = 'none';
-        document.body.style.overflow = '';
+    document.addEventListener('DOMContentLoaded', async () => {
+      const savedToken = localStorage.getItem('adminToken');
+      if (savedToken) {
+        try {
+          const res = await fetch('/api/save-order', {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'x-admin-token': savedToken 
+            },
+            body: JSON.stringify({ action: 'verify-token' })
+          });
+          if (res.ok) {
+            document.getElementById('login-overlay').style.display = 'none';
+            document.body.style.overflow = '';
+            if (typeof loadData === 'function') loadData();
+            return;
+          }
+        } catch (e) {}
+        localStorage.removeItem('adminToken');
       }
+      document.getElementById('login-overlay').style.display = 'flex';
     });
 
-    function checkAdminCode() {
-      const code = document.getElementById('admin-code-input').value;
-      if (code === 'johnl') {
-        localStorage.setItem('adminToken', 'johnl');
-        document.getElementById('login-overlay').style.display = 'none';
-        document.body.style.overflow = ''; // Ripristina lo scroll
-        if (typeof loadData === 'function') loadData();
-      } else {
-        const err = document.getElementById('admin-error-msg');
+    async function checkAdminCode() {
+      const code = document.getElementById('admin-code-input').value.trim();
+      const err = document.getElementById('admin-error-msg');
+      if (!code) return;
+
+      try {
+        const res = await fetch('/api/save-order', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-admin-token': code 
+          },
+          body: JSON.stringify({ action: 'verify-token' })
+        });
+        if (res.ok) {
+          localStorage.setItem('adminToken', code);
+          document.getElementById('login-overlay').style.display = 'none';
+          document.body.style.overflow = ''; // Ripristina lo scroll
+          if (typeof loadData === 'function') loadData();
+        } else {
+          err.textContent = 'Codice errato. Riprova.';
+          err.style.display = 'block';
+          setTimeout(() => err.style.display = 'none', 3000);
+          document.getElementById('admin-code-input').value = '';
+        }
+      } catch (e) {
+        err.textContent = 'Errore di connessione. Riprova.';
         err.style.display = 'block';
         setTimeout(() => err.style.display = 'none', 3000);
-        document.getElementById('admin-code-input').value = '';
       }
     }
     document.getElementById('admin-code-input').addEventListener('keypress', function(e) {

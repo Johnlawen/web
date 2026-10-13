@@ -93,24 +93,69 @@
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      if (localStorage.getItem('adminToken') === 'johnl') {
-        document.getElementById('login-overlay').style.display = 'none';
-        document.body.style.overflow = '';
+    function escapeHTML(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const savedToken = localStorage.getItem('adminToken');
+      if (savedToken) {
+        try {
+          const res = await fetch('/api/save-order', {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'x-admin-token': savedToken 
+            },
+            body: JSON.stringify({ action: 'verify-token' })
+          });
+          if (res.ok) {
+            document.getElementById('login-overlay').style.display = 'none';
+            document.body.style.overflow = '';
+            if (typeof fetchEvents === 'function') fetchEvents();
+            return;
+          }
+        } catch(e) {}
+        localStorage.removeItem('adminToken');
       }
+      document.getElementById('login-overlay').style.display = 'flex';
     });
 
-    function checkAdminCode() {
-      const code = document.getElementById('admin-code-input').value;
-      if (code === 'johnl') {
-        localStorage.setItem('adminToken', 'johnl');
-        document.getElementById('login-overlay').style.display = 'none';
-        document.body.style.overflow = '';
-      } else {
-        const err = document.getElementById('admin-error-msg');
+    async function checkAdminCode() {
+      const code = document.getElementById('admin-code-input').value.trim();
+      const err = document.getElementById('admin-error-msg');
+      if (!code) return;
+
+      try {
+        const res = await fetch('/api/save-order', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-admin-token': code 
+          },
+          body: JSON.stringify({ action: 'verify-token' })
+        });
+        if (res.ok) {
+          localStorage.setItem('adminToken', code);
+          document.getElementById('login-overlay').style.display = 'none';
+          document.body.style.overflow = '';
+          if (typeof fetchEvents === 'function') fetchEvents();
+        } else {
+          err.textContent = 'Codice errato. Riprova.';
+          err.style.display = 'block';
+          setTimeout(() => err.style.display = 'none', 3000);
+          document.getElementById('admin-code-input').value = '';
+        }
+      } catch(e) {
+        err.textContent = 'Errore di connessione. Riprova.';
         err.style.display = 'block';
         setTimeout(() => err.style.display = 'none', 3000);
-        document.getElementById('admin-code-input').value = '';
       }
     }
     
@@ -259,10 +304,10 @@
             scanStatus.textContent = "⚠️ DA PAGARE IN CASSA";
             scanStatus.style.color = "#ffaa00";
             scanDetails.innerHTML = `
-              <strong>DA RISCUOTERE:</strong> <span style="color:#ffaa00; font-size:1.5rem; font-weight:bold;">€${order.total || 0}</span><br/><br/>
-              <strong>Ordine:</strong> ${order.id}<br/>
-              <strong>Nome:</strong> ${order.name}<br/>
-              <strong>Tipo:</strong> ${order.round}<br/>
+              <strong>DA RISCUOTERE:</strong> <span style="color:#ffaa00; font-size:1.5rem; font-weight:bold;">€${Number(order.total) || 0}</span><br/><br/>
+              <strong>Ordine:</strong> ${escapeHTML(order.id)}<br/>
+              <strong>Nome:</strong> ${escapeHTML(order.name)}<br/>
+              <strong>Tipo:</strong> ${escapeHTML(order.round)}<br/>
               <strong>Rimanenti:</strong> ${order.qty - order.used} di ${order.qty}
             `;
           } else {
@@ -271,9 +316,9 @@
             scanStatus.textContent = "✅ CONSENTITO";
             scanStatus.style.color = "#44ff44";
             scanDetails.innerHTML = `
-              <strong>Ordine:</strong> ${order.id}<br/>
-              <strong>Nome:</strong> ${order.name}<br/>
-              <strong>Tipo:</strong> ${order.round}<br/>
+              <strong>Ordine:</strong> ${escapeHTML(order.id)}<br/>
+              <strong>Nome:</strong> ${escapeHTML(order.name)}<br/>
+              <strong>Tipo:</strong> ${escapeHTML(order.round)}<br/>
               <strong>Rimanenti:</strong> ${order.qty - order.used} di ${order.qty}
             `;
           }
@@ -286,9 +331,9 @@
             scanStatus.textContent = "🚫 RIFIUTATO";
             scanStatus.style.color = "#ff4444";
             scanDetails.innerHTML = `
-              <strong style="color:#ff4444">${data.error}</strong><br/><br/>
-              <strong>Nome:</strong> ${order.name}<br/>
-              <strong>Ordine:</strong> ${order.id}
+              <strong style="color:#ff4444">${escapeHTML(data.error)}</strong><br/><br/>
+              <strong>Nome:</strong> ${escapeHTML(order.name)}<br/>
+              <strong>Ordine:</strong> ${escapeHTML(order.id)}
             `;
           } else {
             // Soft warning: already used
@@ -297,9 +342,9 @@
             scanStatus.textContent = "⚠️ GIÀ UTILIZZATO";
             scanStatus.style.color = "#ffaa00";
             scanDetails.innerHTML = `
-              <strong>Errore:</strong> ${data.error}<br/><br/>
-              <strong>Ordine:</strong> ${order.id}<br/>
-              <strong>Nome:</strong> ${order.name}<br/>
+              <strong>Errore:</strong> ${escapeHTML(data.error)}<br/><br/>
+              <strong>Ordine:</strong> ${escapeHTML(order.id)}<br/>
+              <strong>Nome:</strong> ${escapeHTML(order.name)}<br/>
               <strong>Ingressi Usati:</strong> ${order.used} su ${order.qty}
             `;
           }
