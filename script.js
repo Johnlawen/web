@@ -122,7 +122,10 @@ function closeRoundsModal() {
   document.body.style.overflow = '';
 }
 
+let currentRoundName = '';
+
 function selectRoundAndCheckout(roundName, price) {
+  currentRoundName = roundName;
   closeRoundsModal();
   openCheckoutModal(currentEventName + ' - ' + roundName, price);
 }
@@ -202,8 +205,8 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
   submitBtn.disabled = true;
 
   const modalEventName = document.getElementById('modal-event-name').textContent;
-  const eventName = modalEventName.includes(' - ') ? modalEventName.split(' - ')[0] : '-';
-  const roundName = modalEventName.includes(' - ') ? modalEventName.split(' - ')[1] : modalEventName || 'Ingresso';
+  const eventName = currentEventName || (modalEventName.includes(' - ') ? modalEventName.split(' - ')[0] : '-');
+  const roundName = currentRoundName || (modalEventName.includes(' - ') ? modalEventName.split(' - ').slice(1).join(' - ') : modalEventName || 'Ingresso');
   
   const promoterRef = localStorage.getItem('promoter_ref') || '';
 
