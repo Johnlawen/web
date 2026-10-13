@@ -414,15 +414,19 @@ function renderEvents() {
   appData.events.forEach((ev, index) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td data-label="Evento"><strong>${ev.name}</strong></td>
-      <td data-label="Data">${ev.date}</td>
+      <td data-label="Evento"><strong>${escapeHTML(ev.name)}</strong></td>
+      <td data-label="Data">${escapeHTML(ev.date)}</td>
       <td data-label="Stato"><span class="badge ${ev.active ? 'badge-active' : ''}">${ev.active ? 'Attivo' : 'Inattivo'}</span></td>
       <td data-label="Azioni" style="display: flex; gap: 5px;">
-        <button class="btn btn-ghost btn-sm" onclick="openEventEditor('${ev.name}')">Modifica</button>
-        <button class="btn btn-ghost btn-sm" style="color: #4CAF50; border-color: #4CAF50;" onclick="archiveEvent('${ev.name}')">Archivia</button>
-        <button class="btn btn-ghost btn-sm" style="color: #ff4444; border-color: #ff4444;" onclick="deleteEvent(${index})">Elimina</button>
+        <button class="btn btn-ghost btn-sm js-edit-event">Modifica</button>
+        <button class="btn btn-ghost btn-sm js-archive-event" style="color: #4CAF50; border-color: #4CAF50;">Archivia</button>
+        <button class="btn btn-ghost btn-sm js-delete-event" style="color: #ff4444; border-color: #ff4444;">Elimina</button>
       </td>
     `;
+    // Attach handlers directly (safe for names with apostrophes/quotes like "I'M THE VYP")
+    tr.querySelector('.js-edit-event').addEventListener('click', () => openEventEditor(ev.name));
+    tr.querySelector('.js-archive-event').addEventListener('click', () => archiveEvent(ev.name));
+    tr.querySelector('.js-delete-event').addEventListener('click', () => deleteEvent(index));
     tbodyEvents.appendChild(tr);
   });
 }
