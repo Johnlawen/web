@@ -267,17 +267,21 @@ function openEventEditor(eventName = '') {
   }
 
   // Load current values
-  document.getElementById('price-r1').value = appData.rounds.r1.price;
-  document.getElementById('limit-r1').value = appData.rounds.r1.limit;
-  document.getElementById('toggle-r1').checked = appData.rounds.r1.active;
+  // Load current values
+  document.getElementById('name-r1').value = (appData.rounds.r1 && appData.rounds.r1.name) || 'Early Tickets';
+  document.getElementById('price-r1').value = typeof appData.rounds.r1.price !== 'undefined' ? appData.rounds.r1.price : 10;
+  document.getElementById('limit-r1').value = appData.rounds.r1.limit || 100;
+  document.getElementById('toggle-r1').checked = appData.rounds.r1.active !== false;
   
-  document.getElementById('price-r2').value = appData.rounds.r2.price;
-  document.getElementById('limit-r2').value = appData.rounds.r2.limit;
-  document.getElementById('toggle-r2').checked = appData.rounds.r2.active;
+  document.getElementById('name-r2').value = (appData.rounds.r2 && appData.rounds.r2.name) || 'Round 2';
+  document.getElementById('price-r2').value = typeof appData.rounds.r2.price !== 'undefined' ? appData.rounds.r2.price : 15;
+  document.getElementById('limit-r2').value = appData.rounds.r2.limit || 200;
+  document.getElementById('toggle-r2').checked = appData.rounds.r2.active !== false;
   
-  document.getElementById('price-r3').value = appData.rounds.r3.price;
-  document.getElementById('limit-r3').value = appData.rounds.r3.limit;
-  document.getElementById('toggle-r3').checked = appData.rounds.r3.active;
+  document.getElementById('name-r3').value = (appData.rounds.r3 && appData.rounds.r3.name) || 'Last Round';
+  document.getElementById('price-r3').value = typeof appData.rounds.r3.price !== 'undefined' ? appData.rounds.r3.price : 20;
+  document.getElementById('limit-r3').value = appData.rounds.r3.limit || 300;
+  document.getElementById('toggle-r3').checked = appData.rounds.r3.active !== false;
 }
 
 function closeEventEditor() {
@@ -285,16 +289,19 @@ function closeEventEditor() {
 }
 
 function saveRounds() {
-  appData.rounds.r1.price = parseInt(document.getElementById('price-r1').value);
-  appData.rounds.r1.limit = parseInt(document.getElementById('limit-r1').value);
+  appData.rounds.r1.name = document.getElementById('name-r1').value.trim() || 'Early Tickets';
+  appData.rounds.r1.price = Math.max(0, parseInt(document.getElementById('price-r1').value) || 0);
+  appData.rounds.r1.limit = parseInt(document.getElementById('limit-r1').value) || 100;
   appData.rounds.r1.active = document.getElementById('toggle-r1').checked;
 
-  appData.rounds.r2.price = parseInt(document.getElementById('price-r2').value);
-  appData.rounds.r2.limit = parseInt(document.getElementById('limit-r2').value);
+  appData.rounds.r2.name = document.getElementById('name-r2').value.trim() || 'Round 2';
+  appData.rounds.r2.price = Math.max(0, parseInt(document.getElementById('price-r2').value) || 0);
+  appData.rounds.r2.limit = parseInt(document.getElementById('limit-r2').value) || 200;
   appData.rounds.r2.active = document.getElementById('toggle-r2').checked;
 
-  appData.rounds.r3.price = parseInt(document.getElementById('price-r3').value);
-  appData.rounds.r3.limit = parseInt(document.getElementById('limit-r3').value);
+  appData.rounds.r3.name = document.getElementById('name-r3').value.trim() || 'Last Round';
+  appData.rounds.r3.price = Math.max(0, parseInt(document.getElementById('price-r3').value) || 0);
+  appData.rounds.r3.limit = parseInt(document.getElementById('limit-r3').value) || 300;
   appData.rounds.r3.active = document.getElementById('toggle-r3').checked;
 
   // Note: saveState() calls saveSettingsToBackend()
@@ -330,14 +337,17 @@ function saveEventDetails() {
   }
   
   // Save rounds data as well
-  appData.rounds.r1.price = parseInt(document.getElementById('price-r1').value);
-  appData.rounds.r1.limit = parseInt(document.getElementById('limit-r1').value);
+  appData.rounds.r1.name = document.getElementById('name-r1').value.trim() || 'Early Tickets';
+  appData.rounds.r1.price = Math.max(0, parseInt(document.getElementById('price-r1').value) || 0);
+  appData.rounds.r1.limit = parseInt(document.getElementById('limit-r1').value) || 100;
   appData.rounds.r1.active = document.getElementById('toggle-r1').checked;
-  appData.rounds.r2.price = parseInt(document.getElementById('price-r2').value);
-  appData.rounds.r2.limit = parseInt(document.getElementById('limit-r2').value);
+  appData.rounds.r2.name = document.getElementById('name-r2').value.trim() || 'Round 2';
+  appData.rounds.r2.price = Math.max(0, parseInt(document.getElementById('price-r2').value) || 0);
+  appData.rounds.r2.limit = parseInt(document.getElementById('limit-r2').value) || 200;
   appData.rounds.r2.active = document.getElementById('toggle-r2').checked;
-  appData.rounds.r3.price = parseInt(document.getElementById('price-r3').value);
-  appData.rounds.r3.limit = parseInt(document.getElementById('limit-r3').value);
+  appData.rounds.r3.name = document.getElementById('name-r3').value.trim() || 'Last Round';
+  appData.rounds.r3.price = Math.max(0, parseInt(document.getElementById('price-r3').value) || 0);
+  appData.rounds.r3.limit = parseInt(document.getElementById('limit-r3').value) || 300;
   appData.rounds.r3.active = document.getElementById('toggle-r3').checked;
 
   saveState();
@@ -467,19 +477,22 @@ function renderDashboard() {
   // Progress Bars
   const r1 = appData.rounds.r1;
   const p1 = (r1.sold / r1.limit) * 100;
-  if(document.getElementById('label-early')) document.getElementById('label-early').textContent = `${r1.name} (€${r1.price})`;
+  const p1Label = r1.price === 0 ? 'GRATIS' : `€${r1.price}`;
+  if(document.getElementById('label-early')) document.getElementById('label-early').textContent = `${r1.name} (${p1Label})`;
   document.getElementById('prog-early').textContent = `${r1.sold} / ${r1.limit}`;
   document.getElementById('fill-early').style.width = `${Math.min(p1, 100)}%`;
 
   const r2 = appData.rounds.r2;
   const p2 = (r2.sold / r2.limit) * 100;
-  if(document.getElementById('label-round2')) document.getElementById('label-round2').textContent = `${r2.name} (€${r2.price})`;
+  const p2Label = r2.price === 0 ? 'GRATIS' : `€${r2.price}`;
+  if(document.getElementById('label-round2')) document.getElementById('label-round2').textContent = `${r2.name} (${p2Label})`;
   document.getElementById('prog-round2').textContent = `${r2.sold} / ${r2.limit}`;
   document.getElementById('fill-round2').style.width = `${Math.min(p2, 100)}%`;
 
   const r3 = appData.rounds.r3;
   const p3 = (r3.sold / r3.limit) * 100;
-  if(document.getElementById('label-last')) document.getElementById('label-last').textContent = `${r3.name} (€${r3.price})`;
+  const p3Label = r3.price === 0 ? 'GRATIS' : `€${r3.price}`;
+  if(document.getElementById('label-last')) document.getElementById('label-last').textContent = `${r3.name} (${p3Label})`;
   document.getElementById('prog-last').textContent = `${r3.sold} / ${r3.limit}`;
   document.getElementById('fill-last').style.width = `${Math.min(p3, 100)}%`;
 

@@ -317,22 +317,27 @@
           <div class="rounds-editor">
             
             <!-- Round 1 -->
+            <!-- Round 1 -->
             <div class="round-edit-box">
               <div class="round-header">
-                <strong>Round 1: Early Tickets</strong>
+                <strong>Tipo Biglietto 1</strong>
                 <label class="switch">
                   <input type="checkbox" id="toggle-r1" checked onchange="saveRounds()">
                   <span class="slider"></span>
                 </label>
               </div>
               <div class="form-row">
+                <div class="form-group" style="grid-column: span 2;">
+                  <label>Nome Biglietto</label>
+                  <input type="text" id="name-r1" value="Early Tickets" placeholder="es. Lunch & Party" onchange="saveRounds()" />
+                </div>
                 <div class="form-group">
-                  <label>Prezzo (€)</label>
-                  <input type="number" id="price-r1" value="10" onchange="saveRounds()" />
+                  <label>Prezzo (€, 0 = Gratis)</label>
+                  <input type="number" id="price-r1" value="10" min="0" onchange="saveRounds()" />
                 </div>
                 <div class="form-group">
                   <label>Limite Biglietti</label>
-                  <input type="number" id="limit-r1" value="100" onchange="saveRounds()" />
+                  <input type="number" id="limit-r1" value="100" min="1" onchange="saveRounds()" />
                 </div>
               </div>
             </div>
@@ -340,20 +345,24 @@
             <!-- Round 2 -->
             <div class="round-edit-box">
               <div class="round-header">
-                <strong>Round 2</strong>
+                <strong>Tipo Biglietto 2</strong>
                 <label class="switch">
                   <input type="checkbox" id="toggle-r2" checked onchange="saveRounds()">
                   <span class="slider"></span>
                 </label>
               </div>
               <div class="form-row">
+                <div class="form-group" style="grid-column: span 2;">
+                  <label>Nome Biglietto</label>
+                  <input type="text" id="name-r2" value="Round 2" placeholder="es. Only Party" onchange="saveRounds()" />
+                </div>
                 <div class="form-group">
-                  <label>Prezzo (€)</label>
-                  <input type="number" id="price-r2" value="15" onchange="saveRounds()" />
+                  <label>Prezzo (€, 0 = Gratis)</label>
+                  <input type="number" id="price-r2" value="15" min="0" onchange="saveRounds()" />
                 </div>
                 <div class="form-group">
                   <label>Limite Biglietti</label>
-                  <input type="number" id="limit-r2" value="200" onchange="saveRounds()" />
+                  <input type="number" id="limit-r2" value="200" min="1" onchange="saveRounds()" />
                 </div>
               </div>
             </div>
@@ -361,20 +370,24 @@
             <!-- Last Round -->
             <div class="round-edit-box">
               <div class="round-header">
-                <strong>Last Round</strong>
+                <strong>Tipo Biglietto 3</strong>
                 <label class="switch">
                   <input type="checkbox" id="toggle-r3" checked onchange="saveRounds()">
                   <span class="slider"></span>
                 </label>
               </div>
               <div class="form-row">
+                <div class="form-group" style="grid-column: span 2;">
+                  <label>Nome Biglietto</label>
+                  <input type="text" id="name-r3" value="Last Round" placeholder="es. VIP / Last Round" onchange="saveRounds()" />
+                </div>
                 <div class="form-group">
-                  <label>Prezzo (€)</label>
-                  <input type="number" id="price-r3" value="20" onchange="saveRounds()" />
+                  <label>Prezzo (€, 0 = Gratis)</label>
+                  <input type="number" id="price-r3" value="20" min="0" onchange="saveRounds()" />
                 </div>
                 <div class="form-group">
                   <label>Limite Biglietti</label>
-                  <input type="number" id="limit-r3" value="300" onchange="saveRounds()" />
+                  <input type="number" id="limit-r3" value="300" min="1" onchange="saveRounds()" />
                 </div>
               </div>
             </div>

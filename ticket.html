@@ -111,7 +111,7 @@
         <p>Evento: <strong id="t-event"></strong></p>
         <p>Round: <strong id="t-round"></strong></p>
         <p>Quantità: <strong id="t-qty"></strong></p>
-        <p>Totale (da pagare): <strong>€<span id="t-total"></span></strong></p>
+        <p id="t-total-row">Totale (da pagare): <strong>€<span id="t-total"></span></strong></p>
         <p>ID Ordine: <span style="font-family:monospace; color:#aaa;" id="t-id"></span></p>
       </div>
       <p style="font-size:0.8rem; color:var(--text-muted); letter-spacing:0.1em; margin-bottom:1rem;">MOSTRA QUESTO QR ALL'INGRESSO</p>
@@ -149,7 +149,13 @@
             document.getElementById('t-event').textContent = order.event || '-';
             document.getElementById('t-round').textContent = order.round;
             document.getElementById('t-qty').textContent = order.qty;
-            document.getElementById('t-total').textContent = order.total;
+            
+            const isFree = Number(order.total) === 0;
+            if (isFree) {
+              document.getElementById('t-total-row').innerHTML = 'Totale: <strong style="color:var(--orange);">GRATUITO</strong>';
+            } else {
+              document.getElementById('t-total').textContent = order.total;
+            }
             document.getElementById('t-id').textContent = order.id;
 
             new QRCode(document.getElementById('qrcode'), {

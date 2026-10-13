@@ -92,11 +92,13 @@ async function openRoundsModal(eventName) {
           } else {
             const remaining = roundData.limit - roundData.sold;
             const lowStock  = remaining > 0 && remaining <= 10;
+            const isFree = Number(roundData.price) === 0;
+            const priceTag = isFree ? '<span style="color:#4CAF50;font-weight:bold;">GRATIS</span>' : `€${roundData.price}`;
             container.innerHTML += `
               <div class="round-list-item">
                 <div class="round-list-info">
                   <span class="round-list-name">${name.toUpperCase()}</span>
-                  <span class="round-list-price">€${roundData.price}${lowStock ? ` <span style="color:#ff8800;font-size:0.75rem;">(${remaining} rimasti)</span>` : ''}</span>
+                  <span class="round-list-price">${priceTag}${lowStock ? ` <span style="color:#ff8800;font-size:0.75rem;">(${remaining} rimasti)</span>` : ''}</span>
                 </div>
                 <button class="btn btn-primary" onclick="selectRoundAndCheckout('${name.toUpperCase()}', ${roundData.price})">PRENOTA</button>
               </div>
@@ -104,9 +106,9 @@ async function openRoundsModal(eventName) {
           }
         };
 
-        renderRound(rounds.r1, 'EARLY TICKETS');
-        renderRound(rounds.r2, 'ROUND 2');
-        renderRound(rounds.r3, 'LAST ROUND');
+        renderRound(rounds.r1, (rounds.r1 && rounds.r1.name) || 'EARLY TICKETS');
+        renderRound(rounds.r2, (rounds.r2 && rounds.r2.name) || 'ROUND 2');
+        renderRound(rounds.r3, (rounds.r3 && rounds.r3.name) || 'LAST ROUND');
       }
     } catch(e) {
       container.innerHTML = '<p style="text-align:center;color:var(--red);font-size:0.9rem;">Errore nel caricamento.</p>';
@@ -135,10 +137,11 @@ let currentPrice = 10;
 
 function openCheckoutModal(tier, price) {
   currentPrice = price;
+  const priceDisplay = price === 0 ? 'GRATIS' : '€' + price;
   document.getElementById('modal-event-name').textContent = tier.toUpperCase();
-  document.getElementById('modal-total').textContent = '€' + price;
+  document.getElementById('modal-total').textContent = priceDisplay;
   const btnTotalText = document.getElementById('btn-total-text');
-  if (btnTotalText) btnTotalText.textContent = '€' + price;
+  if (btnTotalText) btnTotalText.textContent = priceDisplay;
   document.getElementById('input-qty').value = 1;
   document.getElementById('modal-success').style.display = 'none';
   document.getElementById('checkout-form').style.display = 'block';
@@ -160,9 +163,10 @@ function changeQty(delta) {
   if (val > 10) val = 10;
   input.value = val;
   const total = val * currentPrice;
-  document.getElementById('modal-total').textContent = '€' + total;
+  const totalDisplay = currentPrice === 0 ? 'GRATIS' : '€' + total;
+  document.getElementById('modal-total').textContent = totalDisplay;
   const btnTotalText = document.getElementById('btn-total-text');
-  if (btnTotalText) btnTotalText.textContent = '€' + total;
+  if (btnTotalText) btnTotalText.textContent = totalDisplay;
 }
 
 // Form submit

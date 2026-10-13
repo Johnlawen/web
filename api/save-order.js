@@ -448,7 +448,7 @@ module.exports = async function handler(req, res) {
                     <p style="margin:4px 0;color:#eee;font-size:0.95rem;"><strong>Evento:</strong> ${verifiedOrder.event} - ${verifiedOrder.round}</p>
                     <p style="margin:4px 0;color:#eee;font-size:0.95rem;"><strong>ID Ordine:</strong> <span style="color:#FF6B00;font-family:monospace;">${verifiedOrder.id}</span></p>
                     <p style="margin:4px 0;color:#eee;font-size:0.95rem;"><strong>Intestatario:</strong> ${verifiedOrder.name}</p>
-                    <p style="margin:4px 0;color:#eee;font-size:0.95rem;"><strong>Da pagare all'ingresso:</strong> <strong style="color:#FF6B00;">€${verifiedOrder.total}</strong></p>
+                    <p style="margin:4px 0;color:#eee;font-size:0.95rem;"><strong>${verifiedOrder.total === 0 ? 'Ingresso:' : 'Da pagare all\'ingresso:'}</strong> <strong style="color:${verifiedOrder.total === 0 ? '#4CAF50' : '#FF6B00'};">${verifiedOrder.total === 0 ? 'GRATUITO (€0)' : '€' + verifiedOrder.total}</strong></p>
                   </div>
 
                   <!-- TICKET LINK -->

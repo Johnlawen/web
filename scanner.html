@@ -296,7 +296,8 @@
         
         if (res.ok && data.success) {
           const order = data.order;
-          const isUnpaid = order.status === 'Da Pagare' || order.status === 'To Pay' || order.payment === 'Da Pagare' || order.payment === 'To Pay' || order.payment === 'To Be Paid' || order.status === 'To Be Paid';
+          const isFree = Number(order.total) === 0;
+          const isUnpaid = !isFree && (order.status === 'Da Pagare' || order.status === 'To Pay' || order.payment === 'Da Pagare' || order.payment === 'To Pay' || order.payment === 'To Be Paid' || order.status === 'To Be Paid');
           
           if (isUnpaid) {
             scanResult.style.backgroundColor = 'rgba(255, 170, 0, 0.15)';
@@ -313,9 +314,10 @@
           } else {
             scanResult.style.backgroundColor = 'rgba(0, 255, 0, 0.15)';
             scanResult.style.border = '1px solid #44ff44';
-            scanStatus.textContent = "✅ CONSENTITO";
+            scanStatus.textContent = isFree ? "✅ CONSENTITO (GRATIS)" : "✅ CONSENTITO";
             scanStatus.style.color = "#44ff44";
             scanDetails.innerHTML = `
+              ${isFree ? '<span style="color:#44ff44; font-weight:bold; font-size:1.1rem;">INGRESSO GRATUITO</span><br/><br/>' : ''}
               <strong>Ordine:</strong> ${escapeHTML(order.id)}<br/>
               <strong>Nome:</strong> ${escapeHTML(order.name)}<br/>
               <strong>Tipo:</strong> ${escapeHTML(order.round)}<br/>
