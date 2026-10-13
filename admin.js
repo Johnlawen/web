@@ -128,7 +128,9 @@ function updateComingSoonBtn() {
 }
 
 function saveState() {
-  // localStorage.setItem('luccaAdminData', JSON.stringify(appData));
+  try {
+    localStorage.setItem('luccaAdminData', JSON.stringify(appData));
+  } catch(e) {}
   saveSettingsToBackend();
   renderDashboard();
 }

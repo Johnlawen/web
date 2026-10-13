@@ -21,6 +21,7 @@ mobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => 
 
 // ===== SMOOTH SCROLL =====
 document.querySelectorAll('a[href^="#"]').forEach(a => {
+  if (a.id === 'nav-cta' || a.id === 'hero-cta' || a.classList.contains('mob-cta')) return;
   a.addEventListener('click', e => {
     const target = document.querySelector(a.getAttribute('href'));
     if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
@@ -54,73 +55,159 @@ if (eventsGrid && leftArrow && rightArrow) {
 const bars = document.querySelector('.barcode-bars');
 if (bars) { setInterval(() => { bars.style.opacity = bars.style.opacity === '0.6' ? '1' : '0.6'; }, 1200); }
 
+// ===== UTILS =====
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+const DEFAULT_ROUNDS = {
+  r1: { name: 'Early Tickets', price: 10, limit: 100, sold: 0, active: true },
+  r2: { name: 'Round 2', price: 15, limit: 200, sold: 0, active: true },
+  r3: { name: 'Last Round', price: 20, limit: 300, sold: 0, active: true }
+};
+
+const DEFAULT_EVENTS = [
+  { name: 'SUMMER OPENING', date: '21 Giugno 2025', active: true },
+  { name: 'MID SUMMER', date: '19 Luglio 2025', active: true },
+  { name: 'CLOSING PARTY', date: '30 Agosto 2025', active: true }
+];
+
+let cachedData = null;
+
 // ===== ROUNDS MODAL =====
 let currentEventName = '';
 
 async function openRoundsModal(eventName) {
-  currentEventName = eventName;
-  document.getElementById('rounds-event-name').textContent = eventName;
-  
-  const container = document.getElementById('rounds-list-container');
-  if (container) {
-    container.innerHTML = '<p style="text-align:center;color:#fff;font-size:0.9rem;margin:1rem 0;">Caricamento...</p>';
-    
-    try {
-      const res = await fetch('/api/get-data');
-      if(res.ok) {
-        const data = await res.json();
-        const rounds = data.rounds;
-        
-        container.innerHTML = '';
-        
-        const renderRound = (roundData, name) => {
-          if (!roundData) return;
-          
-          const isSoldOut = roundData.sold >= roundData.limit;
-          
-          if (!roundData.active || isSoldOut) {
-            const label = isSoldOut ? 'SOLD OUT' : 'CHIUSO';
-            container.innerHTML += `
-              <div class="round-list-item" style="opacity:0.6; filter:grayscale(1);">
-                <div class="round-list-info">
-                  <span class="round-list-name">${name.toUpperCase()}</span>
-                  <span class="round-list-price" style="color:var(--red);">${label}</span>
-                </div>
-                <button class="btn btn-outline" disabled style="border-color:#555;color:#555;">${label}</button>
-              </div>
-            `;
-          } else {
-            const remaining = roundData.limit - roundData.sold;
-            const lowStock  = remaining > 0 && remaining <= 10;
-            const isFree = Number(roundData.price) === 0;
-            const priceTag = isFree ? '<span style="color:#4CAF50;font-weight:bold;">GRATIS</span>' : `€${roundData.price}`;
-            container.innerHTML += `
-              <div class="round-list-item">
-                <div class="round-list-info">
-                  <span class="round-list-name">${name.toUpperCase()}</span>
-                  <span class="round-list-price">${priceTag}${lowStock ? ` <span style="color:#ff8800;font-size:0.75rem;">(${remaining} rimasti)</span>` : ''}</span>
-                </div>
-                <button class="btn btn-primary" onclick="selectRoundAndCheckout('${name.toUpperCase()}', ${roundData.price})">PRENOTA</button>
-              </div>
-            `;
-          }
-        };
+  // 1. OPEN MODAL INSTANTLY: 0ms delay for immediate user feedback
+  const overlay = document.getElementById('rounds-modal-overlay');
+  if (overlay) {
+    overlay.classList.add('open');
+  }
+  document.body.style.overflow = 'hidden';
 
-        renderRound(rounds.r1, (rounds.r1 && rounds.r1.name) || 'EARLY TICKETS');
-        renderRound(rounds.r2, (rounds.r2 && rounds.r2.name) || 'ROUND 2');
-        renderRound(rounds.r3, (rounds.r3 && rounds.r3.name) || 'LAST ROUND');
+  // 2. Identify target event name
+  if (!eventName) {
+    if (cachedData && cachedData.events && cachedData.events.length > 0) {
+      const activeEv = cachedData.events.find(e => e.active);
+      eventName = activeEv ? activeEv.name : cachedData.events[0].name;
+    } else {
+      const firstCardBtn = document.querySelector('.event-btn[data-event-name]');
+      if (firstCardBtn) {
+        eventName = decodeURIComponent(firstCardBtn.getAttribute('data-event-name'));
+      } else {
+        eventName = DEFAULT_EVENTS[0].name;
       }
-    } catch(e) {
-      container.innerHTML = '<p style="text-align:center;color:var(--red);font-size:0.9rem;">Errore nel caricamento.</p>';
     }
   }
 
-  document.getElementById('rounds-modal-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  currentEventName = eventName;
+  const titleEl = document.getElementById('rounds-event-name');
+  if (titleEl) titleEl.textContent = eventName;
+
+  const container = document.getElementById('rounds-list-container');
+  if (!container) return;
+
+  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+
+  // Render helper function using safe DOM creation (avoids inline JS quote syntax errors)
+  const renderRoundsList = (rounds) => {
+    if (!rounds) return;
+    container.innerHTML = '';
+    
+    const renderRound = (roundData, defaultName) => {
+      if (!roundData) return;
+      const roundTitle = (roundData.name || defaultName).toUpperCase();
+      const isSoldOut = Number(roundData.sold || 0) >= Number(roundData.limit || 0);
+
+      if (!roundData.active || isSoldOut) {
+        const label = isSoldOut ? 'SOLD OUT' : (isEn ? 'CLOSED' : 'CHIUSO');
+        const div = document.createElement('div');
+        div.className = 'round-list-item';
+        div.style.cssText = 'opacity:0.6; filter:grayscale(1);';
+        div.innerHTML = `
+          <div class="round-list-info">
+            <span class="round-list-name">${escapeHtml(roundTitle)}</span>
+            <span class="round-list-price" style="color:var(--red);">${label}</span>
+          </div>
+          <button class="btn btn-outline" disabled style="border-color:#555;color:#555;">${label}</button>
+        `;
+        container.appendChild(div);
+      } else {
+        const remaining = Math.max(0, Number(roundData.limit) - Number(roundData.sold || 0));
+        const lowStock  = remaining > 0 && remaining <= 10;
+        const isFree = Number(roundData.price) === 0;
+        const priceTag = isFree ? `<span style="color:#4CAF50;font-weight:bold;">${isEn ? 'FREE' : 'GRATIS'}</span>` : `€${roundData.price}`;
+        const remainingLabel = isEn ? `${remaining} left` : `${remaining} rimasti`;
+        const bookBtnLabel = isEn ? 'BOOK' : 'PRENOTA';
+
+        const div = document.createElement('div');
+        div.className = 'round-list-item';
+        div.innerHTML = `
+          <div class="round-list-info">
+            <span class="round-list-name">${escapeHtml(roundTitle)}</span>
+            <span class="round-list-price">${priceTag}${lowStock ? ` <span style="color:#ff8800;font-size:0.75rem;">(${remainingLabel})</span>` : ''}</span>
+          </div>
+          <button class="btn btn-primary round-book-btn">${bookBtnLabel}</button>
+        `;
+        // Attach click listener safely in JS (no inline quoting bugs)
+        const btn = div.querySelector('.round-book-btn');
+        btn.addEventListener('click', () => {
+          selectRoundAndCheckout(roundTitle, Number(roundData.price));
+        });
+        container.appendChild(div);
+      }
+    };
+
+    renderRound(rounds.r1, 'EARLY TICKETS');
+    renderRound(rounds.r2, 'ROUND 2');
+    renderRound(rounds.r3, 'LAST ROUND');
+  };
+
+  // Immediate render from cache or local data if available
+  let initialRounds = (cachedData && cachedData.rounds) ? cachedData.rounds : null;
+  if (!initialRounds) {
+    try {
+      const local = JSON.parse(localStorage.getItem('luccaAdminData') || '{}');
+      if (local && local.rounds) initialRounds = local.rounds;
+    } catch(e) {}
+  }
+
+  if (initialRounds) {
+    renderRoundsList(initialRounds);
+  } else {
+    container.innerHTML = `<p style="text-align:center;color:#fff;font-size:0.9rem;margin:1rem 0;">${isEn ? 'Loading tickets...' : 'Caricamento...'}</p>`;
+  }
+
+  // Fetch fresh rounds asynchronously from API
+  try {
+    const res = await fetch('/api/get-data');
+    if (res.ok) {
+      const data = await res.json();
+      cachedData = data;
+      if (data.rounds) {
+        renderRoundsList(data.rounds);
+        return;
+      }
+    }
+  } catch(e) {
+    console.warn('Could not refresh rounds from API, using fallback data', e);
+  }
+
+  // If container is still empty or showing loading message, fallback to DEFAULT_ROUNDS
+  if (!container.children.length || container.querySelector('p')) {
+    renderRoundsList(DEFAULT_ROUNDS);
+  }
 }
 
 function closeRoundsModal() {
-  document.getElementById('rounds-modal-overlay').classList.remove('open');
+  const overlay = document.getElementById('rounds-modal-overlay');
+  if (overlay) overlay.classList.remove('open');
   document.body.style.overflow = '';
 }
 
@@ -136,16 +223,23 @@ function selectRoundAndCheckout(roundName, price) {
 let currentPrice = 10;
 
 function openCheckoutModal(tier, price) {
-  currentPrice = price;
-  const priceDisplay = price === 0 ? 'GRATIS' : '€' + price;
-  document.getElementById('modal-event-name').textContent = tier.toUpperCase();
-  document.getElementById('modal-total').textContent = priceDisplay;
+  currentPrice = Number(price);
+  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+  const priceDisplay = currentPrice === 0 ? (isEn ? 'FREE' : 'GRATIS') : '€' + currentPrice;
+  const nameEl = document.getElementById('modal-event-name');
+  if (nameEl) nameEl.textContent = tier.toUpperCase();
+  const totalEl = document.getElementById('modal-total');
+  if (totalEl) totalEl.textContent = priceDisplay;
   const btnTotalText = document.getElementById('btn-total-text');
   if (btnTotalText) btnTotalText.textContent = priceDisplay;
-  document.getElementById('input-qty').value = 1;
-  document.getElementById('modal-success').style.display = 'none';
-  document.getElementById('checkout-form').style.display = 'block';
-  document.getElementById('modal-overlay').classList.add('open');
+  const qtyInput = document.getElementById('input-qty');
+  if (qtyInput) qtyInput.value = 1;
+  const successEl = document.getElementById('modal-success');
+  if (successEl) successEl.style.display = 'none';
+  const formEl = document.getElementById('checkout-form');
+  if (formEl) formEl.style.display = 'block';
+  const overlay = document.getElementById('modal-overlay');
+  if (overlay) overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 
@@ -281,6 +375,72 @@ window.openRoundsModal = openRoundsModal;
 window.closeRoundsModal = closeRoundsModal;
 window.selectRoundAndCheckout = selectRoundAndCheckout;
 
+// Render event cards to #events-track safely
+function renderEventCards(eventsList) {
+  const track = document.getElementById('events-track');
+  if (!track) return;
+  track.innerHTML = '';
+  track.style.justifyContent = 'flex-start';
+
+  const isTestMode = window.location.search.includes('test=1');
+  const visibleEvents = (eventsList || []).filter(ev => ev.active || isTestMode);
+
+  if (visibleEvents.length === 0) {
+    track.style.justifyContent = 'center';
+    const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+    track.innerHTML = `<p style="text-align:center; color:var(--text-muted); font-size:1.2rem; padding: 3rem 0; margin: 0 auto; width: 100%;">${isEn ? 'No events scheduled at the moment.' : 'Nessun evento in programma al momento.'}</p>`;
+    return;
+  }
+
+  const images = ['crowd.png', 'hero-tower.png', 'event3.png'];
+  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+  const buyBtnText = isEn ? 'BUY TICKET' : 'ACQUISTA BIGLIETTO';
+
+  visibleEvents.forEach((ev, idx) => {
+    const dateParts = (ev.date || '').split(' ');
+    const day = dateParts[0] || '00';
+    const month = (dateParts[1] || 'MESE').substring(0,3).toUpperCase();
+    const year = dateParts[2] || new Date().getFullYear();
+    const imgSrc = ev.image || images[idx % images.length];
+
+    const card = document.createElement('div');
+    card.className = 'event-card';
+    card.innerHTML = `
+      <div class="event-img-wrap">
+        <img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(ev.name)}" class="event-img" onerror="this.src='crowd.png'"/>
+        <div class="event-date-badge">
+          <span class="date-day">${escapeHtml(day)}</span>
+          <span class="date-month">${escapeHtml(month)}</span>
+          <span class="date-year">${escapeHtml(year)}</span>
+        </div>
+      </div>
+      <div class="event-content">
+        ${!ev.active ? '<div style="background:#ff4444;color:#fff;padding:4px 8px;border-radius:4px;font-size:0.8rem;font-weight:bold;margin-bottom:0.5rem;display:inline-block;">TEST EVENT (INATTIVO)</div>' : ''}
+        <h3 class="event-title">LUCCA GROOVE<br /><span class="orange">${escapeHtml(ev.name)}</span></h3>
+        <p class="event-location">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          LUCCA, ITALIA
+        </p>
+        <button class="btn btn-outline btn-full event-btn" data-event-name="${encodeURIComponent(ev.name)}">
+          <span data-i18n="events.buyTicket">${buyBtnText}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+        </button>
+      </div>
+    `;
+
+    // Direct event listener in JS eliminates all inline quote escaping issues!
+    const buyBtn = card.querySelector('.event-btn');
+    if (buyBtn) {
+      buyBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openRoundsModal(ev.name);
+      });
+    }
+
+    track.appendChild(card);
+  });
+}
+
 // Fetch and render events dynamically on page load
 async function loadEvents() {
   const track = document.getElementById('events-track');
@@ -290,14 +450,7 @@ async function loadEvents() {
     const res = await fetch('/api/get-data');
     if (!res.ok) throw new Error('Failed to fetch data');
     const data = await res.json();
-    
-    track.innerHTML = '';
-    
-    if (!data.events || data.events.length === 0) {
-      track.style.justifyContent = 'center';
-      track.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:1.2rem; padding: 3rem 0; margin: 0 auto; width: 100%;">Nessun evento in programma al momento.</p>';
-      return;
-    }
+    cachedData = data;
     
     if (data.comingSoon) {
       const eventsInner = document.querySelector('.events-inner');
@@ -309,57 +462,68 @@ async function loadEvents() {
              <p style="color: #aaa; font-family: 'Barlow', sans-serif; font-size: 1.1rem; max-width: 500px; margin: 0 auto;" data-i18n="events.comingSoonDesc">Stiamo preparando qualcosa di speciale. Resta sintonizzato per scoprire i prossimi eventi Lucca Groove.</p>
            </div>
          `;
-         if (typeof applyTranslations === 'function') applyTranslations();
+         if (typeof applyTranslations === 'function') applyTranslations(typeof currentLang !== 'undefined' ? currentLang : 'it');
       }
       return;
     }
-    
-    track.style.justifyContent = 'flex-start'; // Reset for when events exist
-    
-    const images = ['crowd.png', 'hero-tower.png', 'event3.png'];
-    
-    data.events.forEach((ev, idx) => {
-      const isTestMode = window.location.search.includes('test=1');
-      if (!ev.active && !isTestMode) return;
-      
-      const dateParts = ev.date.split(' ');
-      const day = dateParts[0] || '00';
-      const month = (dateParts[1] || 'MESE').substring(0,3).toUpperCase();
-      const year = dateParts[2] || new Date().getFullYear();
-      
-      const imgSrc = ev.image || images[idx % images.length];
-      
-      const eventHtml = `
-        <div class="event-card">
-          <div class="event-img-wrap">
-            <img src="${imgSrc}" alt="${ev.name}" class="event-img" onerror="this.src='crowd.png'"/>
-            <div class="event-date-badge">
-              <span class="date-day">${day}</span>
-              <span class="date-month">${month}</span>
-              <span class="date-year">${year}</span>
-            </div>
-          </div>
-          <div class="event-content">
-            ${!ev.active ? '<div style="background:#ff4444;color:#fff;padding:4px 8px;border-radius:4px;font-size:0.8rem;font-weight:bold;margin-bottom:0.5rem;display:inline-block;">TEST EVENT (INATTIVO)</div>' : ''}
-            <h3 class="event-title">LUCCA GROOVE<br /><span class="orange">${ev.name}</span></h3>
-            <p class="event-location">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-              LUCCA, ITALIA
-            </p>
-            <button class="btn btn-outline btn-full event-btn" onclick="openRoundsModal('${ev.name}')">
-              ACQUISTA BIGLIETTO
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
-            </button>
-          </div>
-        </div>
-      `;
-      track.insertAdjacentHTML('beforeend', eventHtml);
-    });
-    
+
+    renderEventCards(data.events && data.events.length > 0 ? data.events : DEFAULT_EVENTS);
   } catch (err) {
-    console.error(err);
-    track.innerHTML = '<p style="text-align:center; width:100%; color:var(--red); font-size:1.2rem; padding: 3rem;">Errore durante il caricamento degli eventi.</p>';
+    console.warn('API error, checking localStorage or fallback events', err);
+    let fallback = DEFAULT_EVENTS;
+    try {
+      const local = JSON.parse(localStorage.getItem('luccaAdminData') || '{}');
+      if (local && local.events && local.events.length > 0) fallback = local.events;
+    } catch(e) {}
+    renderEventCards(fallback);
   }
 }
 
-document.addEventListener('DOMContentLoaded', loadEvents);
+// Setup Buy Ticket buttons across navbar, hero, and mobile menu
+function setupBuyTicketButtons() {
+  const handleBuyTicketsClick = (e) => {
+    if (e) e.preventDefault();
+
+    const mobMenu = document.getElementById('mobile-menu');
+    if (mobMenu && mobMenu.classList.contains('open')) {
+      mobMenu.classList.remove('open');
+    }
+
+    const eventsSec = document.getElementById('events');
+    if (eventsSec) {
+      eventsSec.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    let targetEventName = '';
+    if (cachedData && cachedData.events) {
+      const activeEv = cachedData.events.find(ev => ev.active);
+      if (activeEv) targetEventName = activeEv.name;
+    }
+    if (!targetEventName) {
+      const firstBtn = document.querySelector('.event-btn[data-event-name]');
+      if (firstBtn) {
+        targetEventName = decodeURIComponent(firstBtn.getAttribute('data-event-name'));
+      }
+    }
+    if (!targetEventName) {
+      targetEventName = DEFAULT_EVENTS[0].name;
+    }
+
+    openRoundsModal(targetEventName);
+  };
+
+  const navCta = document.getElementById('nav-cta');
+  if (navCta) navCta.addEventListener('click', handleBuyTicketsClick);
+
+  const heroCta = document.getElementById('hero-cta');
+  if (heroCta) heroCta.addEventListener('click', handleBuyTicketsClick);
+
+  document.querySelectorAll('.mob-cta').forEach(btn => {
+    btn.addEventListener('click', handleBuyTicketsClick);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadEvents();
+  setupBuyTicketButtons();
+});
