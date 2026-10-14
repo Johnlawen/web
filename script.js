@@ -547,3 +547,53 @@ document.addEventListener('DOMContentLoaded', () => {
   loadEvents();
   setupBuyTicketButtons();
 });
+
+// ===== LUNCH MENU MODAL =====
+function openLunchMenuModal(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const mobMenu = document.getElementById('mobile-menu');
+  if (mobMenu && mobMenu.classList.contains('open')) {
+    mobMenu.classList.remove('open');
+  }
+  const overlay = document.getElementById('lunch-menu-modal-overlay');
+  if (overlay) overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLunchMenuModal() {
+  const overlay = document.getElementById('lunch-menu-modal-overlay');
+  if (overlay) overlay.classList.remove('open');
+  const checkoutModal = document.getElementById('modal-overlay');
+  const roundsModal = document.getElementById('rounds-modal-overlay');
+  const checkoutOpen = checkoutModal && checkoutModal.classList.contains('open');
+  const roundsOpen = roundsModal && roundsModal.classList.contains('open');
+  if (!checkoutOpen && !roundsOpen) {
+    document.body.style.overflow = '';
+  }
+}
+
+function filterMenuCat(cat, btn) {
+  document.querySelectorAll('.menu-tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const sections = document.querySelectorAll('.menu-cat-section');
+  sections.forEach(sec => {
+    if (cat === 'all' || sec.getAttribute('data-cat') === cat) {
+      sec.style.display = 'block';
+    } else {
+      sec.style.display = 'none';
+    }
+  });
+}
+
+window.openLunchMenuModal = openLunchMenuModal;
+window.closeLunchMenuModal = closeLunchMenuModal;
+window.filterMenuCat = filterMenuCat;
+
+// Close menu modal if clicking backdrop
+document.addEventListener('click', (e) => {
+  const overlay = document.getElementById('lunch-menu-modal-overlay');
+  if (overlay && e.target === overlay) {
+    closeLunchMenuModal();
+  }
+});
+

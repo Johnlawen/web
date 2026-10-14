@@ -49,6 +49,7 @@
       <ul class="nav-links">
         <li><a href="#hero" class="active" data-i18n="nav.home">HOME</a></li>
         <li><a href="#events" data-i18n="nav.tickets">BIGLIETTI</a></li>
+        <li><a href="javascript:void(0)" onclick="openLunchMenuModal(event)" data-i18n="nav.menu">MENU</a></li>
         <li><a href="#about" data-i18n="nav.about">CHI SIAMO</a></li>
         <li><a href="#contact" data-i18n="nav.contact">CONTATTI</a></li>
       </ul>
@@ -62,6 +63,7 @@
     <div class="mobile-menu" id="mobile-menu">
       <a href="#hero" data-i18n="nav.home">HOME</a>
       <a href="#events" data-i18n="nav.tickets">BIGLIETTI</a>
+      <a href="javascript:void(0)" onclick="openLunchMenuModal(event)" data-i18n="nav.menu">MENU</a>
       <a href="#about" data-i18n="nav.about">CHI SIAMO</a>
       <a href="#contact" data-i18n="nav.contact">CONTATTI</a>
       <a href="#events" class="mob-cta" data-i18n="nav.cta">ACQUISTA BIGLIETTI</a>
@@ -214,6 +216,7 @@
         <p class="footer-heading" data-i18n="footer.nav">NAVIGAZIONE</p>
         <a href="#hero" data-i18n="footer.home">Home</a>
         <a href="#events" data-i18n="footer.tickets">Biglietti</a>
+        <a href="javascript:void(0)" onclick="openLunchMenuModal(event)" data-i18n="footer.menu">Menu</a>
         <a href="#about" data-i18n="footer.about">Chi siamo</a>
         <a href="#contact" data-i18n="footer.contact">Contatti</a>
       </div>
@@ -303,6 +306,25 @@
             <label style="display:flex;align-items:center;gap:0.5rem;font-weight:normal;"><input type="radio" name="gender" value="Female" required> <span data-i18n="checkout.female">Donna (Female)</span></label>
           </div>
         </div>
+        <!-- MENU LINK UNDER GENDER -->
+        <div class="checkout-menu-wrap">
+          <a href="menu.pdf" target="_blank" id="checkout-menu-link" class="checkout-menu-link" onclick="openLunchMenuModal(event)">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+              <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+              <line x1="6" y1="1" x2="6" y2="4"></line>
+              <line x1="10" y1="1" x2="10" y2="4"></line>
+              <line x1="14" y1="1" x2="14" y2="4"></line>
+            </svg>
+            <span data-i18n="checkout.menuLink">Menu</span>
+            <span style="font-size:0.8rem;opacity:0.75;font-weight:400;font-family:'Barlow',sans-serif;color:#fff;">(Jojo Ristoclub)</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-left:2px;opacity:0.85;">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+          </a>
+        </div>
         <div class="form-group" style="display:none;">
           <label data-i18n="checkout.qty">Numero Biglietti *</label>
           <div class="qty-control"><input type="number" id="input-qty" value="1" min="1" max="1" readonly /></div>
@@ -329,6 +351,304 @@
         <p data-i18n="checkout.successMsg">Il tuo codice di prenotazione è stato inviato alla tua email. Mostralo alla porta per pagare ed entrare.<br />Ci vediamo a Lucca Groove!</p>
         <p class="success-sub">MUSICA • ATMOSFERA • PERSONE</p>
         <button type="button" class="btn btn-outline" onclick="closeModal()" data-i18n="contact.close">CHIUDI</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LUNCH MENU MODAL -->
+  <div class="modal-overlay" id="lunch-menu-modal-overlay">
+    <div class="modal lunch-menu-card" id="lunch-menu-modal">
+      <button class="modal-close" onclick="closeLunchMenuModal()">×</button>
+      <div class="modal-header" style="margin-bottom:1.2rem;">
+        <img src="logo-new.png" alt="Lucca Groove" class="modal-logo" style="width:55px;height:55px;margin-bottom:0.5rem;" />
+        <h2 class="modal-title" data-i18n="menu.title">MENU PRANZO</h2>
+        <p class="modal-tier" data-i18n="menu.sub">JOJO RISTOCLUB • LUCCA GROOVE</p>
+        <div style="margin-top:1rem;display:flex;justify-content:center;">
+          <a href="menu.pdf" target="_blank" rel="noopener" class="btn btn-outline" style="font-size:0.85rem;padding:0.45rem 1.2rem;display:inline-flex;align-items:center;gap:0.4rem;border-color:var(--orange);color:var(--orange);">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span data-i18n="menu.viewPdf">APRI PDF ORIGINALE</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- CATEGORY TABS -->
+      <div class="menu-tabs">
+        <button class="menu-tab-btn active" onclick="filterMenuCat('all', this)" data-i18n="menu.all">TUTTO</button>
+        <button class="menu-tab-btn" onclick="filterMenuCat('antipasti', this)" data-i18n="menu.antipasti">ANTIPASTI</button>
+        <button class="menu-tab-btn" onclick="filterMenuCat('primi', this)" data-i18n="menu.primi">PRIMI PIATTI</button>
+        <button class="menu-tab-btn" onclick="filterMenuCat('secondi', this)" data-i18n="menu.secondi">SECONDI PIATTI</button>
+        <button class="menu-tab-btn" onclick="filterMenuCat('contorni', this)" data-i18n="menu.contorni">CONTORNI</button>
+        <button class="menu-tab-btn" onclick="filterMenuCat('panini', this)" data-i18n="menu.panini">PANINI</button>
+        <button class="menu-tab-btn" onclick="filterMenuCat('pizze', this)" data-i18n="menu.pizze">PIZZE</button>
+        <button class="menu-tab-btn" onclick="filterMenuCat('dessert', this)" data-i18n="menu.dessert">DESSERT</button>
+      </div>
+
+      <!-- MENU CONTENT SECTIONS -->
+      <div class="menu-content-wrap">
+        <!-- ANTIPASTI -->
+        <div class="menu-cat-section" data-cat="antipasti">
+          <div class="menu-cat-title" data-i18n="menu.antipasti">ANTIPASTI</div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Tartare</div>
+              <div class="menu-item-desc">di manzo battuta al coltello</div>
+            </div>
+            <div class="menu-item-price">€12,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Antipasto toscano</div>
+              <div class="menu-item-desc">tradizionale con crostini e selezione di formaggi</div>
+            </div>
+            <div class="menu-item-price">€13,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Tagliere</div>
+              <div class="menu-item-desc">speciale dello chef</div>
+            </div>
+            <div class="menu-item-price">€15,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Degustazione di formaggi</div>
+              <div class="menu-item-desc">misti con confetture artigianali</div>
+            </div>
+            <div class="menu-item-price">€15,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Bresaola con rucola</div>
+              <div class="menu-item-desc">e scaglie di Grana</div>
+            </div>
+            <div class="menu-item-price">€10,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Insalata di mare</div>
+              <div class="menu-item-desc">calda</div>
+            </div>
+            <div class="menu-item-price">€13,00</div>
+          </div>
+        </div>
+
+        <!-- PRIMI PIATTI -->
+        <div class="menu-cat-section" data-cat="primi">
+          <div class="menu-cat-title" data-i18n="menu.primi">PRIMI PIATTI</div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Tortelli lucchesi</div>
+              <div class="menu-item-desc">fatti in casa al ragù tradizionale</div>
+            </div>
+            <div class="menu-item-price">€10,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Tagliolini al ragù bianco</div>
+              <div class="menu-item-desc">delicatamente profumati al tartufo</div>
+            </div>
+            <div class="menu-item-price">€13,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Pappardelle al cinghiale</div>
+            </div>
+            <div class="menu-item-price">€10,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Spaghetti al pomodoro fresco</div>
+              <div class="menu-item-desc">e basilico</div>
+            </div>
+            <div class="menu-item-price">€8,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Ravioli ricotta e spinaci</div>
+              <div class="menu-item-desc">con sugo al filetto di branzino e pomodorini freschi</div>
+            </div>
+            <div class="menu-item-price">€15,00</div>
+          </div>
+        </div>
+
+        <!-- SECONDI PIATTI -->
+        <div class="menu-cat-section" data-cat="secondi">
+          <div class="menu-cat-title" data-i18n="menu.secondi">SECONDI PIATTI</div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Tagliata di manzo</div>
+              <div class="menu-item-desc">con rucola, scaglie di Grana o rosmarino</div>
+            </div>
+            <div class="menu-item-price">€13,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Bistecca di manzo selezionata (800g)</div>
+            </div>
+            <div class="menu-item-price">€4,00<span style="font-size:0.75rem;font-weight:normal;opacity:0.8;">/etto</span></div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Bistecca di maiale</div>
+              <div class="menu-item-desc">alla griglia</div>
+            </div>
+            <div class="menu-item-price">€10,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Cinghiale in umido</div>
+              <div class="menu-item-desc">alla toscana</div>
+            </div>
+            <div class="menu-item-price">€13,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Roast beef</div>
+              <div class="menu-item-desc">cotto lentamente, alle erbe aromatiche</div>
+            </div>
+            <div class="menu-item-price">€10,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Frittura mista di pesce</div>
+              <div class="menu-item-desc">con verdure croccanti</div>
+            </div>
+            <div class="menu-item-price">€16,00</div>
+          </div>
+        </div>
+
+        <!-- CONTORNI -->
+        <div class="menu-cat-section" data-cat="contorni">
+          <div class="menu-cat-title" data-i18n="menu.contorni">CONTORNI</div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Patate fritte dorate</div>
+            </div>
+            <div class="menu-item-price">€4,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Verdure grigliate di stagione</div>
+            </div>
+            <div class="menu-item-price">€4,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Insalata mista fresca</div>
+            </div>
+            <div class="menu-item-price">€4,00</div>
+          </div>
+        </div>
+
+        <!-- PANINI -->
+        <div class="menu-cat-section" data-cat="panini">
+          <div class="menu-cat-title" data-i18n="menu.panini">PANINI</div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Hamburger</div>
+              <div class="menu-item-desc">con bacon croccante, cipolle caramellate e patate fritte</div>
+            </div>
+            <div class="menu-item-price">€13,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Cheeseburger</div>
+              <div class="menu-item-desc">con cheddar fuso, bacon e cipolle caramellate</div>
+            </div>
+            <div class="menu-item-price">€15,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Burger vegetariano</div>
+              <div class="menu-item-desc">con verdure di stagione e patate fritte</div>
+            </div>
+            <div class="menu-item-price">€13,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Hot Dog classico</div>
+              <div class="menu-item-desc">con patate fritte</div>
+            </div>
+            <div class="menu-item-price">€10,00</div>
+          </div>
+        </div>
+
+        <!-- PIZZE -->
+        <div class="menu-cat-section" data-cat="pizze">
+          <div class="menu-cat-title" data-i18n="menu.pizze">PIZZE</div>
+          <div class="menu-item-row">
+            <div class="menu-item-info"><div class="menu-item-name">Margherita</div></div>
+            <div class="menu-item-price">€6,50</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info"><div class="menu-item-name">Prosciutto cotto</div></div>
+            <div class="menu-item-price">€7,50</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info"><div class="menu-item-name">Wurstel</div></div>
+            <div class="menu-item-price">€7,50</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info"><div class="menu-item-name">Crudo e mascarpone</div></div>
+            <div class="menu-item-price">€9,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info"><div class="menu-item-name">Tonno e cipolla</div></div>
+            <div class="menu-item-price">€8,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info"><div class="menu-item-name">Salsiccia e cipolla</div></div>
+            <div class="menu-item-price">€8,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info"><div class="menu-item-name">Napoli</div></div>
+            <div class="menu-item-price">€7,50</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info"><div class="menu-item-name">Salamino piccante</div></div>
+            <div class="menu-item-price">€7,50</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info"><div class="menu-item-name">Bresaola, rucola e grana</div></div>
+            <div class="menu-item-price">€9,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info">
+              <div class="menu-item-name">Focaccia ripiena</div>
+              <div class="menu-item-desc">cotto e mozzarella</div>
+            </div>
+            <div class="menu-item-price">€9,00</div>
+          </div>
+        </div>
+
+        <!-- DESSERT -->
+        <div class="menu-cat-section" data-cat="dessert">
+          <div class="menu-cat-title" data-i18n="menu.dessert">DESSERT</div>
+          <div class="menu-item-row">
+            <div class="menu-item-info"><div class="menu-item-name">Tartufo bianco</div></div>
+            <div class="menu-item-price">€5,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info"><div class="menu-item-name">Tartufo nero</div></div>
+            <div class="menu-item-price">€5,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info"><div class="menu-item-name">Croccante all’amarena</div></div>
+            <div class="menu-item-price">€6,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info"><div class="menu-item-name">Soufflé al cioccolato</div></div>
+            <div class="menu-item-price">€6,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info"><div class="menu-item-name">Meringa</div></div>
+            <div class="menu-item-price">€6,00</div>
+          </div>
+          <div class="menu-item-row">
+            <div class="menu-item-info"><div class="menu-item-name">Tiramisù</div></div>
+            <div class="menu-item-price">€6,00</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
