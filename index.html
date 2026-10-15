@@ -278,7 +278,37 @@
             <p id="booking-error-text" style="font-size:0.85rem;color:rgba(255,150,150,0.9);line-height:1.5;"></p>
           </div>
         </div>
-        <div class="checkout-section-title" data-i18n="checkout.yourData">I Tuoi Dati</div>
+        <!-- GROUP BOOKING TYPE SWITCHER (Shown for Lunch & Party) -->
+        <div id="booking-type-container" style="display:none; margin-bottom: 1.5rem;">
+          <label style="display:block; margin-bottom:0.5rem; font-size:0.75rem; font-weight:600; letter-spacing:0.1em; color:rgba(255,255,255,0.5);" data-i18n="checkout.bookingType">Tipo di Prenotazione</label>
+          <div class="booking-type-toggle">
+            <button type="button" class="booking-type-btn active" id="btn-type-single" onclick="setBookingType('single')">
+              <span>👤</span>
+              <span data-i18n="checkout.typeSingle">Singolo (1 persona)</span>
+            </button>
+            <button type="button" class="booking-type-btn" id="btn-type-group" onclick="setBookingType('group')">
+              <span>👥</span>
+              <span data-i18n="checkout.typeGroup">Gruppo (2-8 persone)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- GROUP SIZE CONTROLS (Shown when Group is selected) -->
+        <div id="group-size-container" style="display:none; margin-bottom: 1.5rem; background:rgba(255,107,0,0.06); border:1px solid rgba(255,107,0,0.25); border-radius:8px; padding:1rem 1.2rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <span style="font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:1.1rem; color:#fff; letter-spacing:0.04em;" data-i18n="checkout.groupSize">Persone nel Gruppo</span>
+              <p style="margin:2px 0 0; font-size:0.78rem; color:rgba(255,255,255,0.6);" data-i18n="checkout.groupNotice">Ogni partecipante riceverà il proprio biglietto via email.</p>
+            </div>
+            <div class="group-stepper">
+              <button type="button" class="group-step-btn" id="group-step-minus" onclick="adjustGroupSize(-1)">−</button>
+              <span id="group-size-display" class="group-size-value">2</span>
+              <button type="button" class="group-step-btn" id="group-step-plus" onclick="adjustGroupSize(1)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="checkout-section-title" id="checkout-section-main-title" data-i18n="checkout.yourData">I Tuoi Dati</div>
         <div class="form-row">
           <div class="form-group">
             <label for="input-nome" data-i18n="contact.firstName">Nome *</label>
@@ -325,6 +355,8 @@
             </svg>
           </a>
         </div>
+        <!-- DYNAMIC GUEST CARDS CONTAINER -->
+        <div id="group-guests-container" style="display:none; margin-top:1.2rem;"></div>
         <div class="form-group" style="display:none;">
           <label data-i18n="checkout.qty">Numero Biglietti *</label>
           <div class="qty-control"><input type="number" id="input-qty" value="1" min="1" max="1" readonly /></div>

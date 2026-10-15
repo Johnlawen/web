@@ -224,31 +224,173 @@ function closeRoundsModal() {
 
 let currentRoundName = '';
 
+function isGroupAllowedForRound(roundName) {
+  if (!roundName) return false;
+  const lower = roundName.toLowerCase();
+  return lower.includes('lunch') || lower.includes('pranzo');
+}
+
 function selectRoundAndCheckout(roundName, price) {
   currentRoundName = roundName;
   closeRoundsModal();
   openCheckoutModal(currentEventName + ' - ' + roundName, price);
 }
 
-// ===== CHECKOUT MODAL =====
+// ===== CHECKOUT MODAL & GROUP BOOKING =====
 let currentPrice = 10;
+let isGroupBooking = false;
+let groupSize = 2; // 2 to 8 people
+
+function setBookingType(type) {
+  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+  const singleBtn = document.getElementById('btn-type-single');
+  const groupBtn = document.getElementById('btn-type-group');
+  const sizeBox = document.getElementById('group-size-container');
+  const guestsBox = document.getElementById('group-guests-container');
+  const titleEl = document.getElementById('checkout-section-main-title');
+
+  if (type === 'group') {
+    isGroupBooking = true;
+    if (singleBtn) singleBtn.classList.remove('active');
+    if (groupBtn) groupBtn.classList.add('active');
+    if (sizeBox) sizeBox.style.display = 'block';
+    if (guestsBox) guestsBox.style.display = 'block';
+    if (titleEl) titleEl.textContent = isEn ? 'Group Leader (Main Contact)' : 'Capogruppo (Referente)';
+    renderGuestInputs();
+  } else {
+    isGroupBooking = false;
+    if (singleBtn) singleBtn.classList.add('active');
+    if (groupBtn) groupBtn.classList.remove('active');
+    if (sizeBox) sizeBox.style.display = 'none';
+    if (guestsBox) guestsBox.style.display = 'none';
+    if (titleEl) titleEl.textContent = isEn ? 'Your Details' : 'I Tuoi Dati';
+  }
+  updateModalTotalDisplay();
+}
+
+function adjustGroupSize(delta) {
+  let newSize = groupSize + delta;
+  if (newSize < 2) newSize = 2;
+  if (newSize > 8) newSize = 8;
+  groupSize = newSize;
+
+  const displayEl = document.getElementById('group-size-display');
+  if (displayEl) displayEl.textContent = groupSize;
+
+  const minusBtn = document.getElementById('group-step-minus');
+  const plusBtn = document.getElementById('group-step-plus');
+  if (minusBtn) minusBtn.disabled = (groupSize <= 2);
+  if (plusBtn) plusBtn.disabled = (groupSize >= 8);
+
+  renderGuestInputs();
+  updateModalTotalDisplay();
+}
+
+function renderGuestInputs() {
+  const container = document.getElementById('group-guests-container');
+  if (!container) return;
+
+  // Preserve existing field values across stepper clicks
+  const savedData = [];
+  for (let i = 2; i <= 8; i++) {
+    const nomeEl = document.getElementById(`input-guest-nome-${i}`);
+    const cognomeEl = document.getElementById(`input-guest-cognome-${i}`);
+    const emailEl = document.getElementById(`input-guest-email-${i}`);
+    const genderRadio = document.querySelector(`input[name="guest-gender-${i}"]:checked`);
+    if (nomeEl) {
+      savedData[i] = {
+        nome: nomeEl.value,
+        cognome: cognomeEl ? cognomeEl.value : '',
+        email: emailEl ? emailEl.value : '',
+        gender: genderRadio ? genderRadio.value : ''
+      };
+    }
+  }
+
+  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+  let html = '';
+
+  for (let i = 2; i <= groupSize; i++) {
+    const prev = savedData[i] || {};
+    const guestLabel = isEn ? `Guest ${i}` : `Ospite ${i}`;
+    html += `
+      <div class="guest-card" id="guest-card-${i}">
+        <div class="guest-card-header">
+          <span class="guest-card-title">
+            <span>👥</span> ${escapeHtml(guestLabel)}
+          </span>
+          <span style="font-size:0.75rem; color:#888;">#${i}</span>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>${isEn ? 'First Name *' : 'Nome *'}</label>
+            <input type="text" id="input-guest-nome-${i}" value="${escapeHtml(prev.nome || '')}" placeholder="${isEn ? 'First Name' : 'Nome'}" required />
+          </div>
+          <div class="form-group">
+            <label>${isEn ? 'Last Name *' : 'Cognome *'}</label>
+            <input type="text" id="input-guest-cognome-${i}" value="${escapeHtml(prev.cognome || '')}" placeholder="${isEn ? 'Last Name' : 'Cognome'}" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email * (${isEn ? 'receives personal ticket' : 'riceve biglietto personale'})</label>
+          <input type="email" id="input-guest-email-${i}" value="${escapeHtml(prev.email || '')}" placeholder="ospite${i}@gmail.com" required />
+        </div>
+        <div class="form-group">
+          <label>${isEn ? 'Gender *' : 'Sesso *'}</label>
+          <div style="display:flex;gap:1rem;margin-top:0.3rem;">
+            <label style="display:flex;align-items:center;gap:0.4rem;font-weight:normal;font-size:0.85rem;cursor:pointer;">
+              <input type="radio" name="guest-gender-${i}" value="Male" ${prev.gender === 'Male' ? 'checked' : ''} required> ${isEn ? 'Male' : 'Uomo'}
+            </label>
+            <label style="display:flex;align-items:center;gap:0.4rem;font-weight:normal;font-size:0.85rem;cursor:pointer;">
+              <input type="radio" name="guest-gender-${i}" value="Female" ${prev.gender === 'Female' ? 'checked' : ''} required> ${isEn ? 'Female' : 'Donna'}
+            </label>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  container.innerHTML = html;
+}
+
+function updateModalTotalDisplay() {
+  const count = isGroupBooking ? groupSize : 1;
+  const total = currentPrice * count;
+  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+  let totalStr = '';
+  if (currentPrice === 0) {
+    totalStr = isEn ? 'FREE' : 'GRATIS';
+  } else {
+    totalStr = isGroupBooking ? `€${total} (${count} × €${currentPrice})` : `€${total}`;
+  }
+  const totalEl = document.getElementById('modal-total');
+  if (totalEl) totalEl.textContent = totalStr;
+  const btnTotalText = document.getElementById('btn-total-text');
+  if (btnTotalText) btnTotalText.textContent = totalStr;
+}
 
 function openCheckoutModal(tier, price) {
   currentPrice = Number(price);
-  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
-  const priceDisplay = currentPrice === 0 ? (isEn ? 'FREE' : 'GRATIS') : '€' + currentPrice;
   const nameEl = document.getElementById('modal-event-name');
   if (nameEl) nameEl.textContent = tier.toUpperCase();
-  const totalEl = document.getElementById('modal-total');
-  if (totalEl) totalEl.textContent = priceDisplay;
-  const btnTotalText = document.getElementById('btn-total-text');
-  if (btnTotalText) btnTotalText.textContent = priceDisplay;
-  const qtyInput = document.getElementById('input-qty');
-  if (qtyInput) qtyInput.value = 1;
+
   const successEl = document.getElementById('modal-success');
   if (successEl) successEl.style.display = 'none';
   const formEl = document.getElementById('checkout-form');
   if (formEl) formEl.style.display = 'block';
+
+  // Check if Group Booking is allowed for this round (Lunch & Party)
+  const isAllowed = isGroupAllowedForRound(currentRoundName || tier);
+  const typeContainer = document.getElementById('booking-type-container');
+  if (typeContainer) {
+    typeContainer.style.display = isAllowed ? 'block' : 'none';
+  }
+
+  // Always reset to single booking on fresh open
+  groupSize = 2;
+  const displayEl = document.getElementById('group-size-display');
+  if (displayEl) displayEl.textContent = groupSize;
+  setBookingType('single');
+
   const overlay = document.getElementById('modal-overlay');
   if (overlay) overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -258,6 +400,7 @@ function closeModal() {
   document.getElementById('modal-overlay').classList.remove('open');
   document.body.style.overflow = '';
   document.getElementById('checkout-form').reset();
+  setBookingType('single');
   hideBookingError();
 }
 
@@ -281,7 +424,6 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
   const cognome = document.getElementById('input-cognome').value.trim();
   const email = document.getElementById('input-email').value.trim();
   const phone = document.getElementById('input-phone').value.trim();
-  const qty = 1; // Enforce single ticket
   
   const genderRadio = document.querySelector('input[name="gender"]:checked');
   const gender = genderRadio ? genderRadio.value : '';
@@ -307,33 +449,92 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
     showBookingError('Inserisci un numero di telefono valido.');
     return;
   }
+
+  const modalEventName = document.getElementById('modal-event-name').textContent;
+  const eventName = currentEventName || (modalEventName.includes(' - ') ? modalEventName.split(' - ')[0] : '-');
+  const roundName = currentRoundName || (modalEventName.includes(' - ') ? modalEventName.split(' - ').slice(1).join(' - ') : modalEventName || 'Ingresso');
+  const promoterRef = localStorage.getItem('promoter_ref') || '';
+
+  let requestBody = {};
+
+  if (isGroupBooking) {
+    // Collect and validate all guests
+    const guestList = [
+      { name: nome + ' ' + cognome, email: email, phone: phone, gender: gender, isLeader: true }
+    ];
+    const seenEmails = new Set([email.toLowerCase()]);
+
+    for (let i = 2; i <= groupSize; i++) {
+      const gNome = (document.getElementById(`input-guest-nome-${i}`)?.value || '').trim();
+      const gCognome = (document.getElementById(`input-guest-cognome-${i}`)?.value || '').trim();
+      const gEmail = (document.getElementById(`input-guest-email-${i}`)?.value || '').trim().toLowerCase();
+      const gGenderRadio = document.querySelector(`input[name="guest-gender-${i}"]:checked`);
+      const gGender = gGenderRadio ? gGenderRadio.value : '';
+
+      if (!gNome || !gCognome) {
+        showBookingError(`Nome e cognome obbligatori per l'ospite ${i}.`);
+        return;
+      }
+      if (!gEmail || !emailRegex.test(gEmail)) {
+        showBookingError(`Inserisci un'email valida per l'ospite ${i}.`);
+        return;
+      }
+      if (!gGender) {
+        showBookingError(`Seleziona il sesso per l'ospite ${i}.`);
+        return;
+      }
+      if (seenEmails.has(gEmail)) {
+        showBookingError(`L'email ${gEmail} è stata inserita più di una volta. Ogni partecipante deve avere un'email diversa per ricevere il proprio biglietto.`);
+        return;
+      }
+      seenEmails.add(gEmail);
+
+      guestList.push({
+        name: gNome + ' ' + gCognome,
+        email: gEmail,
+        phone: phone, // leader's contact phone as default
+        gender: gGender,
+        isLeader: false
+      });
+    }
+
+    requestBody = {
+      action: 'book',
+      isGroup: true,
+      event: eventName,
+      round: roundName,
+      promoter: promoterRef,
+      guests: guestList
+    };
+  } else {
+    // Single Booking
+    const bookingPayload = {
+      name: nome + ' ' + cognome,
+      email: email,
+      phone: phone,
+      gender: gender,
+      event: eventName,
+      round: roundName,
+      promoter: promoterRef
+    };
+
+    requestBody = {
+      action: 'book',
+      email: email,
+      order: bookingPayload
+    };
+  }
   
   const submitBtn = this.querySelector('button[type="submit"]');
   const originalText = submitBtn.textContent;
   submitBtn.textContent = 'ATTENDERE...';
   submitBtn.disabled = true;
 
-  const modalEventName = document.getElementById('modal-event-name').textContent;
-  const eventName = currentEventName || (modalEventName.includes(' - ') ? modalEventName.split(' - ')[0] : '-');
-  const roundName = currentRoundName || (modalEventName.includes(' - ') ? modalEventName.split(' - ').slice(1).join(' - ') : modalEventName || 'Ingresso');
-  
-  const promoterRef = localStorage.getItem('promoter_ref') || '';
-
-  const bookingPayload = {
-    name: nome + ' ' + cognome,
-    email: email,
-    phone: phone,
-    gender: gender,
-    event: eventName,
-    round: roundName,
-    promoter: promoterRef
-  };
-
   try {
     const res = await fetch('/api/save-order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'book', email: email, order: bookingPayload })
+      body: JSON.stringify(requestBody)
     });
     
     const data = await res.json();
@@ -345,7 +546,21 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
     }
     
     this.style.display = 'none';
-    document.getElementById('modal-success').style.display = 'block';
+    const successEl = document.getElementById('modal-success');
+    if (successEl) {
+      const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+      const msgP = successEl.querySelector('p:not(.success-sub)');
+      if (msgP && isGroupBooking) {
+        msgP.innerHTML = isEn 
+          ? `All <strong>${groupSize} tickets</strong> with individual QR Codes have been sent to each group member's email.<br />Show them at the door to pay and enter.<br />See you at Lucca Groove!`
+          : `Tutti i <strong>${groupSize} biglietti</strong> con QR Code personali sono stati inviati all'email di ciascun partecipante del gruppo.<br />Mostrateli alla porta per pagare ed entrare.<br />Ci vediamo a Lucca Groove!`;
+      } else if (msgP) {
+        msgP.innerHTML = isEn
+          ? 'Your booking code has been sent to your email. Show it at the door to pay and enter.<br />See you at Lucca Groove!'
+          : 'Il tuo codice di prenotazione è stato inviato alla tua email. Mostralo alla porta per pagare ed entrare.<br />Ci vediamo a Lucca Groove!';
+      }
+      successEl.style.display = 'block';
+    }
   } catch(err) {
     showBookingError('Errore di connessione. Riprova tra qualche secondo.');
     submitBtn.textContent = originalText;
@@ -385,6 +600,8 @@ window.changeQty = changeQty;
 window.openRoundsModal = openRoundsModal;
 window.closeRoundsModal = closeRoundsModal;
 window.selectRoundAndCheckout = selectRoundAndCheckout;
+window.setBookingType = setBookingType;
+window.adjustGroupSize = adjustGroupSize;
 
 // Render event cards to #events-track safely
 function renderEventCards(eventsList) {

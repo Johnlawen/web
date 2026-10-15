@@ -111,6 +111,7 @@
         <p>Evento: <strong id="t-event"></strong></p>
         <p id="t-location-row" style="display:none;">Luogo: <strong id="t-location"></strong></p>
         <p>Round: <strong id="t-round"></strong></p>
+        <p id="t-group-row" style="display:none;">Gruppo: <strong id="t-group" style="color:var(--orange);"></strong></p>
         <p>Quantità: <strong id="t-qty"></strong></p>
         <p id="t-total-row">Totale (da pagare): <strong>€<span id="t-total"></span></strong></p>
         <p>ID Ordine: <span style="font-family:monospace; color:#aaa;" id="t-id"></span></p>
@@ -163,6 +164,13 @@
             }
 
             document.getElementById('t-round').textContent = order.round;
+
+            if (order.groupId) {
+              const leaderInfo = order.groupLeader ? ` (${order.groupLeader})` : '';
+              document.getElementById('t-group').textContent = `${order.groupId} [${order.groupIndex || '?'}/${order.groupSize || '?'}]${leaderInfo}`;
+              document.getElementById('t-group-row').style.display = 'block';
+            }
+
             document.getElementById('t-qty').textContent = order.qty;
             
             const isFree = Number(order.total) === 0;

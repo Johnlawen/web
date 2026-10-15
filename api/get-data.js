@@ -105,7 +105,11 @@ module.exports = async function handler(req, res) {
             total: order.total,
             status: order.status,
             payment: order.payment,
-            used: order.used
+            used: order.used,
+            groupId: order.groupId || null,
+            groupLeader: order.groupLeader || null,
+            groupSize: order.groupSize || null,
+            groupIndex: order.groupIndex || null
           }];
         }
       }

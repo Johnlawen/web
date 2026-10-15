@@ -426,3 +426,111 @@ img { display: block; }
   letter-spacing: 0.04em;
 }
 
+/* ===== GROUP BOOKING STYLES ===== */
+.booking-type-toggle {
+  display: flex;
+  background: #0a0a0a;
+  border: 1px solid rgba(255,107,0,0.25);
+  border-radius: 8px;
+  padding: 4px;
+  gap: 4px;
+}
+.booking-type-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.65rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.22s ease;
+}
+.booking-type-btn:hover:not(.active) {
+  color: #fff;
+  background: rgba(255,255,255,0.05);
+}
+.booking-type-btn.active {
+  background: var(--orange);
+  color: #000;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(255,107,0,0.3);
+}
+.group-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.group-step-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  background: rgba(255,107,0,0.12);
+  border: 1px solid rgba(255,107,0,0.4);
+  color: var(--orange);
+  font-size: 1.2rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.group-step-btn:hover {
+  background: var(--orange);
+  color: #000;
+  transform: scale(1.05);
+}
+.group-step-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: none;
+}
+.group-size-value {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--orange);
+  min-width: 28px;
+  text-align: center;
+}
+.guest-card {
+  background: #141414;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-left: 3px solid var(--orange);
+  border-radius: 8px;
+  padding: 1.1rem;
+  margin-bottom: 1rem;
+  animation: guestCardIn 0.3s ease;
+}
+@keyframes guestCardIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.guest-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.guest-card-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--orange);
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+

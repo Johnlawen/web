@@ -51,6 +51,7 @@ let currentPage = 1;
 const itemsPerPage = 20;
 let searchQuery = '';
 let eventFilter = '';
+let typeFilter = '';
 
 // Add event listeners for search and filter
 document.addEventListener('DOMContentLoaded', () => {
@@ -68,6 +69,15 @@ document.addEventListener('DOMContentLoaded', () => {
     filterSelect.addEventListener('change', (e) => {
       eventFilter = e.target.value;
       currentPage = 1; // Reset to page 1 on filter
+      renderAllOrders();
+    });
+  }
+
+  const typeSelect = document.getElementById('order-type-filter');
+  if (typeSelect) {
+    typeSelect.addEventListener('change', (e) => {
+      typeFilter = e.target.value;
+      currentPage = 1; // Reset to page 1 on type filter
       renderAllOrders();
     });
   }
@@ -613,11 +623,17 @@ function renderAllOrders() {
     const matchesSearch = !searchQuery || 
       (o.name && o.name.toLowerCase().includes(searchQuery)) ||
       (o.email && o.email.toLowerCase().includes(searchQuery)) ||
-      (o.id && o.id.toLowerCase().includes(searchQuery));
+      (o.id && o.id.toLowerCase().includes(searchQuery)) ||
+      (o.groupId && o.groupId.toLowerCase().includes(searchQuery)) ||
+      (o.groupLeader && o.groupLeader.toLowerCase().includes(searchQuery));
     
     const matchesEvent = !eventFilter || o.event === eventFilter;
+
+    const matchesType = !typeFilter ||
+      (typeFilter === 'group' && Boolean(o.groupId)) ||
+      (typeFilter === 'single' && !o.groupId);
     
-    return matchesSearch && matchesEvent;
+    return matchesSearch && matchesEvent && matchesType;
   });
 
   // 2. Pagination
@@ -636,7 +652,7 @@ function renderAllOrders() {
   tbodyAll.innerHTML = '';
   
   if (pageOrders.length === 0) {
-    tbodyAll.innerHTML = '<tr><td colspan="9" style="text-align:center; color:#aaa; padding:20px;">Nessun ordine trovato</td></tr>';
+    tbodyAll.innerHTML = '<tr><td colspan="11" style="text-align:center; color:#aaa; padding:20px;">Nessun ordine trovato</td></tr>';
     return;
   }
 
@@ -647,12 +663,38 @@ function renderAllOrders() {
     } else if (o.status === 'Rimborsato') {
       statusBadge = '<br/><span class="badge" style="background:rgba(244,67,54,0.15);color:#f44336;border:1px solid #f44336;margin-top:4px;">Rimborsato</span>';
     }
+
+    let groupBadge = '';
+    if (o.groupId) {
+      const isLeader = o.name === o.groupLeader || o.groupIndex === 1;
+      groupBadge = `
+        <div style="margin-top:5px;">
+          <button type="button" onclick="openGroupModal('${escapeHTML(o.groupId)}')" style="display:inline-flex; align-items:center; gap:4px; background:rgba(255,107,0,0.12); border:1px solid rgba(255,107,0,0.4); color:var(--orange); border-radius:12px; padding:2px 8px; font-size:0.72rem; font-family:'Barlow Condensed',sans-serif; font-weight:800; cursor:pointer;" title="Visualizza dettagli gruppo">
+            👥 ${escapeHTML(o.groupId)} (${o.groupIndex || '?'}/${o.groupSize || '?'}) ${isLeader ? '⭐ Capogruppo' : ''}
+          </button>
+        </div>
+      `;
+    }
+
+    let actionsHtml = `<button class="btn btn-ghost btn-sm" style="color:#ff4444; border-color:#ff4444;" onclick="deleteOrder('${escapeHTML(o.id)}')">Elimina</button>`;
+    if (o.groupId) {
+      actionsHtml = `
+        <div style="display:flex; gap:4px; flex-wrap:wrap;">
+          <button class="btn btn-ghost btn-sm" style="color:var(--orange); border-color:var(--orange);" onclick="openGroupModal('${escapeHTML(o.groupId)}')">Gruppo</button>
+          <button class="btn btn-ghost btn-sm" style="color:#ff4444; border-color:#ff4444;" onclick="deleteOrder('${escapeHTML(o.id)}')">Elimina</button>
+        </div>
+      `;
+    }
     
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td data-label="ID" style="font-size:0.8rem;color:var(--text-muted)">${escapeHTML(o.id)}</td>
       <td data-label="Data">${escapeHTML(o.date)}</td>
-      <td data-label="Utente"><strong>${escapeHTML(o.name)}</strong><br/><span style="font-size:0.7rem;color:var(--text-muted)">${escapeHTML(o.email || '-')}</span></td>
+      <td data-label="Utente">
+        <strong>${escapeHTML(o.name)}</strong>
+        <br/><span style="font-size:0.7rem;color:var(--text-muted)">${escapeHTML(o.email || '-')}</span>
+        ${groupBadge}
+      </td>
       <td data-label="Evento"><strong>${escapeHTML(o.event || '-')}</strong></td>
       <td data-label="Pagamento"><span class="badge ${o.payment === 'Contanti' ? 'badge-active' : ''}">${escapeHTML(o.payment)}</span>${statusBadge}</td>
       <td data-label="Promoter">${escapeHTML(o.promoter || '-')}</td>
@@ -660,13 +702,97 @@ function renderAllOrders() {
       <td data-label="Qtà">${Number(o.qty) || 0}</td>
       <td data-label="Ingressi">${Number(o.used) || 0} / ${Number(o.qty) || 0}</td>
       <td data-label="Totale" style="color:var(--orange);font-weight:600">€${Number(o.total) || 0}</td>
-      <td data-label="Azioni">
-        <button class="btn btn-ghost btn-sm" style="color:#ff4444; border-color:#ff4444;" onclick="deleteOrder('${escapeHTML(o.id)}')">Elimina</button>
-      </td>
+      <td data-label="Azioni">${actionsHtml}</td>
     `;
     tbodyAll.appendChild(tr);
   });
 }
+
+// ===== GROUP MODAL =====
+let currentViewingGroupId = null;
+
+function openGroupModal(groupId) {
+  currentViewingGroupId = groupId;
+  const overlay = document.getElementById('group-modal-overlay');
+  if (!overlay) return;
+
+  const groupOrders = (appData.orders || []).filter(o => o.groupId === groupId);
+  if (groupOrders.length === 0) {
+    showToast('Nessun ordine trovato per questo gruppo.');
+    return;
+  }
+
+  const leader = groupOrders.find(o => o.groupIndex === 1 || o.name === o.groupLeader) || groupOrders[0];
+  const leaderName = leader.groupLeader || leader.name;
+  const eventName = leader.event || '-';
+  const roundName = leader.round || '-';
+
+  document.getElementById('group-modal-title').textContent = `Gruppo ${groupId} (${groupOrders.length} partecipanti)`;
+  document.getElementById('group-modal-sub').innerHTML = `
+    <strong>Capogruppo:</strong> ${escapeHTML(leaderName)} ${leader.phone ? `(${escapeHTML(leader.phone)})` : ''} • 
+    <strong>Evento:</strong> ${escapeHTML(eventName)} (${escapeHTML(roundName)})
+  `;
+
+  const tbody = document.getElementById('group-modal-tbody');
+  tbody.innerHTML = '';
+
+  const sortedOrders = [...groupOrders].sort((a, b) => (a.groupIndex || 0) - (b.groupIndex || 0));
+
+  sortedOrders.forEach((m, idx) => {
+    const isLeader = m.name === leaderName || m.groupIndex === 1;
+    const isUsed = Number(m.used) >= 1;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${idx + 1}</strong></td>
+      <td>
+        <strong>${escapeHTML(m.name)}</strong> ${isLeader ? '<span style="color:var(--orange);font-size:0.75rem;">(Capogruppo)</span>' : ''}
+      </td>
+      <td style="color:#aaa; font-size:0.85rem;">${escapeHTML(m.email)}</td>
+      <td>${escapeHTML(m.gender || '-')}</td>
+      <td>
+        <span class="badge ${isUsed ? 'badge-active' : ''}">${isUsed ? 'Entrato (1/1)' : 'Non entrato (0/1)'}</span>
+      </td>
+      <td><code style="color:var(--orange); font-size:0.8rem;">${escapeHTML(m.id)}</code></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  overlay.style.display = 'flex';
+}
+
+function closeGroupModal() {
+  const overlay = document.getElementById('group-modal-overlay');
+  if (overlay) overlay.style.display = 'none';
+  currentViewingGroupId = null;
+}
+
+async function deleteCurrentGroup() {
+  if (!currentViewingGroupId) return;
+  if (!confirm(`Sei sicuro di voler eliminare TUTTI i biglietti del gruppo ${currentViewingGroupId}? L'azione è irreversibile.`)) return;
+
+  try {
+    const res = await fetch('/api/save-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete-group', groupId: currentViewingGroupId })
+    });
+    const data = await res.json();
+    if (data.success) {
+      appData = data.data;
+      closeGroupModal();
+      renderDashboard();
+      showToast('✅ Gruppo eliminato con successo!');
+    } else {
+      showToast('❌ Errore: ' + data.error);
+    }
+  } catch (err) {
+    showToast('❌ Errore di connessione.');
+  }
+}
+
+window.openGroupModal = openGroupModal;
+window.closeGroupModal = closeGroupModal;
+window.deleteCurrentGroup = deleteCurrentGroup;
 
 async function deleteOrder(orderId) {
   if (!confirm(`Sei sicuro di voler eliminare definitivamente l'ordine ${orderId}? L'azione è irreversibile.`)) return;

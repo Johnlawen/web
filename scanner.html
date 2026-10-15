@@ -298,6 +298,9 @@
           const order = data.order;
           const isFree = Number(order.total) === 0;
           const isUnpaid = !isFree && (order.status === 'Da Pagare' || order.status === 'To Pay' || order.payment === 'Da Pagare' || order.payment === 'To Pay' || order.payment === 'To Be Paid' || order.status === 'To Be Paid');
+          const groupLine = order.groupId 
+            ? `<span style="color:var(--orange);font-weight:bold;">👥 Gruppo: ${escapeHTML(order.groupId)} (${order.groupIndex || '?'}/${order.groupSize || '?'})</span><br/><strong>Capogruppo:</strong> ${escapeHTML(order.groupLeader || '-')}<br/>` 
+            : '';
           
           if (isUnpaid) {
             scanResult.style.backgroundColor = 'rgba(255, 170, 0, 0.15)';
@@ -308,6 +311,7 @@
               <strong>DA RISCUOTERE:</strong> <span style="color:#ffaa00; font-size:1.5rem; font-weight:bold;">€${Number(order.total) || 0}</span><br/><br/>
               <strong>Ordine:</strong> ${escapeHTML(order.id)}<br/>
               <strong>Nome:</strong> ${escapeHTML(order.name)}<br/>
+              ${groupLine}
               <strong>Tipo:</strong> ${escapeHTML(order.round)}<br/>
               <strong>Rimanenti:</strong> ${order.qty - order.used} di ${order.qty}
             `;
@@ -320,6 +324,7 @@
               ${isFree ? '<span style="color:#44ff44; font-weight:bold; font-size:1.1rem;">INGRESSO GRATUITO</span><br/><br/>' : ''}
               <strong>Ordine:</strong> ${escapeHTML(order.id)}<br/>
               <strong>Nome:</strong> ${escapeHTML(order.name)}<br/>
+              ${groupLine}
               <strong>Tipo:</strong> ${escapeHTML(order.round)}<br/>
               <strong>Rimanenti:</strong> ${order.qty - order.used} di ${order.qty}
             `;

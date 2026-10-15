@@ -35,7 +35,7 @@ module.exports = async function handler(req, res) {
 
     const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'johnl';
     const isAdmin = Boolean(req.headers['x-admin-token'] && req.headers['x-admin-token'] === ADMIN_TOKEN);
-    const adminActions = ['verify-token', 'repair-stats', 'reset-orders', 'delete-event', 'settings', 'archive-event', 'mark-paid', 'manual', 'scan', 'delete-order'];
+    const adminActions = ['verify-token', 'repair-stats', 'reset-orders', 'delete-event', 'settings', 'archive-event', 'mark-paid', 'manual', 'scan', 'delete-order', 'delete-group'];
 
     if (adminActions.includes(action) && !isAdmin) {
       return res.status(401).json({ error: 'Unauthorized: Invalid Admin Token' });
@@ -144,6 +144,41 @@ module.exports = async function handler(req, res) {
       // Also remove any refund requests for this order
       if (data.refundRequests) {
         data.refundRequests = data.refundRequests.filter(r => r.orderId !== orderId);
+      }
+      
+      await redis.set('luccaAdminData', JSON.stringify(data));
+      return res.status(200).json({ success: true, data });
+    }
+
+    // Delete Group (Admin)
+    if (action === 'delete-group') {
+      const groupId = req.body.groupId;
+      if (!groupId) return res.status(400).json({ error: 'Missing groupId' });
+      
+      const groupOrders = (data.orders || []).filter(o => o.groupId === groupId);
+      if (groupOrders.length === 0) return res.status(404).json({ error: 'Gruppo non trovato' });
+      
+      groupOrders.forEach(order => {
+        const isPaid = order.payment === 'Pagato' || order.status === 'Pagato';
+        if (isPaid) {
+          data.revenue = Math.max(0, data.revenue - (order.total || 0));
+        }
+        data.ticketsSold = Math.max(0, data.ticketsSold - (order.qty || 1));
+        
+        const roundName = order.round;
+        for (const key in data.rounds) {
+          if (data.rounds[key].name.toLowerCase() === (roundName || '').toLowerCase()) {
+            data.rounds[key].sold = Math.max(0, data.rounds[key].sold - (order.qty || 1));
+            break;
+          }
+        }
+      });
+      
+      const deletedIds = groupOrders.map(o => o.id);
+      data.orders = data.orders.filter(o => o.groupId !== groupId);
+      
+      if (data.refundRequests) {
+        data.refundRequests = data.refundRequests.filter(r => !deletedIds.includes(r.orderId));
       }
       
       await redis.set('luccaAdminData', JSON.stringify(data));
@@ -302,8 +337,214 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ success: true, data });
     }
 
-    // Normal customer booking
+    // Customer booking (Single or Group)
     if (action === 'book') {
+      const isGroup = Boolean(req.body.isGroup);
+
+      if (isGroup) {
+        const guests = Array.isArray(req.body.guests) ? req.body.guests : [];
+        if (guests.length < 2 || guests.length > 8) {
+          return res.status(400).json({ error: 'Il gruppo deve contenere tra 2 e 8 persone.' });
+        }
+
+        const requestedEvent = (req.body.event || (order && order.event) || '').trim();
+        const activeEvents = data.events || [];
+        const matchedEvent = activeEvents.find(e => e.name.toLowerCase() === requestedEvent.toLowerCase());
+        if (!matchedEvent) {
+          return res.status(400).json({ error: 'Evento non valido o non trovato.' });
+        }
+        if (!matchedEvent.active) {
+          return res.status(400).json({ error: 'Questo evento non è attualmente attivo.' });
+        }
+
+        // Verify Round and Price strictly on server side
+        const requestedRound = (req.body.round || (order && order.round) || '').trim();
+        let matchedRoundKey = null;
+        let matchedRound = null;
+        for (const [key, r] of Object.entries(data.rounds || {})) {
+          if (r.name.toLowerCase() === requestedRound.toLowerCase()) {
+            matchedRoundKey = key;
+            matchedRound = r;
+            break;
+          }
+        }
+
+        if (!matchedRound) {
+          return res.status(400).json({ error: 'Round biglietti non valido.' });
+        }
+
+        if (!matchedRound.active) {
+          return res.status(400).json({ error: 'Questo round di biglietti non è attualmente disponibile.' });
+        }
+
+        const currentSold = Number(matchedRound.sold) || 0;
+        const roundLimit = Number(matchedRound.limit) || 0;
+        const remainingSpots = Math.max(0, roundLimit - currentSold);
+        if (currentSold + guests.length > roundLimit) {
+          return res.status(400).json({ error: `Non ci sono abbastanza biglietti disponibili. Rimasti solo ${remainingSpots} posti.` });
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const seenEmails = new Set();
+        const cleanedGuests = [];
+
+        for (let i = 0; i < guests.length; i++) {
+          const g = guests[i];
+          const gName = (g.name || '').trim();
+          if (!gName || gName.length < 2) {
+            return res.status(400).json({ error: `Nome e cognome obbligatori per il partecipante ${i + 1}.` });
+          }
+          const gEmail = (g.email || '').trim().toLowerCase();
+          if (!gEmail || !emailRegex.test(gEmail)) {
+            return res.status(400).json({ error: `Email non valida per ${gName}.` });
+          }
+          if (seenEmails.has(gEmail)) {
+            return res.status(400).json({ error: `L'email ${gEmail} è inserita più volte nel gruppo. Ogni partecipante deve avere un'email univoca.` });
+          }
+          seenEmails.add(gEmail);
+
+          // Check if already booked for this event
+          const existingOrder = (data.orders || []).find(o => 
+            o.email && 
+            o.email.toLowerCase() === gEmail &&
+            (o.event || '').toLowerCase() === matchedEvent.name.toLowerCase() &&
+            o.status !== 'Rimborsato'
+          );
+          if (existingOrder) {
+            return res.status(400).json({ error: `Il partecipante con email ${gEmail} ha già una prenotazione per questo evento.` });
+          }
+
+          const rawGender = (g.gender || '').trim();
+          const safeGender = rawGender === 'Uomo' ? 'Male' : (rawGender === 'Donna' ? 'Female' : (rawGender.slice(0, 20) || 'Not Specified'));
+          const safePhone = (g.phone || guests[0].phone || '').trim().replace(/<[^>]*>/g, '').slice(0, 30);
+
+          cleanedGuests.push({
+            name: gName.replace(/<[^>]*>/g, '').trim().slice(0, 100),
+            email: gEmail,
+            phone: safePhone,
+            gender: safeGender,
+            isLeader: Boolean(g.isLeader || i === 0)
+          });
+        }
+
+        const officialPrice = Number(matchedRound.price);
+        if (isNaN(officialPrice) || officialPrice < 0) {
+          return res.status(500).json({ error: 'Errore nella configurazione del prezzo del biglietto.' });
+        }
+
+        const crypto = require('crypto');
+        const secureGroupId = 'GRP-' + crypto.randomBytes(3).toString('hex').toUpperCase();
+        const leader = cleanedGuests.find(g => g.isLeader) || cleanedGuests[0];
+        const safePromoter = (req.body.promoter || (order && order.promoter) || '').replace(/<[^>]*>/g, '').trim().slice(0, 50);
+
+        if (!data.subscribers) data.subscribers = [];
+        const createdOrders = [];
+
+        cleanedGuests.forEach((cg, idx) => {
+          const secureOrderId = 'RES-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+          const verifiedGuestOrder = {
+            id: secureOrderId,
+            date: new Date().toLocaleDateString('it-IT'),
+            name: cg.name,
+            email: cg.email,
+            phone: cg.phone,
+            gender: cg.gender,
+            event: matchedEvent.name,
+            round: matchedRound.name,
+            qty: 1,
+            total: officialPrice,
+            payment: 'Da Pagare',
+            status: 'Da Pagare',
+            used: 0,
+            promoter: safePromoter,
+            groupId: secureGroupId,
+            groupLeader: leader.name,
+            groupSize: cleanedGuests.length,
+            groupIndex: idx + 1,
+            isGroup: true
+          };
+
+          data.orders.unshift(verifiedGuestOrder);
+          createdOrders.push(verifiedGuestOrder);
+
+          // Upsert subscriber
+          const subIdx = data.subscribers.findIndex(s => s.email.toLowerCase() === cg.email);
+          if (subIdx === -1) {
+            data.subscribers.push({
+              name: cg.name,
+              email: cg.email,
+              phone: cg.phone,
+              date: verifiedGuestOrder.date
+            });
+          } else {
+            data.subscribers[subIdx].name = cg.name;
+            if (cg.phone) data.subscribers[subIdx].phone = cg.phone;
+          }
+        });
+
+        data.ticketsSold = (data.ticketsSold || 0) + cleanedGuests.length;
+        data.rounds[matchedRoundKey].sold = currentSold + cleanedGuests.length;
+
+        await redis.set('luccaAdminData', JSON.stringify(data));
+
+        // Send Email to EACH group member with Resend
+        if (process.env.RESEND_API_KEY) {
+          try {
+            const { Resend } = require('resend');
+            const resend = new Resend(process.env.RESEND_API_KEY);
+
+            for (const go of createdOrders) {
+              const refundUrl = `https://luccagroove.com/refund-ticket?orderId=${go.id}`;
+              await resend.emails.send({
+                from: 'Lucca Groove <noreply@luccagroove.com>',
+                to: go.email,
+                subject: `Il tuo biglietto per Lucca Groove – ${go.round} (Gruppo ${secureGroupId})`,
+                html: `
+                  <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#000;color:#fff;padding:20px;border-radius:8px;">
+                    <h1 style="color:#FF6B00;text-align:center;letter-spacing:0.1em;font-size:2rem;margin-bottom:4px;">LUCCA GROOVE</h1>
+                    <p style="text-align:center;color:#888;font-size:0.8rem;letter-spacing:0.2em;margin-bottom:24px;">LUCCA, ITALIA</p>
+                    
+                    <div style="background:#111;padding:24px;border-radius:12px;border:1px solid #333;">
+                      <div style="display:inline-block;background:rgba(255,107,0,0.15);border:1px solid #FF6B00;color:#FF6B00;padding:4px 12px;border-radius:20px;font-size:0.85rem;font-weight:bold;margin-bottom:12px;">
+                        👥 PRENOTAZIONE DI GRUPPO (${go.groupIndex}/${go.groupSize})
+                      </div>
+                      <h2 style="margin-top:0;color:#fff;font-size:1.2rem;">✅ Biglietto Confermato</h2>
+                      <p style="color:#eee;">Ciao <strong>${go.name}</strong>, fai parte del gruppo di <strong>${go.groupLeader}</strong> (${go.groupSize} persone). Il tuo biglietto personale è pronto!</p>
+                      
+                      <div style="margin:20px 0;padding:16px;border-left:4px solid #FF6B00;background:#1a1a1a;border-radius:0 8px 8px 0;">
+                        <p style="margin:4px 0;color:#eee;font-size:0.95rem;"><strong>Evento:</strong> ${go.event} - ${go.round}</p>
+                        <p style="margin:4px 0;color:#eee;font-size:0.95rem;"><strong>ID Ordine Personale:</strong> <span style="color:#FF6B00;font-family:monospace;">${go.id}</span></p>
+                        <p style="margin:4px 0;color:#eee;font-size:0.95rem;"><strong>Codice Gruppo:</strong> <span style="color:#FF6B00;font-family:monospace;">${go.groupId}</span></p>
+                        <p style="margin:4px 0;color:#eee;font-size:0.95rem;"><strong>Intestatario Biglietto:</strong> ${go.name}</p>
+                        <p style="margin:4px 0;color:#eee;font-size:0.95rem;"><strong>${go.total === 0 ? 'Ingresso:' : 'Da pagare all\'ingresso:'}</strong> <strong style="color:${go.total === 0 ? '#4CAF50' : '#FF6B00'};">${go.total === 0 ? 'GRATUITO (€0)' : '€' + go.total}</strong></p>
+                      </div>
+
+                      <!-- TICKET LINK -->
+                      <div style="text-align:center;margin:32px 0;">
+                        <a href="https://luccagroove.com/ticket.html?id=${go.id}" style="display:inline-block;padding:14px 28px;background:#FF6B00;color:#000;font-weight:bold;text-decoration:none;border-radius:8px;font-size:1.1rem;letter-spacing:1px;text-transform:uppercase;">🎫 Visualizza & Scarica PDF</a>
+                        <p style="color:#888;font-size:0.85rem;margin-top:16px;">Mostra questo QR Code personale all'ingresso per entrare.</p>
+                      </div>
+
+                      <hr style="border-color:#333;margin:20px 0;" />
+                      <p style="color:#aaa;font-size:0.8rem;line-height:1.6;">Hai ricevuto questo biglietto perché sei stato incluso nella prenotazione di gruppo per Lucca Groove.</p>
+                      <p style="color:#777;font-size:0.8rem;margin-top:12px;">Non puoi venire? Richiedi rimborso entro 48 ore:</p>
+                      <a href="${refundUrl}" style="display:inline-block;margin-top:8px;padding:10px 20px;background:#222;color:#fff;border-radius:6px;text-decoration:none;font-size:0.85rem;border:1px solid #444;">🔄 Richiedi Rimborso</a>
+                    </div>
+                    
+                    <p style="text-align:center;color:#555;font-size:0.75rem;margin-top:20px;">© 2025 Lucca Groove · <a href="https://www.instagram.com/lucca_groove/" style="color:#FF6B00;">@lucca_groove</a></p>
+                  </div>
+                `
+              }).catch(err => console.error(`Error sending email to ${go.email}:`, err));
+            }
+          } catch (e) {
+            console.error('Failed to send group emails:', e);
+          }
+        }
+
+        return res.status(200).json({ success: true, isGroup: true, groupId: secureGroupId, count: createdOrders.length });
+      }
+
+      // Single Customer Booking
       if (!order || typeof order !== 'object') {
         return res.status(400).json({ error: 'Dati ordine mancanti o non validi.' });
       }
