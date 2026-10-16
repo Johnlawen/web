@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR Code – Lucca Groove</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0c;
+      --card-bg: #141418;
+      --accent: #FF6B00;
+      --text: #ffffff;
+      --text-muted: #8e8e96;
+      --border: rgba(255, 255, 255, 0.1);
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Barlow', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      background-image: 
+        radial-gradient(ellipse at 50% 0%, rgba(255, 107, 0, 0.15) 0%, transparent 60%),
+        radial-gradient(circle at 100% 100%, rgba(255, 107, 0, 0.05) 0%, transparent 40%);
+    }
+    .container {
+      max-width: 540px;
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 36px 28px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 107, 0, 0.15);
+      border: 1px solid rgba(255, 107, 0, 0.3);
+      color: var(--accent);
+      padding: 6px 14px;
+      border-radius: 100px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+    h1 span {
+      color: var(--accent);
+    }
+    .url-chip {
+      display: inline-block;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 24px;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .url-chip:hover {
+      color: var(--accent);
+    }
+    .variant-selector {
+      display: flex;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 4px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      gap: 4px;
+      border: 1px solid var(--border);
+    }
+    .variant-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.05em;
+    }
+    .variant-btn.active {
+      background: var(--accent);
+      color: #000;
+    }
+    .qr-frame {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 18px;
+      margin: 0 auto 24px;
+      width: 280px;
+      height: 280px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      transition: background 0.3s ease;
+    }
+    .qr-frame.dark-bg {
+      background: #0d0d0d;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .qr-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+    .actions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 1.05rem;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.15s ease, background 0.2s ease;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+    .info-footer {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .info-footer strong {
+      color: #fff;
+    }
+    @media print {
+      body {
+        background: #fff;
+        color: #000;
+        padding: 0;
+      }
+      .container {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        max-width: 100%;
+      }
+      .variant-selector, .actions-grid, .url-chip {
+        display: none !important;
+      }
+      .qr-frame {
+        box-shadow: none;
+        border: none;
+        width: 350px;
+        height: 350px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header-badge">✦ Official QR Code</div>
+    <h1>Lucca <span>Groove</span></h1>
+    <a href="https://luccagroove.com" target="_blank" class="url-chip">https://luccagroove.com ↗</a>
+
+    <div class="variant-selector">
+      <button class="variant-btn active" onclick="switchVariant('standard')">Stampa (B&W)</button>
+      <button class="variant-btn" onclick="switchVariant('brand')">Groove Orange</button>
+      <button class="variant-btn" onclick="switchVariant('white')">Invertito (White)</button>
+    </div>
+
+    <div class="qr-frame" id="qrFrame">
+      <img id="qrImage" src="qr-code-standard.png" alt="QR Code Lucca Groove" />
+    </div>
+
+    <div class="actions-grid">
+      <a id="downloadPng" href="qr-code-standard.png" download="luccagroove-qr.png" class="btn btn-primary">
+        ⬇ Scarica PNG
+      </a>
+      <a id="downloadSvg" href="qr-code-standard.svg" download="luccagroove-qr.svg" class="btn btn-secondary">
+        ⬇ Scarica SVG
+      </a>
+    </div>
+
+    <div class="info-footer">
+      Risoluzione HD <strong>1200×1200px</strong> (PNG) + <strong>Vettoriale</strong> (SVG).<br>
+      Livello correzione d'errore: <strong>High (H - 30%)</strong>, ideale per flyer, poster, social e stampe.
+    </div>
+  </div>
+
+  <script>
+    const variants = {
+      standard: {
+        png: 'qr-code-standard.png',
+        svg: 'qr-code-standard.svg',
+        darkBg: false
+      },
+      brand: {
+        png: 'qr-code-brand.png',
+        svg: 'qr-code-brand.svg',
+        darkBg: true
+      },
+      white: {
+        png: 'qr-code-white-on-dark.png',
+        svg: 'qr-code-standard.svg',
+        darkBg: true
+      }
+    };
+
+    function switchVariant(key) {
+      document.querySelectorAll('.variant-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      const v = variants[key];
+      const img = document.getElementById('qrImage');
+      const frame = document.getElementById('qrFrame');
+      const dlPng = document.getElementById('downloadPng');
+      const dlSvg = document.getElementById('downloadSvg');
+
+      img.src = v.png;
+      dlPng.href = v.png;
+      dlSvg.href = v.svg;
+      dlPng.download = `luccagroove-qr-${key}.png`;
+      dlSvg.download = `luccagroove-qr-${key}.svg`;
+
+      if (v.darkBg) {
+        frame.classList.add('dark-bg');
+      } else {
+        frame.classList.remove('dark-bg');
+      }
+    }
+  </script>
+</body>
+</html>

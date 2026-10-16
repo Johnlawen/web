@@ -2,6 +2,7 @@
   "rewrites": [
     { "source": "/refund-ticket", "destination": "/refund-ticket.html" },
     { "source": "/secure-admin", "destination": "/secure-admin.html" },
-    { "source": "/scanner", "destination": "/scanner.html" }
+    { "source": "/scanner", "destination": "/scanner.html" },
+    { "source": "/qr", "destination": "/qr-code.html" }
   ]
 }
