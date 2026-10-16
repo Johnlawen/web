@@ -3,6 +3,8 @@
     { "source": "/refund-ticket", "destination": "/refund-ticket.html" },
     { "source": "/secure-admin", "destination": "/secure-admin.html" },
     { "source": "/scanner", "destination": "/scanner.html" },
-    { "source": "/qr", "destination": "/qr-code.html" }
+    { "source": "/qr", "destination": "/qr-code.html" },
+    { "source": "/go", "destination": "/index.html?ref=qr" },
+    { "source": "/scan", "destination": "/index.html?ref=qr" }
   ]
 }

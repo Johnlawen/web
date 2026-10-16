@@ -1,11 +1,46 @@
-// ===== REFERRAL TRACKING =====
+// ===== REFERRAL & VISIT TRACKING =====
 const urlParams = new URLSearchParams(window.location.search);
-const refParam = urlParams.get('ref');
-if (refParam) {
+const refParam = urlParams.get('ref') || urlParams.get('src');
+const isQR = (refParam && refParam.toLowerCase() === 'qr') || urlParams.get('utm_source') === 'qr';
+
+if (isQR) {
+  localStorage.setItem('promoter_ref', 'QR CODE');
+} else if (refParam) {
   localStorage.setItem('promoter_ref', refParam.toUpperCase());
 } else if (!localStorage.getItem('promoter_ref')) {
   localStorage.setItem('promoter_ref', 'LUCCA GROOVE IG');
 }
+
+// Track visits deduplicated per session
+(function trackAnalytics() {
+  try {
+    const hasVisited = sessionStorage.getItem('lg_visited_session');
+    const hasTrackedQR = sessionStorage.getItem('lg_qr_tracked');
+
+    // Count new session or freshly scanned QR
+    const shouldTrackSession = !hasVisited;
+    const shouldTrackQR = isQR && !hasTrackedQR;
+
+    if (shouldTrackSession || shouldTrackQR) {
+      if (shouldTrackSession) sessionStorage.setItem('lg_visited_session', '1');
+      if (isQR) sessionStorage.setItem('lg_qr_tracked', '1');
+
+      const payload = JSON.stringify({ isQR: Boolean(isQR) });
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon('/api/track-visit', new Blob([payload], { type: 'application/json' }));
+      } else {
+        fetch('/api/track-visit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+          keepalive: true
+        }).catch(() => {});
+      }
+    }
+  } catch (e) {
+    // Fail silently
+  }
+})();
 
 // ===== NAV =====
 const navbar = document.getElementById('navbar');

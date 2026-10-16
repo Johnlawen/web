@@ -35,7 +35,7 @@ module.exports = async function handler(req, res) {
 
     const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'johnl';
     const isAdmin = Boolean(req.headers['x-admin-token'] && req.headers['x-admin-token'] === ADMIN_TOKEN);
-    const adminActions = ['verify-token', 'repair-stats', 'reset-orders', 'delete-event', 'settings', 'archive-event', 'mark-paid', 'manual', 'scan', 'delete-order', 'delete-group'];
+    const adminActions = ['verify-token', 'repair-stats', 'reset-orders', 'reset-analytics', 'delete-event', 'settings', 'archive-event', 'mark-paid', 'manual', 'scan', 'delete-order', 'delete-group'];
 
     if (adminActions.includes(action) && !isAdmin) {
       return res.status(401).json({ error: 'Unauthorized: Invalid Admin Token' });
@@ -100,6 +100,25 @@ module.exports = async function handler(req, res) {
       data.rounds.r3.sold = 0;
 
       await redis.set('luccaAdminData', JSON.stringify(data));
+      return res.status(200).json({ success: true, data });
+    }
+
+    if (action === 'reset-analytics') {
+      const today = new Date().toISOString().slice(0, 10);
+      await Promise.all([
+        redis.del('analytics:visits:total'),
+        redis.del('analytics:visits:qr'),
+        redis.del(`analytics:daily:${today}:total`),
+        redis.del(`analytics:daily:${today}:qr`)
+      ]);
+      data.analytics = {
+        totalVisits: 0,
+        qrVisits: 0,
+        directVisits: 0,
+        qrPercentage: 0,
+        todayVisits: 0,
+        todayQr: 0
+      };
       return res.status(200).json({ success: true, data });
     }
 

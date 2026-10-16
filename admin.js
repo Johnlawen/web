@@ -507,6 +507,23 @@ function renderDashboard() {
   const dashEventsEl = document.getElementById('dash-events');
   if (dashEventsEl) dashEventsEl.textContent = activeEventsCount;
 
+  // Website & QR Analytics
+  const analytics = appData.analytics || {};
+  const totalVisits = analytics.totalVisits || 0;
+  const qrVisits = analytics.qrVisits || 0;
+  const todayVisits = analytics.todayVisits || 0;
+  const qrPct = totalVisits > 0 ? Math.round((qrVisits / totalVisits) * 100) : 0;
+
+  const dashVisitsEl = document.getElementById('dash-visits');
+  if (dashVisitsEl) dashVisitsEl.textContent = totalVisits.toLocaleString();
+  const dashVisitsTodayEl = document.getElementById('dash-visits-today');
+  if (dashVisitsTodayEl) dashVisitsTodayEl.textContent = `Oggi: ${todayVisits.toLocaleString()}`;
+
+  const dashQrEl = document.getElementById('dash-qr');
+  if (dashQrEl) dashQrEl.textContent = qrVisits.toLocaleString();
+  const dashQrPctEl = document.getElementById('dash-qr-pct');
+  if (dashQrPctEl) dashQrPctEl.textContent = `${qrPct}% del traffico`;
+
   // Progress Bars
   const r1 = appData.rounds.r1;
   const p1 = (r1.sold / r1.limit) * 100;
@@ -552,11 +569,13 @@ function renderDashboard() {
       "Valentina Severini": ["VALENTINA SEVERINI", "VALENTINA", "VALENTINASEVERINI"],
       "Chiara Comella": ["CHIARA COMELLA", "CHIARA", "CHIARACOMELLA"],
       "DJL": ["DJL", "DJ L", "DJ-L"],
-      "Lucca Groove IG": ["LUCCA GROOVE IG", "LUCCA GROOVE", "IG", "INSTAGRAM", "ORGANIC", ""]
+      "Lucca Groove IG": ["LUCCA GROOVE IG", "LUCCA GROOVE", "IG", "INSTAGRAM", "ORGANIC", ""],
+      "QR Code / Flyer": ["QR CODE", "QR", "FLIER", "FLYER"]
     };
 
     const promoterCounts = {
       "Lucca Groove IG": 0,
+      "QR Code / Flyer": 0,
       "Alicea Dorni": 0,
       "Francesca Calta": 0,
       "Valentina Severini": 0,

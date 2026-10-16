@@ -82,6 +82,40 @@ module.exports = async function handler(req, res) {
     const isAdmin = Boolean(req.headers['x-admin-token'] && req.headers['x-admin-token'] === ADMIN_TOKEN);
     
     if (isAdmin) {
+      try {
+        const today = new Date().toISOString().slice(0, 10);
+        const [total, qr, tTotal, tQr] = await Promise.all([
+          redis.get('analytics:visits:total'),
+          redis.get('analytics:visits:qr'),
+          redis.get(`analytics:daily:${today}:total`),
+          redis.get(`analytics:daily:${today}:qr`)
+        ]);
+
+        const totalVisits = parseInt(total || '0', 10);
+        const qrVisits = parseInt(qr || '0', 10);
+        const todayVisits = parseInt(tTotal || '0', 10);
+        const todayQr = parseInt(tQr || '0', 10);
+
+        data.analytics = {
+          totalVisits,
+          qrVisits,
+          directVisits: Math.max(0, totalVisits - qrVisits),
+          qrPercentage: totalVisits > 0 ? Math.round((qrVisits / totalVisits) * 100) : 0,
+          todayVisits,
+          todayQr
+        };
+      } catch (err) {
+        console.error('Error fetching analytics:', err);
+        data.analytics = {
+          totalVisits: 0,
+          qrVisits: 0,
+          directVisits: 0,
+          qrPercentage: 0,
+          todayVisits: 0,
+          todayQr: 0
+        };
+      }
+
       res.status(200).json(data);
     } else {
       const publicData = {
