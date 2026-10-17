@@ -72,6 +72,17 @@ module.exports = async function handler(req, res) {
       }
     }
     
+    // --- AUTO-FIX BLANK PROMOTERS ---
+    // If an order has an empty promoter (e.g. from organic/IG visits with restricted storage), default it to 'LUCCA GROOVE IG'.
+    if (data.orders && data.orders.length > 0) {
+      data.orders.forEach(o => {
+        if (!o.promoter || typeof o.promoter !== 'string' || o.promoter.trim() === '') {
+          o.promoter = 'LUCCA GROOVE IG';
+          changed = true;
+        }
+      });
+    }
+
     if (changed) {
       await redis.set('luccaAdminData', JSON.stringify(data));
     }

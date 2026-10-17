@@ -585,19 +585,20 @@ function renderDashboard() {
     };
 
     appData.orders.forEach(o => {
-      if (o.promoter && o.status !== 'Rimborsato') {
-        const pUpper = o.promoter.toUpperCase().trim();
-        let matched = false;
-        for (const [fullName, aliases] of Object.entries(promoterMapping)) {
-          if (aliases.includes(pUpper)) {
-            promoterCounts[fullName] += (o.qty || 1);
-            matched = true;
-            break;
-          }
+      if (o.status === 'Rimborsato') return;
+      const pUpper = (o.promoter || 'LUCCA GROOVE IG').toUpperCase().trim();
+      let matched = false;
+      for (const [fullName, aliases] of Object.entries(promoterMapping)) {
+        if (aliases.includes(pUpper)) {
+          promoterCounts[fullName] += (o.qty || 1);
+          matched = true;
+          break;
         }
-        if (!matched && pUpper !== '') {
-          promoterCounts["Altri"] += (o.qty || 1);
-        }
+      }
+      if (!matched && pUpper !== '') {
+        promoterCounts["Altri"] += (o.qty || 1);
+      } else if (!matched) {
+        promoterCounts["Lucca Groove IG"] += (o.qty || 1);
       }
     });
 
@@ -716,7 +717,12 @@ function renderAllOrders() {
       </td>
       <td data-label="Evento"><strong>${escapeHTML(o.event || '-')}</strong></td>
       <td data-label="Pagamento"><span class="badge ${o.payment === 'Contanti' ? 'badge-active' : ''}">${escapeHTML(o.payment)}</span>${statusBadge}</td>
-      <td data-label="Promoter">${escapeHTML(o.promoter || '-')}</td>
+      <td data-label="Promoter">
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span style="font-weight:600; color:var(--text);">${escapeHTML(o.promoter || 'LUCCA GROOVE IG')}</span>
+          <button type="button" class="btn btn-ghost btn-sm" style="padding:1px 5px; font-size:0.75rem; border-color:rgba(255,255,255,0.15);" onclick="changeOrderPromoter('${escapeHTML(o.id)}', '${escapeHTML(o.promoter || 'LUCCA GROOVE IG')}')" title="Modifica Promoter">✏️</button>
+        </div>
+      </td>
       <td data-label="Round">${escapeHTML(o.round)}</td>
       <td data-label="Qtà">${Number(o.qty) || 0}</td>
       <td data-label="Ingressi">${Number(o.used) || 0} / ${Number(o.qty) || 0}</td>
@@ -834,6 +840,37 @@ async function deleteOrder(orderId) {
     showToast('❌ Errore di connessione.');
   }
 }
+
+async function changeOrderPromoter(orderId, currentPromoter) {
+  const newPromoter = prompt(`Modifica il promoter assegnato all'ordine ${orderId}:`, currentPromoter || 'LUCCA GROOVE IG');
+  if (newPromoter === null) return;
+  const clean = newPromoter.trim();
+  if (!clean) return;
+
+  try {
+    const res = await fetch('/api/save-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'update-promoter', orderId, promoter: clean })
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (data.data) {
+        appData = data.data;
+      } else {
+        const ord = (appData.orders || []).find(o => o.id === orderId);
+        if (ord) ord.promoter = clean;
+      }
+      renderDashboard();
+      showToast('✅ Promoter aggiornato con successo!');
+    } else {
+      showToast('❌ Errore: ' + (data.error || 'Operazione fallita'));
+    }
+  } catch (err) {
+    showToast('❌ Errore di connessione.');
+  }
+}
+window.changeOrderPromoter = changeOrderPromoter;
 
 // ===== STORICO EVENTI (ARCHIVE) =====
 async function archiveEvent(eventName) {

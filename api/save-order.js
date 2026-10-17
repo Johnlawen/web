@@ -35,7 +35,7 @@ module.exports = async function handler(req, res) {
 
     const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'johnl';
     const isAdmin = Boolean(req.headers['x-admin-token'] && req.headers['x-admin-token'] === ADMIN_TOKEN);
-    const adminActions = ['verify-token', 'repair-stats', 'reset-orders', 'reset-analytics', 'delete-event', 'settings', 'archive-event', 'mark-paid', 'manual', 'scan', 'delete-order', 'delete-group'];
+    const adminActions = ['verify-token', 'repair-stats', 'reset-orders', 'reset-analytics', 'delete-event', 'settings', 'archive-event', 'mark-paid', 'manual', 'scan', 'delete-order', 'delete-group', 'update-promoter'];
 
     if (adminActions.includes(action) && !isAdmin) {
       return res.status(401).json({ error: 'Unauthorized: Invalid Admin Token' });
@@ -58,6 +58,11 @@ module.exports = async function handler(req, res) {
       (data.orders || []).forEach(o => {
         // Skip refunded tickets entirely from counts
         if (o.status === 'Rimborsato') return;
+
+        // Auto-fix any missing/blank promoter
+        if (!o.promoter || typeof o.promoter !== 'string' || o.promoter.trim() === '') {
+          o.promoter = 'LUCCA GROOVE IG';
+        }
 
         ticketsSold += (o.qty || 0);
         // Only count paid orders toward revenue
@@ -202,6 +207,16 @@ module.exports = async function handler(req, res) {
       
       await redis.set('luccaAdminData', JSON.stringify(data));
       return res.status(200).json({ success: true, data });
+    }
+
+    // Update Order Promoter (Admin)
+    if (action === 'update-promoter') {
+      const { orderId, promoter } = req.body;
+      const target = (data.orders || []).find(o => o.id === orderId);
+      if (!target) return res.status(404).json({ error: 'Order not found' });
+      target.promoter = ((promoter || 'LUCCA GROOVE IG') + '').replace(/<[^>]*>/g, '').trim().slice(0, 50) || 'LUCCA GROOVE IG';
+      await redis.set('luccaAdminData', JSON.stringify(data));
+      return res.status(200).json({ success: true, order: target, data });
     }
 
     // Save Settings
@@ -454,7 +469,8 @@ module.exports = async function handler(req, res) {
         const crypto = require('crypto');
         const secureGroupId = 'GRP-' + crypto.randomBytes(3).toString('hex').toUpperCase();
         const leader = cleanedGuests.find(g => g.isLeader) || cleanedGuests[0];
-        const safePromoter = (req.body.promoter || (order && order.promoter) || '').replace(/<[^>]*>/g, '').trim().slice(0, 50);
+        const rawPromoter = (req.body.promoter || (order && order.promoter) || 'LUCCA GROOVE IG').replace(/<[^>]*>/g, '').trim().slice(0, 50);
+        const safePromoter = rawPromoter || 'LUCCA GROOVE IG';
 
         if (!data.subscribers) data.subscribers = [];
         const createdOrders = [];
@@ -643,7 +659,8 @@ module.exports = async function handler(req, res) {
       const crypto = require('crypto');
       const secureOrderId = 'RES-' + crypto.randomBytes(4).toString('hex').toUpperCase();
 
-      const safePromoter = (order.promoter || '').replace(/<[^>]*>/g, '').trim().slice(0, 50);
+      const rawPromoter = ((order && order.promoter) || 'LUCCA GROOVE IG').replace(/<[^>]*>/g, '').trim().slice(0, 50);
+      const safePromoter = rawPromoter || 'LUCCA GROOVE IG';
 
       // Create verified order
       const verifiedOrder = {

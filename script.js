@@ -3,12 +3,16 @@ const urlParams = new URLSearchParams(window.location.search);
 const refParam = urlParams.get('ref') || urlParams.get('src');
 const isQR = (refParam && refParam.toLowerCase() === 'qr') || urlParams.get('utm_source') === 'qr';
 
-if (isQR) {
-  localStorage.setItem('promoter_ref', 'QR CODE');
-} else if (refParam) {
-  localStorage.setItem('promoter_ref', refParam.toUpperCase());
-} else if (!localStorage.getItem('promoter_ref')) {
-  localStorage.setItem('promoter_ref', 'LUCCA GROOVE IG');
+try {
+  if (isQR) {
+    localStorage.setItem('promoter_ref', 'QR CODE');
+  } else if (refParam) {
+    localStorage.setItem('promoter_ref', refParam.toUpperCase().trim());
+  } else if (!localStorage.getItem('promoter_ref')) {
+    localStorage.setItem('promoter_ref', 'LUCCA GROOVE IG');
+  }
+} catch (e) {
+  // Gracefully handle private browsing or restricted storage
 }
 
 // Track visits deduplicated per session
@@ -488,7 +492,12 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
   const modalEventName = document.getElementById('modal-event-name').textContent;
   const eventName = currentEventName || (modalEventName.includes(' - ') ? modalEventName.split(' - ')[0] : '-');
   const roundName = currentRoundName || (modalEventName.includes(' - ') ? modalEventName.split(' - ').slice(1).join(' - ') : modalEventName || 'Ingresso');
-  const promoterRef = localStorage.getItem('promoter_ref') || '';
+  let promoterRef = 'LUCCA GROOVE IG';
+  try {
+    promoterRef = (localStorage.getItem('promoter_ref') || '').trim() || 'LUCCA GROOVE IG';
+  } catch (e) {
+    promoterRef = 'LUCCA GROOVE IG';
+  }
 
   let requestBody = {};
 
