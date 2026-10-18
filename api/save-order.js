@@ -6,7 +6,7 @@ const defaultData = {
   revenue: 0,
   ticketsSold: 0,
   rounds: {
-    r1: { name: 'Early Tickets', price: 10, limit: 100, sold: 0, active: true },
+    r1: { name: 'Dinner and Party', price: 10, limit: 100, sold: 0, active: true },
     r2: { name: 'Round 2', price: 15, limit: 200, sold: 0, active: true },
     r3: { name: 'Last Round', price: 20, limit: 300, sold: 0, active: true }
   },

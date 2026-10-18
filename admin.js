@@ -37,7 +37,7 @@ let appData = {
   revenue: 0,
   ticketsSold: 0,
   rounds: {
-    r1: { name: 'Early Tickets', price: 10, limit: 100, sold: 0, active: true },
+    r1: { name: 'Dinner and Party', price: 10, limit: 100, sold: 0, active: true },
     r2: { name: 'Round 2', price: 15, limit: 200, sold: 0, active: true },
     r3: { name: 'Last Round', price: 20, limit: 300, sold: 0, active: true }
   },
@@ -284,7 +284,7 @@ function openEventEditor(eventName = '') {
 
   // Load current values
   // Load current values
-  document.getElementById('name-r1').value = (appData.rounds.r1 && appData.rounds.r1.name) || 'Early Tickets';
+  document.getElementById('name-r1').value = (appData.rounds.r1 && appData.rounds.r1.name) || 'Dinner and Party';
   document.getElementById('price-r1').value = typeof appData.rounds.r1.price !== 'undefined' ? appData.rounds.r1.price : 10;
   document.getElementById('limit-r1').value = appData.rounds.r1.limit || 100;
   document.getElementById('toggle-r1').checked = appData.rounds.r1.active !== false;
@@ -305,7 +305,7 @@ function closeEventEditor() {
 }
 
 function saveRounds() {
-  appData.rounds.r1.name = document.getElementById('name-r1').value.trim() || 'Early Tickets';
+  appData.rounds.r1.name = document.getElementById('name-r1').value.trim() || 'Dinner and Party';
   appData.rounds.r1.price = Math.max(0, parseInt(document.getElementById('price-r1').value) || 0);
   appData.rounds.r1.limit = parseInt(document.getElementById('limit-r1').value) || 100;
   appData.rounds.r1.active = document.getElementById('toggle-r1').checked;
@@ -359,7 +359,7 @@ function saveEventDetails() {
   }
   
   // Save rounds data as well
-  appData.rounds.r1.name = document.getElementById('name-r1').value.trim() || 'Early Tickets';
+  appData.rounds.r1.name = document.getElementById('name-r1').value.trim() || 'Dinner and Party';
   appData.rounds.r1.price = Math.max(0, parseInt(document.getElementById('price-r1').value) || 0);
   appData.rounds.r1.limit = parseInt(document.getElementById('limit-r1').value) || 100;
   appData.rounds.r1.active = document.getElementById('toggle-r1').checked;

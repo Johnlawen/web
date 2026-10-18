@@ -6,7 +6,7 @@ const defaultData = {
   revenue: 0,
   ticketsSold: 0,
   rounds: {
-    r1: { name: 'Early Tickets', price: 10, limit: 100, sold: 0, active: true },
+    r1: { name: 'Dinner and Party', price: 10, limit: 100, sold: 0, active: true },
     r2: { name: 'Round 2', price: 15, limit: 200, sold: 0, active: true },
     r3: { name: 'Last Round', price: 20, limit: 300, sold: 0, active: true }
   },
@@ -72,8 +72,16 @@ module.exports = async function handler(req, res) {
       }
     }
     
+    // --- AUTO-UPDATE LUNCH ROUND TO DINNER AND PARTY ---
+    if (data.rounds && data.rounds.r1) {
+      const r1Lower = (data.rounds.r1.name || '').toLowerCase();
+      if (r1Lower.includes('lunch') || r1Lower.includes('pranzo')) {
+        data.rounds.r1.name = 'Dinner and Party';
+        changed = true;
+      }
+    }
+
     // --- AUTO-FIX BLANK PROMOTERS ---
-    // If an order has an empty promoter (e.g. from organic/IG visits with restricted storage), default it to 'LUCCA GROOVE IG'.
     if (data.orders && data.orders.length > 0) {
       data.orders.forEach(o => {
         if (!o.promoter || typeof o.promoter !== 'string' || o.promoter.trim() === '') {

@@ -106,7 +106,7 @@ function escapeHtml(str) {
 }
 
 const DEFAULT_ROUNDS = {
-  r1: { name: 'Early Tickets', price: 10, limit: 100, sold: 0, active: true },
+  r1: { name: 'Dinner and Party', price: 10, limit: 100, sold: 0, active: true },
   r2: { name: 'Round 2', price: 15, limit: 200, sold: 0, active: true },
   r3: { name: 'Last Round', price: 20, limit: 300, sold: 0, active: true }
 };
@@ -214,7 +214,7 @@ async function openRoundsModal(eventName) {
       }
     };
 
-    renderRound(rounds.r1, 'EARLY TICKETS');
+    renderRound(rounds.r1, 'DINNER AND PARTY');
     renderRound(rounds.r2, 'ROUND 2');
     renderRound(rounds.r3, 'LAST ROUND');
   };
@@ -417,7 +417,7 @@ function openCheckoutModal(tier, price) {
   const formEl = document.getElementById('checkout-form');
   if (formEl) formEl.style.display = 'block';
 
-  // Check if Group Booking is allowed for this round (Lunch & Party)
+  // Check if Group Booking is allowed for this round (Dinner and Party)
   const isAllowed = isGroupAllowedForRound(currentRoundName || tier);
   const typeContainer = document.getElementById('booking-type-container');
   if (typeContainer) {
