@@ -266,7 +266,7 @@ let currentRoundName = '';
 function isGroupAllowedForRound(roundName) {
   if (!roundName) return false;
   const lower = roundName.toLowerCase();
-  return lower.includes('lunch') || lower.includes('pranzo');
+  return lower.includes('lunch') || lower.includes('pranzo') || lower.includes('dinner') || lower.includes('cena');
 }
 
 function selectRoundAndCheckout(roundName, price) {
