@@ -478,6 +478,46 @@ async function clearActiveOrders() {
   }
 }
 
+// ===== EXPORT ORDERS CSV =====
+function exportOrdersCSV() {
+  if (!appData.orders || appData.orders.length === 0) {
+    showToast('Nessun ordine da esportare.');
+    return;
+  }
+  
+  const headers = ['ID', 'Data', 'Nome', 'Telefono', 'Email', 'Evento', 'Pagamento', 'Promoter', 'Round', 'Quantita', 'Ingressi', 'Totale', 'Gruppo'];
+  const rows = appData.orders.map(o => {
+    const phone = (o.phone || (appData.subscribers && appData.subscribers.find(s => s.email && s.email.toLowerCase() === (o.email || '').toLowerCase())?.phone) || '').trim();
+    return [
+      `"${(o.id || '').replace(/"/g, '""')}"`,
+      `"${(o.date || '').replace(/"/g, '""')}"`,
+      `"${(o.name || '').replace(/"/g, '""')}"`,
+      `"${phone.replace(/"/g, '""')}"`,
+      `"${(o.email || '').replace(/"/g, '""')}"`,
+      `"${(o.event || '').replace(/"/g, '""')}"`,
+      `"${(o.payment || '').replace(/"/g, '""')}"`,
+      `"${(o.promoter || '').replace(/"/g, '""')}"`,
+      `"${(o.round || '').replace(/"/g, '""')}"`,
+      Number(o.qty) || 0,
+      `"${Number(o.used) || 0}/${Number(o.qty) || 0}"`,
+      Number(o.total) || 0,
+      `"${(o.groupId || '').replace(/"/g, '""')}"`
+    ].join(',');
+  });
+
+  const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ordini_lucca_groove_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('✅ Ordini esportati in CSV con successo!');
+}
+
 async function repairStats() {
   if (!confirm("Vuoi ricalcolare le statistiche dei biglietti venduti, incassi e round in base agli ordini attuali?")) return;
   try {
@@ -550,11 +590,13 @@ function renderDashboard() {
   const tbodyRecent = document.querySelector('#recent-orders-table tbody');
   tbodyRecent.innerHTML = '';
   appData.orders.slice(0, 3).forEach(o => {
+    const orderPhone = (o.phone || (appData.subscribers && appData.subscribers.find(s => s.email && s.email.toLowerCase() === (o.email || '').toLowerCase())?.phone) || '').trim();
+    const phoneSnippet = orderPhone ? ` • <a href="tel:${escapeHTML(orderPhone)}" style="color:var(--orange); text-decoration:none;" title="Chiama ${escapeHTML(orderPhone)}">📞 ${escapeHTML(orderPhone)}</a>` : '';
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td data-label="Utente"><strong>${o.name}</strong><br/><span style="font-size:0.6rem;color:var(--text-muted)">${o.round}</span></td>
-      <td data-label="Qtà">${o.qty}</td>
-      <td data-label="Totale" style="color:var(--orange);font-weight:600">€${o.total}</td>
+      <td data-label="Utente"><strong>${escapeHTML(o.name)}</strong><br/><span style="font-size:0.6rem;color:var(--text-muted)">${escapeHTML(o.round)}${phoneSnippet}</span></td>
+      <td data-label="Qtà">${Number(o.qty) || 0}</td>
+      <td data-label="Totale" style="color:var(--orange);font-weight:600">€${Number(o.total) || 0}</td>
     `;
     tbodyRecent.appendChild(tr);
   });
@@ -640,9 +682,16 @@ function renderAllOrders() {
   
   // 1. Filter
   let filteredOrders = appData.orders.filter(o => {
+    const orderPhone = (o.phone || (appData.subscribers && appData.subscribers.find(s => s.email && s.email.toLowerCase() === (o.email || '').toLowerCase())?.phone) || '').trim();
+    const cleanSearchDigits = searchQuery.replace(/\D/g, '');
+    const cleanPhoneDigits = orderPhone.replace(/\D/g, '');
+    const matchesPhoneDigits = cleanSearchDigits.length >= 3 && cleanPhoneDigits.includes(cleanSearchDigits);
+
     const matchesSearch = !searchQuery || 
       (o.name && o.name.toLowerCase().includes(searchQuery)) ||
       (o.email && o.email.toLowerCase().includes(searchQuery)) ||
+      (orderPhone && orderPhone.toLowerCase().includes(searchQuery)) ||
+      matchesPhoneDigits ||
       (o.id && o.id.toLowerCase().includes(searchQuery)) ||
       (o.groupId && o.groupId.toLowerCase().includes(searchQuery)) ||
       (o.groupLeader && o.groupLeader.toLowerCase().includes(searchQuery));
@@ -672,7 +721,7 @@ function renderAllOrders() {
   tbodyAll.innerHTML = '';
   
   if (pageOrders.length === 0) {
-    tbodyAll.innerHTML = '<tr><td colspan="11" style="text-align:center; color:#aaa; padding:20px;">Nessun ordine trovato</td></tr>';
+    tbodyAll.innerHTML = '<tr><td colspan="12" style="text-align:center; color:#aaa; padding:20px;">Nessun ordine trovato</td></tr>';
     return;
   }
 
@@ -705,6 +754,23 @@ function renderAllOrders() {
         </div>
       `;
     }
+
+    const orderPhone = (o.phone || (appData.subscribers && appData.subscribers.find(s => s.email && s.email.toLowerCase() === (o.email || '').toLowerCase())?.phone) || '').trim();
+    let phoneHtml = '<span style="color:var(--text-muted); font-size:0.85rem;">-</span>';
+    if (orderPhone) {
+      const cleanPhoneDigits = orderPhone.replace(/[^\d+]/g, '');
+      const waNumber = cleanPhoneDigits.startsWith('+') ? cleanPhoneDigits.slice(1) : (cleanPhoneDigits.startsWith('3') && cleanPhoneDigits.length === 10 ? '39' + cleanPhoneDigits : cleanPhoneDigits);
+      phoneHtml = `
+        <div style="display:inline-flex; align-items:center; gap:6px; flex-wrap:nowrap;">
+          <a href="tel:${escapeHTML(orderPhone)}" style="color:#fff; text-decoration:none; font-weight:500; font-size:0.85rem; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;" title="Chiama ${escapeHTML(orderPhone)}">
+            <span style="color:var(--orange);">📞</span> ${escapeHTML(orderPhone)}
+          </a>
+          <a href="https://wa.me/${escapeHTML(waNumber)}" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; background:rgba(37,211,102,0.15); border:1px solid rgba(37,211,102,0.4); color:#25D366; text-decoration:none; font-size:0.75rem; flex-shrink:0;" title="Apri WhatsApp">
+            💬
+          </a>
+        </div>
+      `;
+    }
     
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -715,6 +781,7 @@ function renderAllOrders() {
         <br/><span style="font-size:0.7rem;color:var(--text-muted)">${escapeHTML(o.email || '-')}</span>
         ${groupBadge}
       </td>
+      <td data-label="Telefono">${phoneHtml}</td>
       <td data-label="Evento"><strong>${escapeHTML(o.event || '-')}</strong></td>
       <td data-label="Pagamento"><span class="badge ${o.payment === 'Contanti' ? 'badge-active' : ''}">${escapeHTML(o.payment)}</span>${statusBadge}</td>
       <td data-label="Promoter">${escapeHTML(o.promoter || 'LUCCA GROOVE IG')}</td>
@@ -744,12 +811,13 @@ function openGroupModal(groupId) {
 
   const leader = groupOrders.find(o => o.groupIndex === 1 || o.name === o.groupLeader) || groupOrders[0];
   const leaderName = leader.groupLeader || leader.name;
+  const leaderPhone = (leader.phone || (appData.subscribers && appData.subscribers.find(s => s.email && s.email.toLowerCase() === (leader.email || '').toLowerCase())?.phone) || '').trim();
   const eventName = leader.event || '-';
   const roundName = leader.round || '-';
 
   document.getElementById('group-modal-title').textContent = `Gruppo ${groupId} (${groupOrders.length} partecipanti)`;
   document.getElementById('group-modal-sub').innerHTML = `
-    <strong>Capogruppo:</strong> ${escapeHTML(leaderName)} ${leader.phone ? `(${escapeHTML(leader.phone)})` : ''} • 
+    <strong>Capogruppo:</strong> ${escapeHTML(leaderName)} ${leaderPhone ? `(📞 ${escapeHTML(leaderPhone)})` : ''} • 
     <strong>Evento:</strong> ${escapeHTML(eventName)} (${escapeHTML(roundName)})
   `;
 
@@ -761,18 +829,32 @@ function openGroupModal(groupId) {
   sortedOrders.forEach((m, idx) => {
     const isLeader = m.name === leaderName || m.groupIndex === 1;
     const isUsed = Number(m.used) >= 1;
+    const mPhone = (m.phone || leaderPhone || (appData.subscribers && appData.subscribers.find(s => s.email && s.email.toLowerCase() === (m.email || '').toLowerCase())?.phone) || '').trim();
+    let mPhoneHtml = '<span style="color:var(--text-muted);">-</span>';
+    if (mPhone) {
+      const cleanPhoneDigits = mPhone.replace(/[^\d+]/g, '');
+      const waNumber = cleanPhoneDigits.startsWith('+') ? cleanPhoneDigits.slice(1) : (cleanPhoneDigits.startsWith('3') && cleanPhoneDigits.length === 10 ? '39' + cleanPhoneDigits : cleanPhoneDigits);
+      mPhoneHtml = `
+        <div style="display:inline-flex; align-items:center; gap:5px; white-space:nowrap;">
+          <a href="tel:${escapeHTML(mPhone)}" style="color:#fff; text-decoration:none; font-size:0.85rem;">📞 ${escapeHTML(mPhone)}</a>
+          <a href="https://wa.me/${escapeHTML(waNumber)}" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; background:rgba(37,211,102,0.15); border:1px solid rgba(37,211,102,0.4); color:#25D366; text-decoration:none; font-size:0.7rem; flex-shrink:0;" title="WhatsApp">💬</a>
+        </div>
+      `;
+    }
+
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><strong>${idx + 1}</strong></td>
-      <td>
+      <td data-label="#"><strong>${idx + 1}</strong></td>
+      <td data-label="Nome">
         <strong>${escapeHTML(m.name)}</strong> ${isLeader ? '<span style="color:var(--orange);font-size:0.75rem;">(Capogruppo)</span>' : ''}
       </td>
-      <td style="color:#aaa; font-size:0.85rem;">${escapeHTML(m.email)}</td>
-      <td>${escapeHTML(m.gender || '-')}</td>
-      <td>
+      <td data-label="Email" style="color:#aaa; font-size:0.85rem;">${escapeHTML(m.email)}</td>
+      <td data-label="Telefono">${mPhoneHtml}</td>
+      <td data-label="Sesso">${escapeHTML(m.gender || '-')}</td>
+      <td data-label="Ingresso">
         <span class="badge ${isUsed ? 'badge-active' : ''}">${isUsed ? 'Entrato (1/1)' : 'Non entrato (0/1)'}</span>
       </td>
-      <td><code style="color:var(--orange); font-size:0.8rem;">${escapeHTML(m.id)}</code></td>
+      <td data-label="ID Biglietto"><code style="color:var(--orange); font-size:0.8rem;">${escapeHTML(m.id)}</code></td>
     `;
     tbody.appendChild(tr);
   });
@@ -983,6 +1065,7 @@ setInterval(loadData, 10000); // Auto refresh every 10s
 function generateManualTicket() {
   const name = document.getElementById('manual-name').value.trim();
   const email = document.getElementById('manual-email').value.trim();
+  const phone = (document.getElementById('manual-phone')?.value || '').trim();
   const roundKey = document.getElementById('manual-round').value;
   const qty = parseInt(document.getElementById('manual-qty').value);
 
@@ -999,6 +1082,7 @@ function generateManualTicket() {
     date: new Date().toLocaleDateString('it-IT'),
     name: name,
     email: email,
+    phone: phone,
     event: 'Manuale',
     round: round.name,
     qty: qty,
@@ -1043,6 +1127,7 @@ function generateManualTicket() {
   // Reset form
   document.getElementById('manual-name').value = '';
   document.getElementById('manual-email').value = '';
+  if (document.getElementById('manual-phone')) document.getElementById('manual-phone').value = '';
   document.getElementById('manual-qty').value = '1';
 }
 
