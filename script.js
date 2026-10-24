@@ -457,6 +457,16 @@ function renderGuestInputs() {
     `;
   }
   container.innerHTML = html;
+
+  // Attach blur listeners to check guest emails for no-shows
+  for (let i = 2; i <= groupSize; i++) {
+    const gEmailEl = document.getElementById(`input-guest-email-${i}`);
+    const gNomeEl = document.getElementById(`input-guest-nome-${i}`);
+    const gCognomeEl = document.getElementById(`input-guest-cognome-${i}`);
+    if (gEmailEl) gEmailEl.addEventListener('blur', checkGroupAttendeesNoShow);
+    if (gNomeEl) gNomeEl.addEventListener('blur', checkGroupAttendeesNoShow);
+    if (gCognomeEl) gCognomeEl.addEventListener('blur', checkGroupAttendeesNoShow);
+  }
 }
 
 function updateModalTotalDisplay() {
@@ -485,6 +495,9 @@ function openCheckoutModal(tier, price) {
   const formEl = document.getElementById('checkout-form');
   if (formEl) formEl.style.display = 'block';
 
+  // Reset any previous warning
+  hideNoShowWarning();
+
   // Check if Group Booking is allowed for this round (Dinner and Party)
   const isAllowed = isGroupAllowedForRound(currentRoundName || tier);
   const typeContainer = document.getElementById('booking-type-container');
@@ -509,6 +522,7 @@ function closeModal() {
   document.getElementById('checkout-form').reset();
   setBookingType('single');
   hideBookingError();
+  hideNoShowWarning();
 }
 
 function changeQty(delta) {
@@ -523,6 +537,127 @@ function changeQty(delta) {
   const btnTotalText = document.getElementById('btn-total-text');
   if (btnTotalText) btnTotalText.textContent = totalDisplay;
 }
+
+// ===== NO-SHOW ATTENDEE DETECTION =====
+let noShowCheckTimeout = null;
+
+async function checkAttendeeNoShowAPI(email, name) {
+  if (!email || !email.includes('@')) {
+    hideNoShowWarning();
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/save-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'check-noshow',
+        email: email.trim(),
+        name: (name || '').trim()
+      })
+    });
+    const data = await res.json();
+    if (data && data.isNoShow) {
+      showNoShowWarning(data.name || name);
+    } else {
+      hideNoShowWarning();
+    }
+  } catch (err) {
+    console.warn('Could not verify past attendance', err);
+  }
+}
+
+function showNoShowWarning(personName) {
+  const banner = document.getElementById('booking-noshow-banner');
+  const textEl = document.getElementById('noshow-warning-text');
+  const ackCheck = document.getElementById('input-noshow-ack');
+  if (!banner) return;
+
+  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+  const greeting = personName ? `${personName}: ` : '';
+
+  if (textEl) {
+    textEl.textContent = isEn
+      ? `${greeting}Last time you booked a ticket without attending the event. Please make sure not to hold empty spots and only book if you will definitely attend, so places are kept for others.`
+      : `${greeting}la scorsa volta hai prenotato un biglietto ma non ti sei presentato all'evento. Ti chiediamo cortesemente di non prenotare a vuoto e di assicurarti di venire, per lasciare il posto ad altre persone.`;
+  }
+
+  if (ackCheck) {
+    ackCheck.checked = false;
+  }
+
+  banner.style.display = 'block';
+}
+
+function hideNoShowWarning() {
+  const banner = document.getElementById('booking-noshow-banner');
+  const ackCheck = document.getElementById('input-noshow-ack');
+  if (banner) banner.style.display = 'none';
+  if (ackCheck) ackCheck.checked = false;
+}
+
+function triggerNoShowCheckDebounced() {
+  clearTimeout(noShowCheckTimeout);
+  noShowCheckTimeout = setTimeout(() => {
+    const email = (document.getElementById('input-email')?.value || '').trim();
+    const nome = (document.getElementById('input-nome')?.value || '').trim();
+    const cognome = (document.getElementById('input-cognome')?.value || '').trim();
+    const fullName = (nome + ' ' + cognome).trim();
+    if (email && email.includes('@')) {
+      checkAttendeeNoShowAPI(email, fullName);
+    }
+  }, 350);
+}
+
+async function checkGroupAttendeesNoShow() {
+  const attendees = [];
+  const leaderEmail = (document.getElementById('input-email')?.value || '').trim();
+  const leaderNome = (document.getElementById('input-nome')?.value || '').trim();
+  const leaderCognome = (document.getElementById('input-cognome')?.value || '').trim();
+  if (leaderEmail) attendees.push({ email: leaderEmail, name: `${leaderNome} ${leaderCognome}`.trim() });
+
+  if (isGroupBooking) {
+    for (let i = 2; i <= groupSize; i++) {
+      const gEmail = (document.getElementById(`input-guest-email-${i}`)?.value || '').trim();
+      const gNome = (document.getElementById(`input-guest-nome-${i}`)?.value || '').trim();
+      const gCognome = (document.getElementById(`input-guest-cognome-${i}`)?.value || '').trim();
+      if (gEmail) attendees.push({ email: gEmail, name: `${gNome} ${gCognome}`.trim() });
+    }
+  }
+
+  if (attendees.length === 0) return;
+
+  try {
+    const res = await fetch('/api/save-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'check-noshow',
+        attendees: attendees
+      })
+    });
+    const data = await res.json();
+    if (data && data.isNoShow) {
+      showNoShowWarning(data.name);
+    } else {
+      hideNoShowWarning();
+    }
+  } catch (e) {
+    console.warn('Group no-show check error', e);
+  }
+}
+
+// Attach real-time listeners for checkout inputs
+['input-email', 'input-nome', 'input-cognome'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) {
+    el.addEventListener('blur', () => {
+      if (isGroupBooking) checkGroupAttendeesNoShow();
+      else triggerNoShowCheckDebounced();
+    });
+  }
+});
 
 // Form submit
 document.getElementById('checkout-form').addEventListener('submit', async function(e) {
@@ -555,6 +690,21 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
   if (phone.replace(/\D/g, '').length < 6) {
     showBookingError('Inserisci un numero di telefono valido.');
     return;
+  }
+
+  // Verify No-Show acknowledgment if notice is visible
+  const noShowBanner = document.getElementById('booking-noshow-banner');
+  const noShowAck = document.getElementById('input-noshow-ack');
+  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+
+  if (noShowBanner && noShowBanner.style.display !== 'none') {
+    if (!noShowAck || !noShowAck.checked) {
+      showBookingError(isEn 
+        ? 'Please confirm that you will definitely attend by checking the notice box.' 
+        : 'Per favore conferma che sarai presente spuntando la casella di avviso prima di procedere.');
+      noShowBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
   }
 
   const modalEventName = document.getElementById('modal-event-name').textContent;
@@ -616,7 +766,8 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
       event: eventName,
       round: roundName,
       promoter: promoterRef,
-      guests: guestList
+      guests: guestList,
+      acknowledgedNoShow: Boolean(noShowAck && noShowAck.checked)
     };
   } else {
     // Single Booking
@@ -633,7 +784,8 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
     requestBody = {
       action: 'book',
       email: email,
-      order: bookingPayload
+      order: bookingPayload,
+      acknowledgedNoShow: Boolean(noShowAck && noShowAck.checked)
     };
   }
   
@@ -651,6 +803,11 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
     
     const data = await res.json();
     if (!res.ok) {
+      if (data.requiresAck) {
+        showNoShowWarning(data.noShowName || '');
+        const banner = document.getElementById('booking-noshow-banner');
+        if (banner) banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       showBookingError(data.error || 'Errore durante la prenotazione.');
       submitBtn.textContent = originalText;
       submitBtn.disabled = false;

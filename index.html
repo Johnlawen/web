@@ -367,6 +367,24 @@
             <span data-i18n="checkout.terms">Ho letto e accetto i <a href="terms.html" target="_blank" style="color:var(--orange);">Termini e Condizioni</a>, la <a href="privacy.html" target="_blank" style="color:var(--orange);">Privacy Policy</a> e la <a href="media-policy.html" target="_blank" style="color:var(--orange);">Photo &amp; Video Policy</a>. Accetto di essere fotografato/ripreso durante l'evento.</span>
           </label>
         </div>
+
+        <!-- NO-SHOW WARNING BANNER -->
+        <div id="booking-noshow-banner" style="display:none; margin: 1.2rem 0; background: rgba(255,107,0,0.12); border: 1.5px solid var(--orange); border-radius: 8px; padding: 1.1rem 1.2rem; box-shadow: 0 4px 16px rgba(255,107,0,0.15);">
+          <div style="display:flex; align-items:flex-start; gap: 0.8rem;">
+            <span style="font-size: 1.4rem; line-height: 1; flex-shrink: 0;">⚠️</span>
+            <div style="flex:1;">
+              <p id="noshow-warning-title" style="font-family:'Barlow Condensed',sans-serif; font-size:1.05rem; font-weight:900; letter-spacing:0.05em; color:var(--orange); margin:0 0 0.35rem 0;" data-i18n="checkout.noShowWarningTitle">AVVISO IMPORTANTE PRENOTAZIONE</p>
+              <p id="noshow-warning-text" style="font-size:0.88rem; color:#fff; line-height:1.5; margin:0 0 0.75rem 0;" data-i18n="checkout.noShowWarning">
+                La scorsa volta hai prenotato un biglietto ma non ti sei presentato all'evento. Ti chiediamo cortesemente di non prenotare a vuoto e di assicurarti di venire, per lasciare il posto ad altre persone.
+              </p>
+              <label style="display:flex; align-items:flex-start; gap:8px; font-size:0.85rem; color:var(--orange); font-weight:600; cursor:pointer; background:rgba(0,0,0,0.4); padding:8px 10px; border-radius:6px; border:1px solid rgba(255,107,0,0.3);">
+                <input type="checkbox" id="input-noshow-ack" style="accent-color:var(--orange); width:17px; height:17px; margin-top:2px; flex-shrink:0;" />
+                <span id="noshow-ack-label" data-i18n="checkout.noShowAcknowledge" style="color:#eee;">Confermo che questa volta sarò sicuramente presente all'evento</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
         <div class="form-total">
           <span data-i18n="checkout.payAt">DA PAGARE ALLA PORTA</span>
           <span id="modal-total" class="form-total-amount">€10</span>

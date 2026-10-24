@@ -64,6 +64,53 @@ function isEventDatePast(dateStr) {
   return false;
 }
 
+function checkAttendeeNoShow(data, email, name) {
+  if (!email && !name) return null;
+  const cleanEmail = (email || '').trim().toLowerCase();
+  const cleanName = (name || '').trim().toLowerCase();
+
+  const pastOrders = data.pastOrders || [];
+  const activePastOrders = (data.orders || []).filter(o => {
+    const ev = (data.events || []).find(e => (e.name || '').toLowerCase() === (o.event || '').toLowerCase());
+    return ev && isEventDatePast(ev.date);
+  });
+  const allPastOrders = [...pastOrders, ...activePastOrders];
+
+  const match = allPastOrders.find(o => {
+    const isRefunded = o.status === 'Rimborsato' || o.payment === 'Rimborsato';
+    const notUsed = (Number(o.used) || 0) === 0;
+    if (isRefunded || !notUsed) return false;
+
+    const oEmail = (o.email || '').trim().toLowerCase();
+    const oName = (o.name || '').trim().toLowerCase();
+
+    const emailMatches = Boolean(cleanEmail && oEmail && cleanEmail === oEmail);
+    const nameMatches = Boolean(cleanName && oName && (cleanName === oName || oName.includes(cleanName) || cleanName.includes(oName)));
+
+    if (cleanEmail && cleanName) {
+      return emailMatches && (nameMatches || !oName);
+    }
+    if (cleanEmail) {
+      return emailMatches;
+    }
+    if (cleanName) {
+      return nameMatches;
+    }
+    return false;
+  });
+
+  if (match) {
+    return {
+      isNoShow: true,
+      eventName: match.event || '',
+      date: match.date || '',
+      name: match.name || name
+    };
+  }
+
+  return null;
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
@@ -78,6 +125,27 @@ module.exports = async function handler(req, res) {
     }
 
     const { email, order, action, index } = req.body;
+
+    // Public action: Check if an attendee missed the previous event (no-show)
+    if (action === 'check-noshow') {
+      const attendees = Array.isArray(req.body.attendees) ? req.body.attendees : [
+        { email: req.body.email, name: req.body.name }
+      ];
+
+      for (const att of attendees) {
+        const noShow = checkAttendeeNoShow(data, att.email, att.name);
+        if (noShow) {
+          return res.status(200).json({
+            isNoShow: true,
+            name: noShow.name,
+            eventName: noShow.eventName,
+            date: noShow.date
+          });
+        }
+      }
+
+      return res.status(200).json({ isNoShow: false });
+    }
 
     const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'johnl';
     const isAdmin = Boolean(req.headers['x-admin-token'] && req.headers['x-admin-token'] === ADMIN_TOKEN);
@@ -451,6 +519,22 @@ module.exports = async function handler(req, res) {
           return res.status(400).json({ error: 'Questo evento non è attualmente attivo o è già terminato.' });
         }
 
+        // Check if any attendee in group was a no-show
+        const acknowledgedNoShow = Boolean(req.body.acknowledgedNoShow);
+        if (!acknowledgedNoShow) {
+          for (const g of guests) {
+            const noShow = checkAttendeeNoShow(data, g.email, g.name);
+            if (noShow) {
+              return res.status(400).json({
+                error: `Attenzione: ${noShow.name || g.name} all'ultimo evento ha prenotato un biglietto ma non si è presentato. Per favore conferma di voler procedere per non occupare posti inutilmente.`,
+                isNoShow: true,
+                requiresAck: true,
+                noShowName: noShow.name || g.name
+              });
+            }
+          }
+        }
+
         // Verify Round and Price strictly on server side
         const requestedRound = (req.body.round || (order && order.round) || '').trim();
         let matchedRoundKey = null;
@@ -683,6 +767,20 @@ module.exports = async function handler(req, res) {
       );
       if (existingOrder) {
         return res.status(400).json({ error: 'Hai già prenotato un biglietto per questo evento. Ogni persona può ottenere solo un biglietto per evento.' });
+      }
+
+      // Check if user was a no-show in a past event
+      const acknowledgedNoShow = Boolean(req.body.acknowledgedNoShow || (order && order.acknowledgedNoShow));
+      if (!acknowledgedNoShow) {
+        const noShow = checkAttendeeNoShow(data, clientEmail, safeName);
+        if (noShow) {
+          return res.status(400).json({
+            error: "La scorsa volta hai prenotato un biglietto ma non ti sei presentato all'evento. Per favore conferma di essere presente questa volta prima di procedere.",
+            isNoShow: true,
+            requiresAck: true,
+            noShowName: noShow.name || safeName
+          });
+        }
       }
 
       // Verify Round and Price strictly on server side
