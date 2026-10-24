@@ -111,11 +111,53 @@ const DEFAULT_ROUNDS = {
   r3: { name: 'Last Round', price: 20, limit: 300, sold: 0, active: true }
 };
 
-const DEFAULT_EVENTS = [
-  { name: 'SUMMER OPENING', date: '21 Giugno 2025', active: true },
-  { name: 'MID SUMMER', date: '19 Luglio 2025', active: true },
-  { name: 'CLOSING PARTY', date: '30 Agosto 2025', active: true }
-];
+const DEFAULT_EVENTS = [];
+
+function isEventDatePast(dateStr) {
+  if (!dateStr || typeof dateStr !== 'string') return false;
+  const str = dateStr.trim().toLowerCase();
+
+  const dmyMatch = str.match(/^(\d{1,2})[\/\.-](\d{1,2})[\/\.-](\d{4})$/);
+  if (dmyMatch) {
+    const day = parseInt(dmyMatch[1], 10);
+    const month = parseInt(dmyMatch[2], 10) - 1;
+    const year = parseInt(dmyMatch[3], 10);
+    const evDate = new Date(year, month, day, 23, 59, 59);
+    return !isNaN(evDate.getTime()) && evDate.getTime() < Date.now();
+  }
+
+  const dmMatch = str.match(/^(\d{1,2})[\/\.-](\d{1,2})$/);
+  if (dmMatch) {
+    const day = parseInt(dmMatch[1], 10);
+    const month = parseInt(dmMatch[2], 10) - 1;
+    const year = new Date().getFullYear();
+    const evDate = new Date(year, month, day, 23, 59, 59);
+    return !isNaN(evDate.getTime()) && evDate.getTime() < Date.now();
+  }
+
+  const monthsMap = {
+    'gennaio': 0, 'febbraio': 1, 'marzo': 2, 'aprile': 3, 'maggio': 4, 'giugno': 5,
+    'luglio': 6, 'agosto': 7, 'settembre': 8, 'ottobre': 9, 'novembre': 10, 'dicembre': 11,
+    'january': 0, 'february': 1, 'march': 2, 'april': 3, 'may': 4, 'june': 5,
+    'july': 6, 'august': 7, 'september': 8, 'october': 9, 'november': 10, 'december': 11,
+    'gen': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'mag': 4, 'giu': 5,
+    'lug': 6, 'ago': 7, 'set': 8, 'ott': 9, 'nov': 10, 'dic': 11,
+    'jan': 0, 'jun': 5, 'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'dec': 11
+  };
+
+  const parts = str.split(/\s+/);
+  if (parts.length >= 2) {
+    const day = parseInt(parts[0], 10);
+    const monthKey = parts[1].toLowerCase().replace(/[^a-z]/g, '');
+    let year = parts.length >= 3 ? parseInt(parts[2], 10) : new Date().getFullYear();
+    if (!isNaN(day) && monthsMap[monthKey] !== undefined && !isNaN(year)) {
+      const evDate = new Date(year, monthsMap[monthKey], day, 23, 59, 59);
+      return !isNaN(evDate.getTime()) && evDate.getTime() < Date.now();
+    }
+  }
+
+  return false;
+}
 
 let cachedData = null;
 
@@ -123,27 +165,53 @@ let cachedData = null;
 let currentEventName = '';
 
 async function openRoundsModal(eventName) {
-  // 1. OPEN MODAL INSTANTLY: 0ms delay for immediate user feedback
+  // If coming soon is active, tickets cannot be purchased
+  if (cachedData && cachedData.comingSoon) {
+    const eventsSec = document.getElementById('events');
+    if (eventsSec) eventsSec.scrollIntoView({ behavior: 'smooth' });
+    return;
+  }
+
+  // 1. Identify target event name if not provided
+  if (!eventName) {
+    if (cachedData && Array.isArray(cachedData.events)) {
+      const activeEv = cachedData.events.find(e => e.active && !isEventDatePast(e.date));
+      if (activeEv) eventName = activeEv.name;
+    }
+    if (!eventName) {
+      const firstCardBtn = document.querySelector('.event-btn[data-event-name]:not([disabled])');
+      if (firstCardBtn) {
+        eventName = decodeURIComponent(firstCardBtn.getAttribute('data-event-name'));
+      }
+    }
+  }
+
+  // If no active upcoming event found, do not open modal!
+  if (!eventName) {
+    const eventsSec = document.getElementById('events');
+    if (eventsSec) eventsSec.scrollIntoView({ behavior: 'smooth' });
+    return;
+  }
+
+  // Check if requested event is inactive or past
+  if (cachedData && Array.isArray(cachedData.events)) {
+    const foundEv = cachedData.events.find(e => e.name.toLowerCase() === eventName.toLowerCase());
+    if (foundEv && (!foundEv.active || isEventDatePast(foundEv.date))) {
+      const isTestMode = window.location.search.includes('test=1');
+      if (!isTestMode) {
+        const eventsSec = document.getElementById('events');
+        if (eventsSec) eventsSec.scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+    }
+  }
+
+  // 2. OPEN MODAL now that we verified an active event exists
   const overlay = document.getElementById('rounds-modal-overlay');
   if (overlay) {
     overlay.classList.add('open');
   }
   document.body.style.overflow = 'hidden';
-
-  // 2. Identify target event name
-  if (!eventName) {
-    if (cachedData && cachedData.events && cachedData.events.length > 0) {
-      const activeEv = cachedData.events.find(e => e.active);
-      eventName = activeEv ? activeEv.name : cachedData.events[0].name;
-    } else {
-      const firstCardBtn = document.querySelector('.event-btn[data-event-name]');
-      if (firstCardBtn) {
-        eventName = decodeURIComponent(firstCardBtn.getAttribute('data-event-name'));
-      } else {
-        eventName = DEFAULT_EVENTS[0].name;
-      }
-    }
-  }
 
   currentEventName = eventName;
   const titleEl = document.getElementById('rounds-event-name');
@@ -667,8 +735,10 @@ function renderEventCards(eventsList) {
   const images = ['crowd.png', 'hero-tower.png', 'event3.png'];
   const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
   const buyBtnText = isEn ? 'BUY TICKET' : 'ACQUISTA BIGLIETTO';
+  const endedText = isEn ? 'EVENT CONCLUDED' : 'EVENTO CONCLUSO';
 
   visibleEvents.forEach((ev, idx) => {
+    const isPast = isEventDatePast(ev.date);
     const dateParts = (ev.date || '').split(' ');
     const day = dateParts[0] || '00';
     const month = (dateParts[1] || 'MESE').substring(0,3).toUpperCase();
@@ -696,21 +766,26 @@ function renderEventCards(eventsList) {
         </div>
       </div>
       <div class="event-content">
-        ${!ev.active ? '<div style="background:#ff4444;color:#fff;padding:4px 8px;border-radius:4px;font-size:0.8rem;font-weight:bold;margin-bottom:0.5rem;display:inline-block;">TEST EVENT (INATTIVO)</div>' : ''}
+        ${!ev.active ? '<div style="background:#ff4444;color:#fff;padding:4px 8px;border-radius:4px;font-size:0.8rem;font-weight:bold;margin-bottom:0.5rem;display:inline-block;">TEST EVENT (INATTIVO)</div>' : (isPast ? `<div style="background:#444;color:#bbb;padding:4px 8px;border-radius:4px;font-size:0.8rem;font-weight:bold;margin-bottom:0.5rem;display:inline-block;">${endedText}</div>` : '')}
         <h3 class="event-title">LUCCA GROOVE<br /><span class="orange">${escapeHtml(ev.name)}</span></h3>
         <p class="event-location">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
           ${escapeHtml(locDisplay.toUpperCase())}
         </p>
-        <button class="btn btn-outline btn-full event-btn" data-event-name="${encodeURIComponent(ev.name)}">
-          <span data-i18n="events.buyTicket">${buyBtnText}</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
-        </button>
+        ${isPast && !isTestMode ? `
+          <button class="btn btn-outline btn-full event-btn" disabled style="opacity:0.6; cursor:not-allowed; border-color:#555; color:#888;">
+            <span>${endedText}</span>
+          </button>
+        ` : `
+          <button class="btn btn-outline btn-full event-btn" data-event-name="${encodeURIComponent(ev.name)}">
+            <span data-i18n="events.buyTicket">${buyBtnText}</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+          </button>
+        `}
       </div>
     `;
 
-    // Direct event listener in JS eliminates all inline quote escaping issues!
-    const buyBtn = card.querySelector('.event-btn');
+    const buyBtn = card.querySelector('.event-btn:not([disabled])');
     if (buyBtn) {
       buyBtn.addEventListener('click', (e) => {
         e.preventDefault();
@@ -748,13 +823,14 @@ async function loadEvents() {
       return;
     }
 
-    renderEventCards(data.events && data.events.length > 0 ? data.events : DEFAULT_EVENTS);
+    const eventsList = (data.events && Array.isArray(data.events)) ? data.events : [];
+    renderEventCards(eventsList);
   } catch (err) {
     console.warn('API error, checking localStorage or fallback events', err);
-    let fallback = DEFAULT_EVENTS;
+    let fallback = [];
     try {
       const local = JSON.parse(localStorage.getItem('luccaAdminData') || '{}');
-      if (local && local.events && local.events.length > 0) fallback = local.events;
+      if (local && Array.isArray(local.events)) fallback = local.events;
     } catch(e) {}
     renderEventCards(fallback);
   }
@@ -775,22 +851,30 @@ function setupBuyTicketButtons() {
       eventsSec.scrollIntoView({ behavior: 'smooth' });
     }
 
+    // 1. If Coming Soon is active, DO NOT open tickets modal
+    if (cachedData && cachedData.comingSoon) {
+      return;
+    }
+
+    // 2. Find an active, upcoming event (not expired/past)
     let targetEventName = '';
-    if (cachedData && cachedData.events) {
-      const activeEv = cachedData.events.find(ev => ev.active);
+    if (cachedData && Array.isArray(cachedData.events)) {
+      const activeEv = cachedData.events.find(ev => ev.active && !isEventDatePast(ev.date));
       if (activeEv) targetEventName = activeEv.name;
     }
+
+    // 3. Fallback to first active event button on page if available
     if (!targetEventName) {
-      const firstBtn = document.querySelector('.event-btn[data-event-name]');
+      const firstBtn = document.querySelector('.event-btn[data-event-name]:not([disabled])');
       if (firstBtn) {
         targetEventName = decodeURIComponent(firstBtn.getAttribute('data-event-name'));
       }
     }
-    if (!targetEventName) {
-      targetEventName = DEFAULT_EVENTS[0].name;
-    }
 
-    openRoundsModal(targetEventName);
+    // 4. ONLY open modal if a valid active upcoming event exists!
+    if (targetEventName) {
+      openRoundsModal(targetEventName);
+    }
   };
 
   const navCta = document.getElementById('nav-cta');

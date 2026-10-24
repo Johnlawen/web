@@ -12,9 +12,9 @@ const defaultData = {
   },
   orders: [],
   events: [
-    { name: 'SUMMER OPENING', date: '21 Giugno 2025', active: true },
-    { name: 'MID SUMMER', date: '19 Luglio 2025', active: true },
-    { name: 'CLOSING PARTY', date: '30 Agosto 2025', active: true }
+    { name: 'SUMMER OPENING', date: '21 Giugno 2025', active: false },
+    { name: 'MID SUMMER', date: '19 Luglio 2025', active: false },
+    { name: 'CLOSING PARTY', date: '30 Agosto 2025', active: false }
   ]
 };
 

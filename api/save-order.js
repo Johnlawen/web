@@ -12,11 +12,57 @@ const defaultData = {
   },
   orders: [],
   events: [
-    { name: 'SUMMER OPENING', date: '21 Giugno 2025', active: true },
-    { name: 'MID SUMMER', date: '19 Luglio 2025', active: true },
-    { name: 'CLOSING PARTY', date: '30 Agosto 2025', active: true }
+    { name: 'SUMMER OPENING', date: '21 Giugno 2025', active: false },
+    { name: 'MID SUMMER', date: '19 Luglio 2025', active: false },
+    { name: 'CLOSING PARTY', date: '30 Agosto 2025', active: false }
   ]
 };
+
+function isEventDatePast(dateStr) {
+  if (!dateStr || typeof dateStr !== 'string') return false;
+  const str = dateStr.trim().toLowerCase();
+
+  const dmyMatch = str.match(/^(\d{1,2})[\/\.-](\d{1,2})[\/\.-](\d{4})$/);
+  if (dmyMatch) {
+    const day = parseInt(dmyMatch[1], 10);
+    const month = parseInt(dmyMatch[2], 10) - 1;
+    const year = parseInt(dmyMatch[3], 10);
+    const evDate = new Date(year, month, day, 23, 59, 59);
+    return !isNaN(evDate.getTime()) && evDate.getTime() < Date.now();
+  }
+
+  const dmMatch = str.match(/^(\d{1,2})[\/\.-](\d{1,2})$/);
+  if (dmMatch) {
+    const day = parseInt(dmMatch[1], 10);
+    const month = parseInt(dmMatch[2], 10) - 1;
+    const year = new Date().getFullYear();
+    const evDate = new Date(year, month, day, 23, 59, 59);
+    return !isNaN(evDate.getTime()) && evDate.getTime() < Date.now();
+  }
+
+  const monthsMap = {
+    'gennaio': 0, 'febbraio': 1, 'marzo': 2, 'aprile': 3, 'maggio': 4, 'giugno': 5,
+    'luglio': 6, 'agosto': 7, 'settembre': 8, 'ottobre': 9, 'novembre': 10, 'dicembre': 11,
+    'january': 0, 'february': 1, 'march': 2, 'april': 3, 'may': 4, 'june': 5,
+    'july': 6, 'august': 7, 'september': 8, 'october': 9, 'november': 10, 'december': 11,
+    'gen': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'mag': 4, 'giu': 5,
+    'lug': 6, 'ago': 7, 'set': 8, 'ott': 9, 'nov': 10, 'dic': 11,
+    'jan': 0, 'jun': 5, 'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'dec': 11
+  };
+
+  const parts = str.split(/\s+/);
+  if (parts.length >= 2) {
+    const day = parseInt(parts[0], 10);
+    const monthKey = parts[1].toLowerCase().replace(/[^a-z]/g, '');
+    let year = parts.length >= 3 ? parseInt(parts[2], 10) : new Date().getFullYear();
+    if (!isNaN(day) && monthsMap[monthKey] !== undefined && !isNaN(year)) {
+      const evDate = new Date(year, monthsMap[monthKey], day, 23, 59, 59);
+      return !isNaN(evDate.getTime()) && evDate.getTime() < Date.now();
+    }
+  }
+
+  return false;
+}
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -381,14 +427,18 @@ module.exports = async function handler(req, res) {
           return res.status(400).json({ error: 'Il gruppo deve contenere tra 2 e 8 persone.' });
         }
 
+        if (data.comingSoon) {
+          return res.status(400).json({ error: 'Le vendite dei biglietti non sono attualmente aperte.' });
+        }
+
         const requestedEvent = (req.body.event || (order && order.event) || '').trim();
         const activeEvents = data.events || [];
         const matchedEvent = activeEvents.find(e => e.name.toLowerCase() === requestedEvent.toLowerCase());
         if (!matchedEvent) {
           return res.status(400).json({ error: 'Evento non valido o non trovato.' });
         }
-        if (!matchedEvent.active) {
-          return res.status(400).json({ error: 'Questo evento non è attualmente attivo.' });
+        if (!matchedEvent.active || isEventDatePast(matchedEvent.date)) {
+          return res.status(400).json({ error: 'Questo evento non è attualmente attivo o è già terminato.' });
         }
 
         // Verify Round and Price strictly on server side
@@ -600,14 +650,18 @@ module.exports = async function handler(req, res) {
       const rawGender = (order.gender || '').trim();
       const safeGender = rawGender === 'Uomo' ? 'Male' : (rawGender === 'Donna' ? 'Female' : rawGender.slice(0, 20));
 
+      if (data.comingSoon) {
+        return res.status(400).json({ error: 'Le vendite dei biglietti non sono attualmente aperte.' });
+      }
+
       const requestedEvent = (order.event || '').trim();
       const activeEvents = data.events || [];
       const matchedEvent = activeEvents.find(e => e.name.toLowerCase() === requestedEvent.toLowerCase());
       if (!matchedEvent) {
         return res.status(400).json({ error: 'Evento non valido o non trovato.' });
       }
-      if (!matchedEvent.active) {
-        return res.status(400).json({ error: 'Questo evento non è attualmente attivo.' });
+      if (!matchedEvent.active || isEventDatePast(matchedEvent.date)) {
+        return res.status(400).json({ error: 'Questo evento non è attualmente attivo o è già terminato.' });
       }
 
       // Check if user already booked for this event
