@@ -919,6 +919,81 @@ async function deleteOrder(orderId) {
 }
 
 
+// ===== PROMOTER MAPPING & UTILS =====
+const PROMOTER_MAPPING = {
+  "Alicea Dorni": ["ALICEA DORNI", "ALICEA", "ALICEADORNI"],
+  "Francesca Calta": ["FRANCESCA CALTA", "FRANCESCA", "FRANCESCACALTA", "CALTA"],
+  "Valentina Severini": ["VALENTINA SEVERINI", "VALENTINA", "VALENTINASEVERINI"],
+  "Chiara Comella": ["CHIARA COMELLA", "CHIARA", "CHIARACOMELLA"],
+  "DJL": ["DJL", "DJ L", "DJ-L"],
+  "Lucca Groove IG": ["LUCCA GROOVE IG", "LUCCA GROOVE", "IG", "INSTAGRAM", "ORGANIC", ""],
+  "QR Code / Flyer": ["QR CODE", "QR", "FLIER", "FLYER"]
+};
+
+function resolvePromoterName(rawName) {
+  const raw = (rawName || '').trim();
+  if (!raw) return 'Lucca Groove IG';
+  const pUpper = raw.toUpperCase();
+
+  for (const [canonical, aliases] of Object.entries(PROMOTER_MAPPING)) {
+    if (canonical.toUpperCase() === pUpper || aliases.includes(pUpper)) {
+      return canonical;
+    }
+  }
+  return raw;
+}
+
+function getPromoterBreakdown(orders) {
+  const counts = {};
+  (orders || []).forEach(o => {
+    if (o.status === 'Rimborsato' || o.payment === 'Rimborsato') return;
+    const resolved = resolvePromoterName(o.promoter);
+    const qty = Number(o.qty) || 1;
+    counts[resolved] = (counts[resolved] || 0) + qty;
+  });
+
+  return Object.entries(counts)
+    .map(([name, tickets]) => ({ name, tickets }))
+    .sort((a, b) => b.tickets - a.tickets);
+}
+
+function exportEventOrdersCSV(eventName) {
+  const pastOrders = appData.pastOrders || [];
+  const evOrders = pastOrders.filter(o => (o.event || '').toLowerCase() === (eventName || '').toLowerCase());
+  if (evOrders.length === 0) {
+    showToast('⚠️ Nessun ordine da esportare per questo evento.');
+    return;
+  }
+
+  const headers = ['ID', 'Data', 'Nome', 'Telefono', 'Email', 'Evento', 'Pagamento', 'Promoter', 'Round', 'Quantita', 'Totale', 'Stato'];
+  const rows = evOrders.map(o => [
+    `"${(o.id || '').replace(/"/g, '""')}"`,
+    `"${(o.date || '').replace(/"/g, '""')}"`,
+    `"${(o.name || '').replace(/"/g, '""')}"`,
+    `"${(o.phone || '').replace(/"/g, '""')}"`,
+    `"${(o.email || '').replace(/"/g, '""')}"`,
+    `"${(o.event || '').replace(/"/g, '""')}"`,
+    `"${(o.payment || '').replace(/"/g, '""')}"`,
+    `"${(resolvePromoterName(o.promoter) || '').replace(/"/g, '""')}"`,
+    `"${(o.round || '').replace(/"/g, '""')}"`,
+    o.qty || 1,
+    o.total || 0,
+    `"${(o.status || o.payment || '').replace(/"/g, '""')}"`
+  ]);
+
+  const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ordini_${(eventName || 'evento').toLowerCase().replace(/[^a-z0-9]/g, '_')}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('✅ Ordini evento esportati in CSV!');
+}
+
 // ===== STORICO EVENTI (ARCHIVE) =====
 async function archiveEvent(eventName) {
   if (!confirm(`Sei sicuro di voler archiviare l'evento "${eventName}"? Gli ordini verranno spostati nello storico e non saranno più visibili nella tabella attiva.`)) return;
@@ -935,6 +1010,9 @@ async function archiveEvent(eventName) {
       appData = data.data; // Sync with backend updated state
       showToast('✅ Evento archiviato con successo!');
       renderDashboard();
+      renderEvents();
+      renderAllOrders();
+      if (typeof renderArchive === 'function') renderArchive();
     } else {
       showToast('❌ Errore durante l\'archiviazione: ' + data.error);
     }
@@ -961,14 +1039,15 @@ function renderArchive() {
     // Get orders for this specific event — case-insensitive match
     const evOrders = pastOrders.filter(o => (o.event || '').toLowerCase() === ev.name.toLowerCase());
     const refundCount = evOrders.filter(o => o.status === 'Rimborsato' || o.payment === 'Rimborsato').length;
+    const promoterStats = getPromoterBreakdown(evOrders);
     
     const card = document.createElement('div');
-    card.style.cssText = 'background:#111; border:1px solid rgba(255,255,255,0.08); border-radius:12px; overflow:hidden; grid-column: 1 / -1;';
+    card.style.cssText = 'background:#111; border:1px solid rgba(255,255,255,0.08); border-radius:12px; overflow:hidden; grid-column: 1 / -1; box-shadow: 0 4px 20px rgba(0,0,0,0.5);';
     
     // Build orders rows HTML
     let ordersHtml = '';
     if (evOrders.length === 0) {
-      ordersHtml = '<tr><td colspan="6" style="text-align:center;color:#666;padding:16px;">Nessun ordine trovato per questo evento.</td></tr>';
+      ordersHtml = '<tr><td colspan="7" style="text-align:center;color:#666;padding:16px;">Nessun ordine trovato per questo evento.</td></tr>';
     } else {
       evOrders.forEach(o => {
         const statusColors = {
@@ -977,26 +1056,61 @@ function renderArchive() {
         };
         const displayStatus = o.status || o.payment || '-';
         const statusCol = statusColors[displayStatus] || '#888';
+        const pName = resolvePromoterName(o.promoter);
         ordersHtml += `
           <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
-            <td data-label="ID" style="padding:10px 12px; font-size:0.8rem; color:#888; font-family:monospace;">${o.id || '-'}</td>
-            <td data-label="Utente" style="padding:10px 12px; font-weight:600; color:#fff;">${o.name || '-'}</td>
-            <td data-label="Email" style="padding:10px 12px; color:#aaa; font-size:0.85rem;">${o.email || '-'}</td>
-            <td data-label="Turno" style="padding:10px 12px; color:#aaa; font-size:0.85rem;">${o.round || '-'}</td>
+            <td data-label="ID" style="padding:10px 12px; font-size:0.8rem; color:#888; font-family:monospace;">${escapeHTML(o.id || '-')}</td>
+            <td data-label="Utente" style="padding:10px 12px; font-weight:600; color:#fff;">${escapeHTML(o.name || '-')}</td>
+            <td data-label="Email" style="padding:10px 12px; color:#aaa; font-size:0.85rem;">${escapeHTML(o.email || '-')}</td>
+            <td data-label="Promoter" style="padding:10px 12px; font-size:0.85rem;"><span style="color:var(--orange); font-weight:600;">${escapeHTML(pName)}</span></td>
+            <td data-label="Turno" style="padding:10px 12px; color:#aaa; font-size:0.85rem;">${escapeHTML(o.round || '-')}</td>
             <td data-label="Totale" style="padding:10px 12px; color:var(--orange); font-weight:700;">€${o.total || 0}</td>
             <td data-label="Stato" style="padding:10px 12px;"><span style="background:${statusCol}22; color:${statusCol}; border:1px solid ${statusCol}55; padding:2px 10px; border-radius:20px; font-size:0.75rem; font-weight:700; font-family:'Barlow Condensed',sans-serif; letter-spacing:0.05em;">${displayStatus}</span></td>
           </tr>`;
       });
     }
     
+    // Build promoter breakdown HTML
+    let promoterGridHtml = '';
+    if (promoterStats.length === 0) {
+      promoterGridHtml = '<div style="color:#666; font-size:0.85rem; font-style:italic;">Nessuna vendita registrata con promoter per questo evento.</div>';
+    } else {
+      promoterGridHtml = `
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:0.6rem;">
+          ${promoterStats.map(p => {
+            const pName = escapeHTML(p.name);
+            const initials = p.name.split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'P';
+            const pct = ev.ticketsSold > 0 ? Math.round((p.tickets / ev.ticketsSold) * 100) : 0;
+            return `
+              <div style="background:#161616; border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:0.65rem 0.85rem; display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:8px; min-width:0;">
+                  <span style="width:28px; height:28px; border-radius:50%; background:rgba(255,107,0,0.15); border:1px solid rgba(255,107,0,0.3); color:var(--orange); display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:800; flex-shrink:0;">
+                    ${initials}
+                  </span>
+                  <div style="min-width:0;">
+                    <div style="font-size:0.85rem; font-weight:600; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${pName}">${pName}</div>
+                    <div style="font-size:0.7rem; color:#888;">${pct}% dei biglietti</div>
+                  </div>
+                </div>
+                <div style="text-align:right; margin-left:8px; flex-shrink:0;">
+                  <span style="font-family:'Barlow Condensed',sans-serif; font-size:1.2rem; font-weight:800; color:var(--orange); line-height:1;">${p.tickets}</span>
+                  <span style="font-size:0.65rem; color:#777; margin-left:2px;">${p.tickets === 1 ? 'biglietto' : 'biglietti'}</span>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
     const toggleId = `archive-orders-${evIdx}`;
     const toggleBtnId = `archive-btn-${evIdx}`;
     
     card.innerHTML = `
       <div style="padding:1.25rem 1.5rem; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.08);">
         <div>
-          <div style="font-family:'Barlow Condensed',sans-serif; font-size:1.4rem; font-weight:900; color:#fff; letter-spacing:0.05em;">${ev.name}</div>
-          <div style="font-size:0.8rem; color:#888; margin-top:2px;">📅 ${ev.date}</div>
+          <div style="font-family:'Barlow Condensed',sans-serif; font-size:1.4rem; font-weight:900; color:#fff; letter-spacing:0.05em;">${escapeHTML(ev.name)}</div>
+          <div style="font-size:0.8rem; color:#888; margin-top:2px;">📅 ${escapeHTML(ev.date)}</div>
         </div>
         <span style="background:rgba(76,175,80,0.15); color:#4CAF50; border:1px solid rgba(76,175,80,0.4); padding:4px 14px; border-radius:20px; font-size:0.75rem; font-weight:700; font-family:'Barlow Condensed',sans-serif; letter-spacing:0.08em;">ARCHIVIATO</span>
       </div>
@@ -1020,18 +1134,41 @@ function renderArchive() {
         </div>
       </div>
 
+      <!-- PROMOTER BREAKDOWN -->
+      <div style="padding:1.25rem 1.5rem; background:#0d0d0d; border-bottom:1px solid rgba(255,255,255,0.08);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.85rem;">
+          <div style="font-family:'Barlow Condensed',sans-serif; font-size:1.05rem; font-weight:700; color:#fff; letter-spacing:0.04em; display:flex; align-items:center; gap:8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Promoter &amp; Canali di Provenienza
+          </div>
+          <span style="font-size:0.75rem; color:#aaa; background:rgba(255,255,255,0.06); padding:3px 10px; border-radius:12px; font-weight:600;">
+            ${promoterStats.length} ${promoterStats.length === 1 ? 'canale' : 'canali'}
+          </span>
+        </div>
+        ${promoterGridHtml}
+      </div>
+
+      <!-- ORDERS LIST TOGGLE & TABLE -->
       <div style="padding:0 1.5rem; background:#0a0a0a;">
-        <button id="${toggleBtnId}" onclick="toggleArchiveOrders('${toggleId}', '${toggleBtnId}', ${evOrders.length})"
-          style="background:none; border:none; color:var(--orange); cursor:pointer; font-family:'Barlow Condensed',sans-serif; font-size:0.95rem; font-weight:700; padding:1rem 0; letter-spacing:0.05em; width:100%; text-align:left;">
-          ▼ Mostra Ordini &amp; Clienti (${evOrders.length})
-        </button>
-        <div id="${toggleId}" style="display:none; overflow-x:auto; margin-bottom:1rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:1rem 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+          <button id="${toggleBtnId}" onclick="toggleArchiveOrders('${toggleId}', '${toggleBtnId}', ${evOrders.length})"
+            style="background:none; border:none; color:var(--orange); cursor:pointer; font-family:'Barlow Condensed',sans-serif; font-size:0.95rem; font-weight:700; letter-spacing:0.05em; text-align:left; display:flex; align-items:center; gap:6px;">
+            ▼ Mostra Ordini &amp; Clienti (${evOrders.length})
+          </button>
+          <button onclick="exportEventOrdersCSV('${escapeHTML(ev.name).replace(/'/g, "\\'")}')"
+            style="background:transparent; border:1px solid rgba(255,107,0,0.4); color:var(--orange); font-size:0.75rem; font-weight:600; padding:4px 10px; border-radius:4px; cursor:pointer; display:flex; align-items:center; gap:4px;"
+            title="Scarica lista ordini per questo evento">
+            📥 Esporta CSV
+          </button>
+        </div>
+        <div id="${toggleId}" style="display:none; overflow-x:auto; padding-bottom:1rem; margin-top:0.5rem;">
           <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
             <thead>
               <tr style="border-bottom:1px solid rgba(255,255,255,0.12);">
                 <th style="padding:8px 12px; text-align:left; color:#555; font-size:0.7rem; text-transform:uppercase; font-weight:700; letter-spacing:0.08em;">ID Ordine</th>
                 <th style="padding:8px 12px; text-align:left; color:#555; font-size:0.7rem; text-transform:uppercase; font-weight:700; letter-spacing:0.08em;">Nome</th>
                 <th style="padding:8px 12px; text-align:left; color:#555; font-size:0.7rem; text-transform:uppercase; font-weight:700; letter-spacing:0.08em;">Email</th>
+                <th style="padding:8px 12px; text-align:left; color:#555; font-size:0.7rem; text-transform:uppercase; font-weight:700; letter-spacing:0.08em;">Promoter</th>
                 <th style="padding:8px 12px; text-align:left; color:#555; font-size:0.7rem; text-transform:uppercase; font-weight:700; letter-spacing:0.08em;">Tipo</th>
                 <th style="padding:8px 12px; text-align:left; color:#555; font-size:0.7rem; text-transform:uppercase; font-weight:700; letter-spacing:0.08em;">Totale</th>
                 <th style="padding:8px 12px; text-align:left; color:#555; font-size:0.7rem; text-transform:uppercase; font-weight:700; letter-spacing:0.08em;">Stato</th>

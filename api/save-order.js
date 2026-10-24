@@ -289,26 +289,14 @@ module.exports = async function handler(req, res) {
       const eventOrders = data.orders.filter(o => (o.event || '').toLowerCase() === eventName.toLowerCase());
       const otherOrders = data.orders.filter(o => (o.event || '').toLowerCase() !== eventName.toLowerCase());
 
-      // Calculate stats
+      // Calculate stats for archived event
       let evRevenue = 0;
       let evTickets = 0;
       eventOrders.forEach(o => {
         const isPaid = o.payment === 'Pagato' || o.status === 'Pagato';
         if (isPaid) evRevenue += o.total || 0;
         evTickets += o.qty || 0;
-        
-        // Decrement round sold count
-        for (const key in data.rounds) {
-          if (data.rounds[key].name.toLowerCase() === (o.round || '').toLowerCase()) {
-            data.rounds[key].sold = Math.max(0, (data.rounds[key].sold || 0) - (o.qty || 0));
-            break;
-          }
-        }
       });
-
-      // Update global counters (remove archived stats so dashboard only shows active)
-      data.revenue = Math.max(0, data.revenue - evRevenue);
-      data.ticketsSold = Math.max(0, data.ticketsSold - evTickets);
 
       // Save archive summary
       data.archivedEvents.unshift({
@@ -322,6 +310,28 @@ module.exports = async function handler(req, res) {
       // Move orders to pastOrders and update active orders
       data.pastOrders.push(...eventOrders);
       data.orders = otherOrders;
+
+      // Cleanly recalculate remaining active dashboard counters & round counts strictly from remaining active orders
+      let remainingRevenue = 0;
+      let remainingTickets = 0;
+      for (const key in data.rounds) {
+        data.rounds[key].sold = 0;
+      }
+      (data.orders || []).forEach(o => {
+        if (o.status === 'Rimborsato') return;
+        remainingTickets += (o.qty || 0);
+        const isPaid = o.payment === 'Pagato' || o.status === 'Pagato';
+        if (isPaid) remainingRevenue += (o.total || 0);
+
+        for (const key in data.rounds) {
+          if (data.rounds[key].name.toLowerCase() === (o.round || '').toLowerCase()) {
+            data.rounds[key].sold += (o.qty || 0);
+            break;
+          }
+        }
+      });
+      data.revenue = remainingRevenue;
+      data.ticketsSold = remainingTickets;
       
       // Clear out refund requests for the archived event (keep only those matching active orders)
       if (data.refundRequests) {
